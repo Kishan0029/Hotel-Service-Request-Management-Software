@@ -502,6 +502,8 @@ tbody td {
   box-shadow: var(--shadow-lg);
   width: 100%;
   max-width: 480px;
+  max-height: 90vh;
+  overflow-y: auto;
   animation: slideUp 200ms ease;
 }
 
@@ -1454,6 +1456,20 @@ tbody tr.row-complaint:hover {
   .gm-content-grid { grid-template-columns: 1fr; }
 }
 
+@media (max-width: 768px) {
+  .gm-header {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 16px;
+    gap: 16px;
+  }
+  .gm-header-right { justify-content: space-between; }
+  .gm-main { padding: 16px; }
+  .gm-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 .gm-left, .gm-right { display: flex; flex-direction: column; gap: 20px; }
 
 .gm-section {
@@ -1764,13 +1780,20 @@ tbody tr.row-complaint:hover {
   .page-body { padding: 12px 14px; }
 
   /* Stats row: compact on mobile */
-  .stats-row { grid-template-columns: repeat(3, 1fr); gap: 8px; }
-  .stat-card { padding: 10px; }
-  .stat-value { font-size: 1.5rem; }
+  .stats-row { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .stat-card { padding: 12px; }
+  .stat-value { font-size: 1.4rem; }
 
-  /* Filter bar: wrap */
-  .filter-bar { gap: 7px; padding: 8px 10px; }
-  .filter-input { width: 55px; }
+  /* Filter bar: comfortable wrap for thumbs */
+  .filter-bar { 
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px; 
+    padding: 10px; 
+  }
+  .filter-select { flex: 1 1 calc(50% - 8px); min-height: 44px; }
+  .filter-field { flex: 1 1 100%; }
+  .filter-input { width: 100%; min-height: 44px; }
 
   /* All buttons: touch-friendly */
   .btn { min-height: 48px; font-size: 0.95rem; }
