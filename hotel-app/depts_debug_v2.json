@@ -1,0 +1,30 @@
+[
+  {
+    "id": 1,
+    "name": "Housekeeping",
+    "description": null,
+    "default_staff_id": null,
+    "created_at": "2026-03-19T07:16:33.064871+00:00"
+  },
+  {
+    "id": 2,
+    "name": "Laundry",
+    "description": null,
+    "default_staff_id": null,
+    "created_at": "2026-03-19T07:16:40.535385+00:00"
+  },
+  {
+    "id": 3,
+    "name": "Bell Desk",
+    "description": null,
+    "default_staff_id": null,
+    "created_at": "2026-03-19T07:16:45.967731+00:00"
+  },
+  {
+    "id": 4,
+    "name": "Maintenance",
+    "description": null,
+    "default_staff_id": null,
+    "created_at": "2026-03-19T07:16:53.617077+00:00"
+  }
+]
