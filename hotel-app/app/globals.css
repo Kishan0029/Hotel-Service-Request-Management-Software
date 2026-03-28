@@ -204,6 +204,12 @@ input, select, textarea {
   margin-top: 1px;
 }
 
+.header-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
 .page-body {
   padding: 24px 28px;
   flex: 1;
@@ -970,6 +976,8 @@ tbody tr.row-complaint:hover {
   flex-wrap: wrap;
   border-bottom: 1px solid #334155;
 }
+
+.role-spacer { flex: 1; }
 
 .role-bar label {
   color: #94a3b8;
@@ -1771,11 +1779,20 @@ tbody tr.row-complaint:hover {
 
   /* Compact page header */
   .page-header {
-    padding: 12px 14px;
-    flex-wrap: wrap;
-    gap: 8px;
+    height: auto;
+    padding: 16px 14px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
   }
   .page-header-title { font-size: 1.1rem; }
+  .header-actions { width: 100%; display: flex; gap: 8px; }
+  .header-actions .btn { flex: 1; justify-content: center; }
+
+  /* Role Bar mobile */
+  .role-bar { padding: 8px 14px; justify-content: space-between; gap: 8px; }
+  .role-spacer { display: none; }
+  .td-dept-label { display: none; }
 
   .page-body { padding: 12px 14px; }
 

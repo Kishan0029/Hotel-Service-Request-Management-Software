@@ -636,9 +636,9 @@ export default function DashboardPage() {
         <div className="role-bar">
           <span className={`role-bar-pill role-${currentUser?.role}`}>{currentUser?.role?.toUpperCase()}</span>
           <span style={{ color: '#f1f5f9', fontWeight: 600 }}>{currentUser?.name}</span>
-          {currentUser?.department_id && <span className="td-muted">{departments.find(d => d.id === currentUser.department_id)?.name}</span>}
-          <span style={{ flex: 1 }} />
-          <button className="btn btn-ghost btn-sm" onClick={logout} style={{ marginLeft: 'auto', color: '#94a3b8' }}>
+          {currentUser?.department_id && <span className="td-muted td-dept-label">{departments.find(d => d.id === currentUser.department_id)?.name}</span>}
+          <div className="role-spacer"></div>
+          <button className="btn btn-ghost btn-sm" onClick={logout} style={{ color: '#94a3b8' }}>
             <LogOut size={13} /> Logout
           </button>
         </div>
@@ -649,7 +649,7 @@ export default function DashboardPage() {
             <div className="page-header-title">Reception Dashboard</div>
             <div className="page-header-sub">Guest Service Requests</div>
           </div>
-          <div style={{ display: 'flex', gap: 8 }}>
+          <div className="header-actions">
             <button className="btn btn-ghost" onClick={() => setShowTestSms(true)}><MessageSquare size={15} /> Test SMS</button>
             <button className="btn btn-primary" onClick={() => setShowCreate(true)}><Plus size={15} /> New Request</button>
           </div>
