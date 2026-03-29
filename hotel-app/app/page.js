@@ -491,7 +491,7 @@ function TaskCard({ task, currentUser, smsStatus, onAction, onAssign, actionLoad
               )}
             </>
           )}
-          {task.escalation_level < 2 && isAssignedToMe && (
+          {task.escalation_level < 2 && isAssignedToMe && currentUser?.role !== 'staff' && (
             <button className="btn btn-escalate" onClick={() => { if (window.confirm(`Escalate ${task.task_code}?`)) onAction(task.id, { force_escalate: true }, 'escalate'); }} disabled={busy}>
               <Zap size={13} /> {isLoading('escalate') ? '…' : 'Escalate'}
             </button>
@@ -891,7 +891,7 @@ export default function DashboardPage() {
                               {canDoStatus && task.status === 'pending' && <button className="btn btn-acknowledge btn-sm" onClick={() => taskAction(task.id, { status: 'acknowledged' }, 'acknowledge')} disabled={busy}><UserCheck size={11} /> {isLoading('acknowledge') ? '…' : 'Ack'}</button>}
                               {canDoStatus && task.status === 'acknowledged' && <button className="btn btn-start btn-sm" onClick={() => taskAction(task.id, { status: 'in_progress' }, 'start')} disabled={busy}><PlayCircle size={11} /> {isLoading('start') ? '…' : 'Start'}</button>}
                               {canDoStatus && task.status === 'in_progress' && <button className="btn btn-success btn-sm" onClick={() => taskAction(task.id, { status: 'completed' }, 'complete')} disabled={busy}><CheckCircle2 size={11} /> {isLoading('complete') ? '…' : 'Done'}</button>}
-                              {isAssignedToMe && task.status !== 'completed' && task.escalation_level < 2 && (
+                              {isAssignedToMe && task.status !== 'completed' && task.escalation_level < 2 && currentUser?.role !== 'staff' && (
                                 <button className="btn btn-escalate btn-sm" onClick={() => { if (window.confirm(`Escalate ${task.task_code}?`)) taskAction(task.id, { force_escalate: true }, 'escalate'); }} disabled={busy}>
                                   <Zap size={11} /> {isLoading('escalate') ? '…' : 'Escalate'}
                                 </button>
