@@ -1,4 +1,5 @@
 'use client';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
@@ -31,6 +32,27 @@ const navItems = [
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const [role, setRole] = useState(null);
+
+  useEffect(() => {
+    try {
+      const u = localStorage.getItem('currentUser');
+      if (u) {
+        const parsed = JSON.parse(u);
+        setRole(parsed.role);
+      }
+    } catch (e) {
+      console.error('Sidebar auth check failed', e);
+    }
+  }, []);
+
+  // Filter sections based on role
+  const visibleNavItems = navItems.filter(section => {
+    if (section.section === 'Admin') {
+      return ['gm', 'manager'].includes(role);
+    }
+    return true;
+  });
 
   return (
     <aside className="sidebar">
@@ -44,7 +66,7 @@ export default function Sidebar() {
       </div>
 
       {/* Navigation */}
-      {navItems.map((section) => (
+      {visibleNavItems.map((section) => (
         <div key={section.section}>
           <div className="sidebar-section-label">{section.section}</div>
           <nav className="sidebar-nav">
