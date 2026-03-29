@@ -249,6 +249,8 @@ export async function POST(request) {
 
   // ── Send SMS only if task reached staff level ─────────────────────────────
   let sms_status = 'no_staff';
+  
+  // 1. Send to Staff
   if (sendSmsNow && data.assigned_staff?.phone_number && data.assigned_staff.phone_number !== 'N/A') {
     const time = new Date(data.created_at).toLocaleTimeString('en-IN', {
       hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'Asia/Kolkata',
@@ -257,14 +259,19 @@ export async function POST(request) {
       task_id:    data.id,
       task_code:  data.task_code,
       staff_name: data.assigned_staff.name,
-      room:       data.rooms?.room_number ?? room_id,
+      room:       data.rooms?.room_number ?? '?',
       task_type:  data.task_type,
       notes:      data.notes,
       time,
     });
     sms_status = smsResult.success ? 'sent' : 'failed';
+  }
 
-    // Also send to supervisor
+  // 2. Also ALWAYS send to supervisor if it reached staff level
+  if (sendSmsNow) {
+    const time = new Date(data.created_at).toLocaleTimeString('en-IN', {
+      hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'Asia/Kolkata',
+    });
     const { data: sup } = await supabase
       .from('staff')
       .select('name, phone_number')

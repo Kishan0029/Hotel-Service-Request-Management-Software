@@ -201,8 +201,13 @@ export async function PATCH(request, { params }) {
           notes:      taskForSms.notes,
           time,
         }).catch(err => console.error('[Assign SMS]', err.message));
-        
-        // Also send to supervisor
+      }
+
+      // Also ALWAYS send to supervisor
+      if (taskForSms) {
+        const time = new Date(taskForSms.created_at).toLocaleTimeString('en-IN', {
+          hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'Asia/Kolkata',
+        });
         const { data: sup } = await supabase
           .from('staff')
           .select('name, phone_number')
@@ -291,8 +296,13 @@ export async function PATCH(request, { params }) {
           notes:      taskForSms.notes,
           time,
         }).catch(err => console.error('[Reassign SMS]', err.message));
+      }
 
-        // Also send to supervisor
+      // Also ALWAYS send to supervisor
+      if (taskForSms) {
+        const time = new Date(taskForSms.created_at).toLocaleTimeString('en-IN', {
+          hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'Asia/Kolkata',
+        });
         const { data: sup } = await supabase
           .from('staff')
           .select('name, phone_number')
