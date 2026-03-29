@@ -174,7 +174,10 @@ const client = twilio(
 
 export async function sendSMS(to, taskDetails) {
   const { task_id, task_code, staff_name, room, task_type, time, assigned_staff_name, supervisor_name, notes } = taskDetails;
-  const targetPhone = to; // Hardcoded per user
+  let targetPhone = to;
+  // Basic E.164 formatting fallback for India
+  if (targetPhone.length === 10 && !targetPhone.startsWith('+')) targetPhone = `+91${targetPhone}`;
+  else if (!targetPhone.startsWith('+')) targetPhone = `+${targetPhone}`;
 
   let alertDetails = `Attn: ${staff_name}\nRoom: ${room}\nTask: ${task_type}`;
   if (notes) alertDetails += `\nRequirement: ${notes}`;
