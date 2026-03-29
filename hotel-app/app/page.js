@@ -416,8 +416,8 @@ function TaskCard({ task, currentUser, smsStatus, onAction, onAssign, actionLoad
 
   // Can current user assign down the chain?
   const role = currentUser?.role;
-  const canAssignDown = (role === 'manager' && task.current_level === 'manager' && isAssignedToMe) ||
-                        (role === 'supervisor' && task.current_level === 'supervisor' && isAssignedToMe);
+  const canAssignDown = (role === 'manager' && ['manager', 'supervisor', 'staff'].includes(task.current_level)) ||
+                        (role === 'supervisor' && ['supervisor', 'staff'].includes(task.current_level));
 
   const assignee = task.assigned_staff ?? task.staff;
 
@@ -561,8 +561,10 @@ export default function DashboardPage() {
     const p = new URLSearchParams();
     p.set('role', user.role);
     // V4: supervisor and staff both filtered by assigned_to = user.id
-    if (user.role === 'staff' || user.role === 'supervisor') {
+    if (user.role === 'staff') {
       p.set('user_id', user.id);
+    } else if (user.role === 'supervisor' && user.department_id) {
+      p.set('department_id', user.department_id);
     } else if (user.role === 'manager' && user.department_id) {
       p.set('department_id', user.department_id);
     }
@@ -848,8 +850,8 @@ export default function DashboardPage() {
                       // V4 role-gate checks
                       const isAssignedToMe = task.assigned_to && currentUser?.id && String(task.assigned_to) === String(currentUser.id);
                       const canDoStatus = isAssignedToMe && task.current_level !== 'manager';
-                      const canAssignDown = (currentUser?.role === 'manager' && task.current_level === 'manager' && isAssignedToMe) ||
-                                           (currentUser?.role === 'supervisor' && task.current_level === 'supervisor' && isAssignedToMe);
+                      const canAssignDown = (currentUser?.role === 'manager' && ['manager', 'supervisor', 'staff'].includes(task.current_level)) ||
+                                           (currentUser?.role === 'supervisor' && ['supervisor', 'staff'].includes(task.current_level));
                       return (
                         <tr key={task.id} className={rowCls}>
                           <td><span className="task-code">{task.task_code}</span></td>

@@ -53,9 +53,9 @@ export async function GET(req) {
   if (role === 'staff' && userId) {
     // Staff sees only tasks assigned directly to them
     query = query.eq('assigned_to', userId);
-  } else if (role === 'supervisor' && userId) {
-    // Supervisor sees only tasks assigned to them
-    query = query.eq('assigned_to', userId);
+  } else if (role === 'supervisor' && departmentId) {
+    // Supervisor sees all tasks in their department (to oversee/reassign staff)
+    query = query.eq('department_id', departmentId);
   } else if (role === 'manager' && departmentId) {
     // Manager sees all tasks in their department
     query = query.eq('department_id', departmentId);
