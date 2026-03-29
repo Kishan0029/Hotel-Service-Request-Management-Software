@@ -49,7 +49,7 @@ export default function Sidebar() {
   // Filter sections based on role
   const visibleNavItems = navItems.filter(section => {
     if (section.section === 'Admin') {
-      return ['gm', 'manager'].includes(role);
+      return ['gm', 'manager', 'reception'].includes(role);
     }
     return true;
   });
