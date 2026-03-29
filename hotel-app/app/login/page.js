@@ -52,8 +52,9 @@ export default function LoginPage() {
   const [searchQuery, setSearchQuery] = useState('');
 
   // Group staff by role for display, applying search filter
-  const roleLabels = { gm: 'General Manager', manager: 'Managers', supervisor: 'Supervisors', staff: 'Staff' };
-  const roleOrder  = ['gm', 'manager', 'supervisor', 'staff'];
+  // Group staff by role for display, applying search filter
+  const roleLabels = { gm: 'General Manager', reception: 'Reception', manager: 'Managers', supervisor: 'Supervisors', staff: 'Staff' };
+  const roleOrder  = ['gm', 'reception', 'manager', 'supervisor', 'staff'];
   
   const filteredStaff = staff.filter(s => 
     s.name.toLowerCase().includes(searchQuery.toLowerCase()) || 

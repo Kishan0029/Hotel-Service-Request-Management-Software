@@ -59,8 +59,8 @@ export async function GET(req) {
   } else if (role === 'manager' && departmentId) {
     // Manager sees all tasks in their department
     query = query.eq('department_id', departmentId);
-  } else if (role === 'gm' || !role) {
-    // GM sees all tasks; optional dept override
+  } else if (role === 'gm' || role === 'reception' || !role) {
+    // GM/Reception sees all tasks; optional dept override
     if (departmentId) query = query.eq('department_id', departmentId);
   }
 

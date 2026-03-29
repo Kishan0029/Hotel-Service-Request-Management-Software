@@ -202,7 +202,17 @@ function TestSmsModal({ onClose, onDone }) {
    CREATE TASK MODAL
 ═══════════════════════════════════════════════════════════════ */
 function CreateTaskModal({ rooms, departments, allStaff, onClose, onCreated, currentUser }) {
-  const [form, setForm] = useState({ room_id: '', department_id: '', task_type: '', task_type_custom: '', priority: 'normal', type: 'request', notes: '', initial_manager_id: '' });
+  const isReceptionOrGM = ['gm', 'reception'].includes(currentUser?.role);
+  const [form, setForm] = useState({ 
+    room_id: '', 
+    department_id: isReceptionOrGM ? '' : (currentUser?.department_id || ''), 
+    task_type: '', 
+    task_type_custom: '', 
+    priority: 'normal', 
+    type: 'request', 
+    notes: '', 
+    initial_manager_id: '' 
+  });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError]           = useState('');
 
@@ -259,17 +269,19 @@ function CreateTaskModal({ rooms, departments, allStaff, onClose, onCreated, cur
           <div className="modal-body">
             {error && <div className="error-banner">{error}</div>}
             {/* Type */}
-            <div className="field">
-              <label className="field-required">Type</label>
-              <div style={{ display: 'flex', gap: 10 }}>
-                {['request', 'complaint'].map(t => (
-                  <label key={t} className={`type-radio ${form.type === t ? `type-radio-${t}` : ''}`}>
-                    <input type="radio" name="type" value={t} checked={form.type === t} onChange={() => set('type', t)} style={{ display: 'none' }} />
-                    {t === 'complaint' ? '⚠ Complaint' : '📋 Request'}
-                  </label>
-                ))}
+            {isReceptionOrGM && (
+              <div className="field">
+                <label className="field-required">Type</label>
+                <div style={{ display: 'flex', gap: 10 }}>
+                  {['request', 'complaint'].map(t => (
+                    <label key={t} className={`type-radio ${form.type === t ? `type-radio-${t}` : ''}`}>
+                      <input type="radio" name="type" value={t} checked={form.type === t} onChange={() => set('type', t)} style={{ display: 'none' }} />
+                      {t === 'complaint' ? '⚠ Complaint' : '📋 Request'}
+                    </label>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
             {/* Room + Dept */}
             <div className="field-row">
               <div className="field">
@@ -281,10 +293,16 @@ function CreateTaskModal({ rooms, departments, allStaff, onClose, onCreated, cur
               </div>
               <div className="field">
                 <label className="field-required">Department</label>
-                <select value={form.department_id} onChange={e => { set('department_id', e.target.value); set('task_type', ''); }} required>
-                  <option value="">Select dept…</option>
-                  {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
-                </select>
+                {isReceptionOrGM ? (
+                  <select value={form.department_id} onChange={e => { set('department_id', e.target.value); set('task_type', ''); }} required>
+                    <option value="">Select dept…</option>
+                    {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+                  </select>
+                ) : (
+                  <div className="field-disabled" style={{ padding: '10px 14px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 6, color: '#64748b', fontSize: '0.85rem' }}>
+                    {departments.find(d => String(d.id) === String(form.department_id))?.name || 'Your Department'}
+                  </div>
+                )}
               </div>
             </div>
             {/* Task Type */}
@@ -409,7 +427,7 @@ function TaskCard({ task, currentUser, smsStatus, onAction, onAssign, actionLoad
       <div className="task-card-header">
         <div className="task-card-room" style={{ fontWeight: 700, fontSize: '1.1rem' }}>Room {task.rooms?.room_number}</div>
         <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', alignItems: 'center' }}>
-          <TypeBadge type={task.type || 'request'} />
+          {['gm', 'reception'].includes(currentUser?.role) && <TypeBadge type={task.type || 'request'} />}
           {task.priority === 'urgent' && <span className="badge badge-urgent"><AlertTriangle size={10} /> Urgent</span>}
           <LevelBadge level={task.current_level} />
         </div>
@@ -729,15 +747,16 @@ export default function DashboardPage() {
           </button>
         </div>
 
-        {/* ── Page Header ──────────────────────────────── */}
         <header className="page-header">
           <div>
-            <div className="page-header-title">Reception Dashboard</div>
+            <div className="page-header-title">{currentUser?.role === 'reception' ? 'Reception Dashboard' : (currentUser?.role === 'manager' ? 'Manager Dashboard' : (currentUser?.role === 'supervisor' ? 'Supervisor Dashboard' : 'Staff Dashboard'))}</div>
             <div className="page-header-sub">Guest Service Requests</div>
           </div>
           <div className="header-actions">
             <button className="btn btn-ghost" onClick={() => setShowTestSms(true)}><MessageSquare size={15} /> Test SMS</button>
-            <button className="btn btn-primary" onClick={() => setShowCreate(true)}><Plus size={15} /> New Request</button>
+            {currentUser?.role !== 'staff' && (
+              <button className="btn btn-primary" onClick={() => setShowCreate(true)}><Plus size={15} /> New Request</button>
+            )}
           </div>
         </header>
 
@@ -758,7 +777,7 @@ export default function DashboardPage() {
             <div className="stat-card"><div className="stat-label">✅ Acknowledged</div><div className="stat-value" style={{ color: '#1e40af' }}>{ackCount}</div></div>
             <div className="stat-card"><div className="stat-label">🔧 In Progress</div><div className="stat-value" style={{ color: '#c2410c' }}>{inProgCount}</div></div>
             <div className="stat-card"><div className="stat-label">🔴 Delayed</div><div className="stat-value" style={{ color: '#dc2626' }}>{delayedCount}</div></div>
-            {complaintCount > 0 && <div className="stat-card"><div className="stat-label">⚠ Complaints</div><div className="stat-value" style={{ color: '#dc2626' }}>{complaintCount}</div></div>}
+            {['gm', 'reception'].includes(currentUser?.role) && complaintCount > 0 && <div className="stat-card"><div className="stat-label">⚠ Complaints</div><div className="stat-value" style={{ color: '#dc2626' }}>{complaintCount}</div></div>}
             {escalatedCount > 0 && <div className="stat-card"><div className="stat-label">🟠 Escalated</div><div className="stat-value" style={{ color: '#ea580c' }}>{escalatedCount}</div></div>}
             {unassignedCount > 0 && <div className="stat-card"><div className="stat-label">⚠ Unassigned</div><div className="stat-value" style={{ color: '#92400e' }}>{unassignedCount}</div></div>}
           </div>
@@ -769,7 +788,7 @@ export default function DashboardPage() {
               <Search size={13} className="filter-icon" />
               <input type="text" placeholder="Room #" value={filterRoom} onChange={e => setFilterRoom(e.target.value)} className="filter-input" />
             </div>
-            {currentUser?.role === 'gm' && (
+            {['gm', 'reception'].includes(currentUser?.role) && (
               <select className="filter-select" value={filterDept} onChange={e => setFilterDept(e.target.value)}>
                 <option value="">All Depts</option>
                 {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
@@ -782,11 +801,13 @@ export default function DashboardPage() {
               <option value="in_progress">In Progress</option>
               <option value="completed">Completed</option>
             </select>
-            <select className="filter-select" value={filterType} onChange={e => setFilterType(e.target.value)}>
-              <option value="all">All Types</option>
-              <option value="request">Requests</option>
-              <option value="complaint">Complaints</option>
-            </select>
+            {['gm', 'reception'].includes(currentUser?.role) && (
+              <select className="filter-select" value={filterType} onChange={e => setFilterType(e.target.value)}>
+                <option value="all">All Types</option>
+                <option value="request">Requests</option>
+                <option value="complaint">Complaints</option>
+              </select>
+            )}
             {(filterRoom || filterDept || filterStatus !== 'all' || filterType !== 'all') && (
               <button className="btn btn-ghost btn-sm" onClick={() => { setFilterRoom(''); setFilterDept(''); setFilterStatus('all'); setFilterType('all'); }}>
                 <X size={12} /> Clear
@@ -810,7 +831,7 @@ export default function DashboardPage() {
                 <table>
                   <thead>
                     <tr>
-                      <th>Code</th><th>Type</th><th>Room</th><th>Task</th><th>Dept</th>
+                      <th>Code</th>{['gm', 'reception'].includes(currentUser?.role) && <th>Type</th>}<th>Room</th><th>Task</th><th>Dept</th>
                       <th>Level</th><th>Assigned To</th><th>Status</th><th>SLA</th>
                       <th>Escalation</th><th>Actions</th>
                     </tr>
@@ -832,7 +853,7 @@ export default function DashboardPage() {
                       return (
                         <tr key={task.id} className={rowCls}>
                           <td><span className="task-code">{task.task_code}</span></td>
-                          <td><TypeBadge type={task.type || 'request'} /></td>
+                          {['gm', 'reception'].includes(currentUser?.role) && <td><TypeBadge type={task.type || 'request'} /></td>}
                           <td>
                             <strong>Room {task.rooms?.room_number}</strong>
                             <div className="td-muted" style={{ fontSize: '0.73rem', fontWeight: 300 }}>Floor {task.rooms?.floor}</div>
