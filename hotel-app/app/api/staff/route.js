@@ -11,6 +11,7 @@ export async function GET() {
       role,
       is_active,
       created_at,
+      department_id,
       departments!department_id (id, name)
     `)
     .order('name', { ascending: true });
@@ -41,6 +42,7 @@ export async function POST(request) {
       role,
       is_active,
       created_at,
+      department_id,
       departments!department_id (id, name)
     `)
     .single();

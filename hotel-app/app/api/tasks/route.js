@@ -263,6 +263,29 @@ export async function POST(request) {
       time,
     });
     sms_status = smsResult.success ? 'sent' : 'failed';
+
+    // Also send to supervisor
+    const { data: sup } = await supabase
+      .from('staff')
+      .select('name, phone_number')
+      .eq('department_id', department_id)
+      .eq('role', 'supervisor')
+      .eq('is_active', true)
+      .limit(1)
+      .single();
+
+    if (sup && sup.phone_number && sup.phone_number !== 'N/A') {
+      sendSMS(sup.phone_number, {
+        task_id:    data.id,
+        task_code:  data.task_code,
+        staff_name: sup.name,
+        room:       data.rooms?.room_number ?? room_id,
+        task_type:  data.task_type,
+        notes:      data.notes,
+        time,
+        assigned_staff_name: data.assigned_staff.name,
+      }).catch(err => console.error('[POST SMS Sup]', err.message));
+    }
   }
 
   checkAndEscalate().catch(err =>

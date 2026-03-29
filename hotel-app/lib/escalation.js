@@ -153,6 +153,7 @@ export async function checkAndEscalate() {
         task_type,
         status,
         created_at,
+        expected_time,
         escalation_level,
         current_level,
         department_id,
@@ -173,11 +174,12 @@ export async function checkAndEscalate() {
 
     for (const task of tasks ?? []) {
       const elapsedMinutes = (now - new Date(task.created_at).getTime()) / 60_000;
+      const sla = task.expected_time || 10;
 
-      if (task.escalation_level === 0 && elapsedMinutes >= L1_MINUTES) {
+      if (task.escalation_level === 0 && elapsedMinutes >= sla) {
         const r = await escalateTask(task, elapsedMinutes, 1);
         if (r) results.push(r);
-      } else if (task.escalation_level === 1 && elapsedMinutes >= L2_MINUTES) {
+      } else if (task.escalation_level === 1 && elapsedMinutes >= (sla + 2)) {
         const r = await escalateTask(task, elapsedMinutes, 2);
         if (r) results.push(r);
       }

@@ -201,6 +201,29 @@ export async function PATCH(request, { params }) {
           notes:      taskForSms.notes,
           time,
         }).catch(err => console.error('[Assign SMS]', err.message));
+        
+        // Also send to supervisor
+        const { data: sup } = await supabase
+          .from('staff')
+          .select('name, phone_number')
+          .eq('department_id', current.department_id)
+          .eq('role', 'supervisor')
+          .eq('is_active', true)
+          .limit(1)
+          .single();
+
+        if (sup && sup.phone_number && sup.phone_number !== 'N/A') {
+          sendSMS(sup.phone_number, {
+            task_id:    taskForSms.id,
+            task_code:  taskForSms.task_code,
+            staff_name: sup.name,
+            room:       taskForSms.rooms?.room_number ?? '?',
+            task_type:  taskForSms.task_type,
+            notes:      taskForSms.notes,
+            time,
+            assigned_staff_name: targetStaff.name,
+          }).catch(err => console.error('[Assign SMS Sup]', err.message));
+        }
       }
     }
 
@@ -268,6 +291,29 @@ export async function PATCH(request, { params }) {
           notes:      taskForSms.notes,
           time,
         }).catch(err => console.error('[Reassign SMS]', err.message));
+
+        // Also send to supervisor
+        const { data: sup } = await supabase
+          .from('staff')
+          .select('name, phone_number')
+          .eq('department_id', current.department_id)
+          .eq('role', 'supervisor')
+          .eq('is_active', true)
+          .limit(1)
+          .single();
+
+        if (sup && sup.phone_number && sup.phone_number !== 'N/A') {
+          sendSMS(sup.phone_number, {
+            task_id:    taskForSms.id,
+            task_code:  taskForSms.task_code,
+            staff_name: sup.name,
+            room:       taskForSms.rooms?.room_number ?? '?',
+            task_type:  taskForSms.task_type,
+            notes:      taskForSms.notes,
+            time,
+            assigned_staff_name: staffRow.name,
+          }).catch(err => console.error('[Legacy Reassign SMS Sup]', err.message));
+        }
       }
     }
 
