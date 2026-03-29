@@ -165,8 +165,8 @@ export async function POST(request) {
     isUnassigned = !sup;
     sendSmsNow   = false;
 
-  } else if (creator_role === 'supervisor') {
-    // Supervisor creates → auto-assign to default staff or first active staff
+  } else if (creator_role === 'supervisor' || creator_role === 'reception') {
+    // Supervisor or Reception creates → auto-assign to default staff or first active staff
     let staffId = null;
     if (dept?.default_staff_id) {
       const { data: def } = await supabase
@@ -193,7 +193,7 @@ export async function POST(request) {
     sendSmsNow      = !!staffId;
 
   } else {
-    // Reception / staff creates → auto-assign to supervisor (NOT staff directly)
+    // Default fallback (e.g. staff creates somehow) → auto-assign to supervisor
     const { data: sup } = await supabase
       .from('staff')
       .select('id')
@@ -207,7 +207,7 @@ export async function POST(request) {
     assignedRole = sup ? 'supervisor' : null;
     currentLevel = 'supervisor';
     isUnassigned = !sup;
-    sendSmsNow   = false; // SMS only fires when task reaches staff
+    sendSmsNow   = false;
   }
 
   // ── Build initial activity log ─────────────────────────────────────────────
