@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import {
   Plus, CheckCircle2, Clock, ClipboardList, AlertTriangle,
   X, MessageSquare, Users, Zap, PlayCircle, UserCheck,
-  ChevronDown, ChevronUp, LogOut, History, Search,
+  ChevronDown, ChevronUp, LogOut, History, Search, ArrowRight,
 } from 'lucide-react';
 import Sidebar from '@/components/Sidebar';
 
@@ -71,6 +71,18 @@ function EscalationBadge({ level }) {
   return <span className="badge badge-critical"><span className="badge-dot" /> Critical</span>;
 }
 
+function LevelBadge({ level }) {
+  if (!level) return null;
+  const map = {
+    manager:    { label: 'Manager',    cls: 'badge-level-manager' },
+    supervisor: { label: 'Supervisor', cls: 'badge-level-supervisor' },
+    staff:      { label: 'Staff',      cls: 'badge-level-staff' },
+  };
+  const b = map[level];
+  if (!b) return null;
+  return <span className={`badge badge-level ${b.cls}`}>{b.label}</span>;
+}
+
 function SmsBadge({ status }) {
   if (!status || status === 'no_staff') return null;
   const map = {
@@ -100,7 +112,7 @@ function ActivityLog({ log }) {
   if (!Array.isArray(log) || log.length === 0) {
     return <div className="activity-empty">No history yet.</div>;
   }
-  const icons = { created: '📋', acknowledged: '✅', started: '🔧', completed: '✓', reassigned: '↩', escalated: '🔴' };
+  const icons = { created: '📋', acknowledged: '✅', started: '🔧', completed: '✓', reassigned: '↩', escalated: '🔴', assigned: '→' };
   return (
     <div className="activity-log">
       {[...log].reverse().map((entry, i) => (
@@ -110,6 +122,7 @@ function ActivityLog({ log }) {
             <span className="activity-event">{entry.event}</span>
             {entry.by && <span className="activity-by"> by {entry.by}</span>}
             {entry.from && <span className="activity-by"> ({entry.from} → {entry.to})</span>}
+            {entry.level && !entry.from && <span className="activity-by"> → {entry.to} ({entry.level})</span>}
           </div>
           <span className="activity-time">{elapsed(entry.time)}</span>
         </div>
@@ -188,31 +201,38 @@ function TestSmsModal({ onClose, onDone }) {
 /* ════════════════════════════════════════════════════════════
    CREATE TASK MODAL
 ═══════════════════════════════════════════════════════════════ */
-function CreateTaskModal({ rooms, departments, onClose, onCreated, currentUser }) {
-  const [form, setForm] = useState({ room_id: '', department_id: '', task_type: '', task_type_custom: '', priority: 'normal', type: 'request', notes: '' });
+function CreateTaskModal({ rooms, departments, allStaff, onClose, onCreated, currentUser }) {
+  const [form, setForm] = useState({ room_id: '', department_id: '', task_type: '', task_type_custom: '', priority: 'normal', type: 'request', notes: '', initial_manager_id: '' });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError]           = useState('');
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+
+  // Managers available for GM to assign to (filtered by dept once dept selected)
+  const managersInDept = allStaff.filter(s => s.role === 'manager' &&
+    (!form.department_id || String(s.department_id) === String(form.department_id)));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     const taskType = form.task_type === '__custom__' ? form.task_type_custom : form.task_type;
     if (!form.room_id || !form.department_id || !taskType) { setError('Room, Department and Task Type are required.'); return; }
+    if (currentUser?.role === 'gm' && !form.initial_manager_id) { setError('Please select a manager to assign this task to.'); return; }
     setSubmitting(true);
     try {
       const res = await fetch('/api/tasks', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          room_id:       parseInt(form.room_id),
-          department_id: parseInt(form.department_id),
-          task_type:     taskType,
-          priority:      form.priority,
-          type:          form.type,
-          notes:         form.notes || undefined,
-          created_by:    currentUser?.name ?? 'Reception',
+          room_id:            parseInt(form.room_id),
+          department_id:      parseInt(form.department_id),
+          task_type:          taskType,
+          priority:           form.priority,
+          type:               form.type,
+          notes:              form.notes || undefined,
+          created_by:         currentUser?.name ?? 'Reception',
+          creator_role:       currentUser?.role ?? 'staff',
+          initial_manager_id: form.initial_manager_id ? parseInt(form.initial_manager_id) : null,
         }),
       });
       const data = await res.json();
@@ -280,6 +300,17 @@ function CreateTaskModal({ rooms, departments, onClose, onCreated, currentUser }
               <div className="field">
                 <label className="field-required">Describe Task</label>
                 <input type="text" placeholder="e.g. Extra towels" value={form.task_type_custom} onChange={e => set('task_type_custom', e.target.value)} required />
+              </div>
+            )}
+            {/* GM: assign to manager */}
+            {currentUser?.role === 'gm' && (
+              <div className="field">
+                <label className="field-required">Assign to Manager</label>
+                <select value={form.initial_manager_id}
+                  onChange={e => set('initial_manager_id', e.target.value)} required>
+                  <option value="">{form.department_id ? (managersInDept.length ? 'Select manager…' : 'No managers in this dept') : 'Select department first…'}</option>
+                  {managersInDept.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
+                </select>
               </div>
             )}
             {/* Priority + Notes */}
@@ -353,14 +384,24 @@ function WorkloadPanel({ currentUser }) {
 }
 
 /* ════════════════════════════════════════════════════════════
-   MOBILE TASK CARD
+   MOBILE TASK CARD (V4)
 ═══════════════════════════════════════════════════════════════ */
-function TaskCard({ task, currentUser, smsStatus, onAction, actionLoading, canReassign, deptStaff, expandedId, setExpandedId }) {
+function TaskCard({ task, currentUser, smsStatus, onAction, onAssign, actionLoading, assignTargets, expandedId, setExpandedId }) {
   const isLoading = (key) => actionLoading[task.id] === key;
   const busy     = !!actionLoading[task.id];
   const expanded = expandedId === task.id;
-  const delayed  = isDelayed(task);
-  const tick     = 0; // simple, re-render on parent tick
+  const tick     = 0;
+
+  // Determine if current user can take status actions on THIS task
+  const isAssignedToMe = task.assigned_to && currentUser?.id && String(task.assigned_to) === String(currentUser.id);
+  const canDoStatusActions = isAssignedToMe && task.current_level !== 'manager';
+
+  // Can current user assign down the chain?
+  const role = currentUser?.role;
+  const canAssignDown = (role === 'manager' && task.current_level === 'manager' && isAssignedToMe) ||
+                        (role === 'supervisor' && task.current_level === 'supervisor' && isAssignedToMe);
+
+  const assignee = task.assigned_staff ?? task.staff;
 
   return (
     <div className={`task-card ${task.type === 'complaint' ? 'task-card-complaint' : ''} ${task.escalation_level >= 2 ? 'task-card-critical' : task.escalation_level === 1 ? 'task-card-escalated' : ''}`}>
@@ -370,7 +411,7 @@ function TaskCard({ task, currentUser, smsStatus, onAction, actionLoading, canRe
         <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', alignItems: 'center' }}>
           <TypeBadge type={task.type || 'request'} />
           {task.priority === 'urgent' && <span className="badge badge-urgent"><AlertTriangle size={10} /> Urgent</span>}
-          {task.unassigned && <span className="badge badge-unassigned">⚠ Unassigned</span>}
+          <LevelBadge level={task.current_level} />
         </div>
       </div>
 
@@ -385,16 +426,15 @@ function TaskCard({ task, currentUser, smsStatus, onAction, actionLoading, canRe
         <SlaIndicator task={task} tick={tick} />
       </div>
 
-      {/* Staff */}
+      {/* Assignee */}
       <div className="task-card-staff">
-        {task.staff ? (
-          <span>👤 {task.staff.name} <SmsBadge status={smsStatus[task.id]} /></span>
+        {assignee ? (
+          <span>→ {assignee.name} ({task.assigned_role ?? task.current_level}) <SmsBadge status={smsStatus[task.id]} /></span>
         ) : (
-          <span className="td-muted">Not assigned</span>
+          <span className="td-muted">Unassigned</span>
         )}
       </div>
 
-      {/* SMS failure alert */}
       {smsStatus[task.id] === 'failed' && (
         <div className="sms-fail-alert">⚠ SMS failed to send — staff may not be notified</div>
       )}
@@ -402,31 +442,41 @@ function TaskCard({ task, currentUser, smsStatus, onAction, actionLoading, canRe
       {/* Action buttons */}
       {task.status !== 'completed' && (
         <div className="task-card-actions">
-          {task.status === 'pending' && (
-            <button className="btn btn-acknowledge" onClick={() => onAction(task.id, { status: 'acknowledged' }, 'acknowledge', task)} disabled={busy}>
-              <UserCheck size={14} /> {isLoading('acknowledge') ? '…' : 'Acknowledge'}
-            </button>
-          )}
-          {task.status === 'acknowledged' && (
-            <button className="btn btn-start" onClick={() => onAction(task.id, { status: 'in_progress' }, 'start', task)} disabled={busy}>
-              <PlayCircle size={14} /> {isLoading('start') ? '…' : 'Start Work'}
-            </button>
-          )}
-          {task.status === 'in_progress' && (
-            <button className="btn btn-success" onClick={() => onAction(task.id, { status: 'completed' }, 'complete', task)} disabled={busy}>
-              <CheckCircle2 size={14} /> {isLoading('complete') ? '…' : 'Complete'}
-            </button>
-          )}
-          {task.escalation_level < 2 && (
-            <button className="btn btn-escalate" onClick={() => { if (window.confirm(`Escalate ${task.task_code}?`)) onAction(task.id, { force_escalate: true }, 'escalate', task); }} disabled={busy}>
-              <Zap size={13} /> {isLoading('escalate') ? '…' : 'Escalate Now'}
-            </button>
-          )}
-          {canReassign && deptStaff.length > 0 && (
-            <select className="reassign-select" value="" onChange={e => onAction(task.id, { staff_id: parseInt(e.target.value) }, 'reassign', task)} disabled={busy}>
-              <option value="">↩ Reassign…</option>
-              {deptStaff.filter(s => s.id !== task.assigned_staff_id).map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+          {/* Assign down the chain */}
+          {canAssignDown && assignTargets.length > 0 && (
+            <select className="reassign-select" value=""
+              onChange={e => onAssign(task.id, parseInt(e.target.value), currentUser.role)}
+              disabled={busy}>
+              <option value="">
+                {role === 'manager' ? '→ Assign to Supervisor…' : '→ Assign to Staff…'}
+              </option>
+              {assignTargets.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
             </select>
+          )}
+          {/* Status actions — only for the directly assigned person */}
+          {canDoStatusActions && (
+            <>
+              {task.status === 'pending' && (
+                <button className="btn btn-acknowledge" onClick={() => onAction(task.id, { status: 'acknowledged' }, 'acknowledge')} disabled={busy}>
+                  <UserCheck size={14} /> {isLoading('acknowledge') ? '…' : 'Acknowledge'}
+                </button>
+              )}
+              {task.status === 'acknowledged' && (
+                <button className="btn btn-start" onClick={() => onAction(task.id, { status: 'in_progress' }, 'start')} disabled={busy}>
+                  <PlayCircle size={14} /> {isLoading('start') ? '…' : 'Start Work'}
+                </button>
+              )}
+              {task.status === 'in_progress' && (
+                <button className="btn btn-success" onClick={() => onAction(task.id, { status: 'completed' }, 'complete')} disabled={busy}>
+                  <CheckCircle2 size={14} /> {isLoading('complete') ? '…' : 'Complete'}
+                </button>
+              )}
+            </>
+          )}
+          {task.escalation_level < 2 && isAssignedToMe && (
+            <button className="btn btn-escalate" onClick={() => { if (window.confirm(`Escalate ${task.task_code}?`)) onAction(task.id, { force_escalate: true }, 'escalate'); }} disabled={busy}>
+              <Zap size={13} /> {isLoading('escalate') ? '…' : 'Escalate'}
+            </button>
           )}
         </div>
       )}
@@ -487,16 +537,17 @@ export default function DashboardPage() {
 
   const shownEscalations = useRef(new Set());
 
-  /* ── Role-based task URL ─────────────────────────────────── */
+  /* ── Role-based task URL (V4) ───────────────────────────── */
   const buildTasksUrl = useCallback((user) => {
     if (!user) return '/api/tasks?role=gm';
     const p = new URLSearchParams();
     p.set('role', user.role);
-    if (user.role === 'staff') p.set('user_id', user.id);
-    else if ((user.role === 'supervisor' || user.role === 'manager') && user.department_id) {
+    // V4: supervisor and staff both filtered by assigned_to = user.id
+    if (user.role === 'staff' || user.role === 'supervisor') {
+      p.set('user_id', user.id);
+    } else if (user.role === 'manager' && user.department_id) {
       p.set('department_id', user.department_id);
     }
-    // Dept filter (only GM can override dept via UI)
     if (filterDept) p.set('department_id', filterDept);
     if (filterStatus && filterStatus !== 'all') p.set('status', filterStatus);
     if (filterType   && filterType   !== 'all') p.set('type', filterType);
@@ -578,6 +629,29 @@ export default function DashboardPage() {
     }
   };
 
+  // V4: Chain assign action
+  const taskAssign = async (taskId, targetStaffId, assignerRole) => {
+    setActionLoading(prev => ({ ...prev, [taskId]: 'assign' }));
+    try {
+      const res = await fetch(`/api/tasks/${taskId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          assign_to:     targetStaffId,
+          assigner_role: assignerRole,
+          by:            currentUser?.name ?? 'Unknown',
+        }),
+      });
+      const updated = await res.json();
+      if (!res.ok) throw new Error(updated.error);
+      setTasks(prev => prev.map(t => t.id === taskId ? updated : t));
+    } catch (err) {
+      alert('Error: ' + err.message);
+    } finally {
+      setActionLoading(prev => ({ ...prev, [taskId]: null }));
+    }
+  };
+
   const handleCreated = (task) => {
     setTasks(prev => { const e = prev.some(t => t.id === task.id); return e ? prev.map(t => t.id === task.id ? task : t) : [task, ...prev]; });
     if (task.sms_status) setSmsStatus(prev => ({ ...prev, [task.id]: task.sms_status }));
@@ -585,9 +659,21 @@ export default function DashboardPage() {
 
   const logout = () => { localStorage.removeItem('currentUser'); router.push('/login'); };
 
-  /* ── Derived data ─────────────────────────────────────────── */
-  const canReassign = ['manager', 'supervisor'].includes(currentUser?.role);
+  /* ── Derived data (V4) ───────────────────────────────────── */
+  // Supervisors in current user's dept (for manager to assign)
+  const supervisorsInMyDept = allStaff.filter(s =>
+    s.role === 'supervisor' && String(s.department_id) === String(currentUser?.department_id)
+  );
+  // Staff in current user's dept (for supervisor to assign)
+  const staffInMyDept = allStaff.filter(s =>
+    s.role === 'staff' && String(s.department_id) === String(currentUser?.department_id)
+  );
+  // Assign targets based on current user role
+  const assignTargets = currentUser?.role === 'manager' ? supervisorsInMyDept
+                      : currentUser?.role === 'supervisor' ? staffInMyDept
+                      : [];
 
+  // Legacy staffByDept for workload panel
   const staffByDept = {};
   for (const s of allStaff) {
     const dId = s.departments?.id ?? s.department_id;
@@ -725,7 +811,7 @@ export default function DashboardPage() {
                   <thead>
                     <tr>
                       <th>Code</th><th>Type</th><th>Room</th><th>Task</th><th>Dept</th>
-                      <th>Assigned</th><th>Priority</th><th>Status</th><th>SLA</th>
+                      <th>Level</th><th>Assigned To</th><th>Status</th><th>SLA</th>
                       <th>Escalation</th><th>Actions</th>
                     </tr>
                   </thead>
@@ -737,7 +823,12 @@ export default function DashboardPage() {
                       ].filter(Boolean).join(' ');
                       const isLoading = (key) => actionLoading[task.id] === key;
                       const busy      = !!actionLoading[task.id];
-                      const deptStaff = staffByDept[task.departments?.id] ?? [];
+                      const assignee  = task.assigned_staff ?? task.staff;
+                      // V4 role-gate checks
+                      const isAssignedToMe = task.assigned_to && currentUser?.id && String(task.assigned_to) === String(currentUser.id);
+                      const canDoStatus = isAssignedToMe && task.current_level !== 'manager';
+                      const canAssignDown = (currentUser?.role === 'manager' && task.current_level === 'manager' && isAssignedToMe) ||
+                                           (currentUser?.role === 'supervisor' && task.current_level === 'supervisor' && isAssignedToMe);
                       return (
                         <tr key={task.id} className={rowCls}>
                           <td><span className="task-code">{task.task_code}</span></td>
@@ -748,52 +839,41 @@ export default function DashboardPage() {
                           </td>
                           <td style={{ fontWeight: 500 }}>{task.task_type}</td>
                           <td className="td-muted" style={{ fontWeight: 500 }}>{task.departments?.name}</td>
+                          <td><LevelBadge level={task.current_level} /></td>
                           <td>
-                            {task.unassigned && <div><span className="badge badge-unassigned">⚠ Unassigned</span></div>}
-                            {task.staff ? (
+                            {assignee ? (
                               <>
-                                <div style={{ fontWeight: 500 }}>{task.staff.name}</div>
-                                <SmsBadge status={smsStatus[task.id]} />
-                                {smsStatus[task.id] === 'failed' && <div className="sms-fail-inline">⚠ SMS not sent</div>}
-                                {canReassign && task.status !== 'completed' && deptStaff.length > 1 && (
-                                  <select className="reassign-select" value="" onChange={e => taskAction(task.id, { staff_id: parseInt(e.target.value) }, 'reassign')} disabled={busy}>
-                                    <option value="">↩ Reassign…</option>
-                                    {deptStaff.filter(s => s.id !== task.assigned_staff_id).map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                                <div style={{ fontWeight: 500 }}>{assignee.name}</div>
+                                {task.current_level === 'staff' && <SmsBadge status={smsStatus[task.id]} />}
+                                {canAssignDown && task.status !== 'completed' && assignTargets.length > 0 && (
+                                  <select className="reassign-select" value=""
+                                    onChange={e => taskAssign(task.id, parseInt(e.target.value), currentUser.role)}
+                                    disabled={busy}>
+                                    <option value="">
+                                      {currentUser?.role === 'manager' ? '→ Assign Supervisor…' : '→ Assign Staff…'}
+                                    </option>
+                                    {assignTargets.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                                   </select>
                                 )}
                               </>
                             ) : (
-                              <>
-                                <span className="td-muted">—</span>
-                                {canReassign && deptStaff.length > 0 && (
-                                  <select className="reassign-select" value="" onChange={e => taskAction(task.id, { staff_id: parseInt(e.target.value) }, 'reassign')} disabled={busy}>
-                                    <option value="">↩ Assign…</option>
-                                    {deptStaff.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-                                  </select>
-                                )}
-                              </>
+                              <span className="td-muted">Unassigned</span>
                             )}
-                          </td>
-                          <td>
-                            <span className={`badge badge-${task.priority}`}>
-                              {task.priority === 'urgent' && <AlertTriangle size={10} />} {task.priority}
-                            </span>
                           </td>
                           <td><StatusBadge status={task.status} /></td>
                           <td><SlaIndicator task={task} tick={tick} /></td>
                           <td><EscalationBadge level={task.escalation_level} /></td>
                           <td>
                             <div className="action-cell">
-                              {task.status === 'pending'      && <button className="btn btn-acknowledge btn-sm" onClick={() => taskAction(task.id, { status: 'acknowledged' }, 'acknowledge')} disabled={busy}><UserCheck size={11} /> {isLoading('acknowledge') ? '…' : 'Acknowledge'}</button>}
-                              {task.status === 'acknowledged' && <button className="btn btn-start btn-sm"       onClick={() => taskAction(task.id, { status: 'in_progress' },  'start')}       disabled={busy}><PlayCircle size={11} /> {isLoading('start') ? '…' : 'Start Work'}</button>}
-                              {task.status === 'in_progress'  && <button className="btn btn-success btn-sm"     onClick={() => taskAction(task.id, { status: 'completed' },    'complete')}    disabled={busy}><CheckCircle2 size={11} /> {isLoading('complete') ? '…' : 'Complete'}</button>}
-                              {task.status !== 'completed' && task.escalation_level < 2 && (
+                              {canDoStatus && task.status === 'pending' && <button className="btn btn-acknowledge btn-sm" onClick={() => taskAction(task.id, { status: 'acknowledged' }, 'acknowledge')} disabled={busy}><UserCheck size={11} /> {isLoading('acknowledge') ? '…' : 'Ack'}</button>}
+                              {canDoStatus && task.status === 'acknowledged' && <button className="btn btn-start btn-sm" onClick={() => taskAction(task.id, { status: 'in_progress' }, 'start')} disabled={busy}><PlayCircle size={11} /> {isLoading('start') ? '…' : 'Start'}</button>}
+                              {canDoStatus && task.status === 'in_progress' && <button className="btn btn-success btn-sm" onClick={() => taskAction(task.id, { status: 'completed' }, 'complete')} disabled={busy}><CheckCircle2 size={11} /> {isLoading('complete') ? '…' : 'Done'}</button>}
+                              {isAssignedToMe && task.status !== 'completed' && task.escalation_level < 2 && (
                                 <button className="btn btn-escalate btn-sm" onClick={() => { if (window.confirm(`Escalate ${task.task_code}?`)) taskAction(task.id, { force_escalate: true }, 'escalate'); }} disabled={busy}>
-                                  <Zap size={11} /> {isLoading('escalate') ? '…' : 'Escalate Now'}
+                                  <Zap size={11} /> {isLoading('escalate') ? '…' : 'Escalate'}
                                 </button>
                               )}
                               {task.status === 'completed' && <span className="td-muted" style={{ fontSize: '0.78rem' }}>{task.completed_after_escalation ? '⚡ After esc.' : '✓ Done'}</span>}
-                              {/* Activity Log Toggle */}
                               <button className="activity-toggle" onClick={() => setExpandedTaskId(expandedTaskId === task.id ? null : task.id)}>
                                 <History size={11} /> {expandedTaskId === task.id ? <ChevronUp size={11} /> : <ChevronDown size={11} />}
                               </button>
@@ -828,9 +908,9 @@ export default function DashboardPage() {
                     currentUser={currentUser}
                     smsStatus={smsStatus}
                     onAction={taskAction}
+                    onAssign={taskAssign}
                     actionLoading={actionLoading}
-                    canReassign={canReassign}
-                    deptStaff={staffByDept[task.departments?.id] ?? []}
+                    assignTargets={assignTargets}
                     expandedId={expandedTaskId}
                     setExpandedId={setExpandedTaskId}
                   />
@@ -849,6 +929,7 @@ export default function DashboardPage() {
         <CreateTaskModal
           rooms={rooms}
           departments={departments}
+          allStaff={allStaff}
           currentUser={currentUser}
           onClose={() => setShowCreate(false)}
           onCreated={handleCreated}

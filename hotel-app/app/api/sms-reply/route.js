@@ -88,7 +88,7 @@ export async function POST(request) {
     // ── Look up the task ──────────────────────────────────────
     const { data: task, error: fetchError } = await supabase
       .from('tasks')
-      .select('id, task_code, status')
+      .select('id, task_code, status, current_level')
       .eq('id', taskId)
       .single();
 
@@ -102,6 +102,21 @@ export async function POST(request) {
         note: `Task not found: ${taskId}`,
       });
       return Response.json({ success: false, reason: 'task_not_found' }, { status: 200 });
+    }
+
+    // ── V4: Block SMS commands if task is not yet at staff level ─────────────
+    if (task.current_level && task.current_level !== 'staff') {
+      const note = `Task ${task_code} is at '${task.current_level}' level — SMS replies only accepted at staff level`;
+      console.warn(`[SMS Webhook] ${note}`);
+      await logReceived({
+        task_id: taskId, task_code: task.task_code,
+        status: 'failed',
+        phone: rawBody?.mobile || rawBody?.sender || rawBody?.From || null,
+        message: normalized,
+        raw_payload: rawBody,
+        note,
+      });
+      return Response.json({ success: false, reason: 'not_at_staff_level', note }, { status: 200 });
     }
 
     // ── Idempotency: already at or past target status ─────────

@@ -10,11 +10,17 @@ const VALID_TRANSITIONS = {
   completed:    [],
 };
 
-// Human-readable event names for activity log
 const EVENT_NAMES = {
   acknowledged: 'acknowledged',
   in_progress:  'started',
   completed:    'completed',
+};
+
+// Role → which role they can assign to (one level down the chain)
+const ASSIGN_TO_ROLE = {
+  gm:         'manager',
+  manager:    'supervisor',
+  supervisor: 'staff',
 };
 
 const TASK_SELECT = `
@@ -34,9 +40,13 @@ const TASK_SELECT = `
   escalated_at,
   completed_after_escalation,
   assigned_staff_id,
+  assigned_to,
+  assigned_role,
+  current_level,
   rooms (id, room_number, floor),
   departments (id, name, sla_minutes),
-  staff!assigned_staff_id (id, name, phone_number, role)
+  staff!assigned_staff_id (id, name, phone_number, role),
+  assigned_staff:staff!assigned_to (id, name, phone_number, role)
 `;
 
 // ── Helper: append to activity_log ─────────────────────────────────────────
@@ -51,17 +61,27 @@ async function appendLog(taskId, currentLog, entry) {
 }
 
 // ── PATCH /api/tasks/[id] ────────────────────────────────────────────────────
-// Body: { status?, staff_id?, force_escalate?, by? }
-// `by` = name of the user making the change (from localStorage on client)
+// Body options:
+//   { status: 'acknowledged' | 'in_progress' | 'completed', by }  → status transition
+//   { assign_to: staffId, assigner_role: 'manager'|'supervisor', by }  → chain assignment (V4)
+//   { staff_id: staffId, by }  → legacy reassign (kept for backward compat)
+//   { force_escalate: true, by }  → manual escalation
 export async function PATCH(request, { params }) {
   const { id } = params;
   const body = await request.json().catch(() => ({}));
-  const { status: newStatus, staff_id, force_escalate, by: byName = 'System' } = body;
+  const {
+    status: newStatus,
+    staff_id,
+    assign_to,       // V4: chain-aware assignment
+    assigner_role,   // V4: role of the person assigning
+    force_escalate,
+    by: byName = 'System',
+  } = body;
 
   // Fetch current task
   const { data: current, error: fetchError } = await supabase
     .from('tasks')
-    .select('id, task_code, status, escalation_level, assigned_staff_id, department_id, activity_log')
+    .select('id, task_code, status, escalation_level, assigned_staff_id, assigned_to, assigned_role, current_level, department_id, activity_log, created_at')
     .eq('id', id)
     .single();
 
@@ -91,11 +111,107 @@ export async function PATCH(request, { params }) {
     return Response.json({ ...refreshed, escalated: true });
   }
 
-  // ── Reassign staff ─────────────────────────────────────────────────────────
+  // ── V4: Chain-aware assignment (GM→Manager, Manager→Supervisor, Supervisor→Staff) ──
+  if (assign_to !== undefined && assigner_role) {
+    const targetRole = ASSIGN_TO_ROLE[assigner_role];
+    if (!targetRole) {
+      return Response.json({ error: `Role '${assigner_role}' cannot assign tasks` }, { status: 403 });
+    }
+
+    // Fetch the target staff member
+    const { data: targetStaff, error: staffErr } = await supabase
+      .from('staff')
+      .select('id, name, phone_number, role, department_id')
+      .eq('id', assign_to)
+      .eq('is_active', true)
+      .single();
+
+    if (staffErr || !targetStaff) {
+      return Response.json({ error: 'Target staff member not found or inactive' }, { status: 400 });
+    }
+
+    // Enforce role gate: target must be exactly one level down
+    if (targetStaff.role !== targetRole) {
+      return Response.json(
+        { error: `${assigner_role} can only assign to ${targetRole}, not ${targetStaff.role}` },
+        { status: 403 }
+      );
+    }
+
+    // Manager and supervisor assignments must be within same department
+    if (assigner_role !== 'gm' && targetStaff.department_id !== current.department_id) {
+      return Response.json(
+        { error: 'Assignment only allowed within the same department' },
+        { status: 400 }
+      );
+    }
+
+    // Get previous assignee name for log
+    let prevName = 'Unassigned';
+    if (current.assigned_to) {
+      const { data: prev } = await supabase
+        .from('staff').select('name').eq('id', current.assigned_to).single();
+      if (prev) prevName = prev.name;
+    }
+
+    // Build update
+    updates.assigned_to   = targetStaff.id;
+    updates.assigned_role = targetStaff.role;
+    updates.current_level = targetRole;
+    updates.unassigned    = false;
+
+    // When assigning to staff: sync legacy assigned_staff_id (needed for SMS reply)
+    if (targetRole === 'staff') {
+      updates.assigned_staff_id = targetStaff.id;
+    }
+
+    // Apply update
+    await supabase.from('tasks').update(updates).eq('id', id);
+
+    // Log the event
+    await appendLog(id, current.activity_log, {
+      event: 'assigned',
+      by:    byName,
+      from:  prevName,
+      to:    targetStaff.name,
+      level: targetRole,
+    });
+
+    // Re-fetch updated task
+    const { data: refreshed } = await supabase.from('tasks').select(TASK_SELECT).eq('id', id).single();
+
+    // Send SMS only when task reaches staff level
+    if (targetRole === 'staff' && current.status !== 'completed') {
+      const { data: taskForSms } = await supabase
+        .from('tasks')
+        .select('id, task_code, task_type, notes, created_at, rooms(room_number)')
+        .eq('id', id)
+        .single();
+
+      if (taskForSms && targetStaff.phone_number && targetStaff.phone_number !== 'N/A') {
+        const time = new Date(taskForSms.created_at).toLocaleTimeString('en-IN', {
+          hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'Asia/Kolkata',
+        });
+        sendSMS(targetStaff.phone_number, {
+          task_id:    taskForSms.id,
+          task_code:  taskForSms.task_code,
+          staff_name: targetStaff.name,
+          room:       taskForSms.rooms?.room_number ?? '?',
+          task_type:  taskForSms.task_type,
+          notes:      taskForSms.notes,
+          time,
+        }).catch(err => console.error('[Assign SMS]', err.message));
+      }
+    }
+
+    return Response.json(refreshed);
+  }
+
+  // ── Legacy staff_id reassign (keeping for backward compat) ─────────────────
   if (staff_id !== undefined) {
     const { data: staffRow, error: staffErr } = await supabase
       .from('staff')
-      .select('id, name, phone_number, department_id')
+      .select('id, name, phone_number, department_id, role')
       .eq('id', staff_id)
       .eq('is_active', true)
       .single();
@@ -110,19 +226,29 @@ export async function PATCH(request, { params }) {
       );
     }
 
-    // Fetch old staff name for the log
     let prevStaffName = 'Unassigned';
-    if (current.assigned_staff_id) {
+    if (current.assigned_to) {
       const { data: prevStaff } = await supabase
-        .from('staff').select('name').eq('id', current.assigned_staff_id).single();
+        .from('staff').select('name').eq('id', current.assigned_to).single();
       if (prevStaff) prevStaffName = prevStaff.name;
     }
 
     updates.assigned_staff_id = staff_id;
-    updates.unassigned = false; // Clear unassigned flag when manually assigned
+    updates.assigned_to       = staff_id;
+    updates.assigned_role     = staffRow.role;
+    updates.current_level     = staffRow.role === 'staff' ? 'staff' : current.current_level;
+    updates.unassigned        = false;
 
-    // Send SMS to newly assigned staff
-    if (current.status !== 'completed') {
+    await supabase.from('tasks').update(updates).eq('id', id);
+    await appendLog(id, current.activity_log, {
+      event: 'reassigned',
+      by:    byName,
+      from:  prevStaffName,
+      to:    staffRow.name,
+    });
+
+    // Send SMS only if reassigning to staff
+    if (staffRow.role === 'staff' && current.status !== 'completed') {
       const { data: taskForSms } = await supabase
         .from('tasks')
         .select('id, task_code, task_type, notes, created_at, rooms(room_number)')
@@ -145,15 +271,6 @@ export async function PATCH(request, { params }) {
       }
     }
 
-    // Apply staff_id update first so log goes in after
-    await supabase.from('tasks').update(updates).eq('id', id);
-    await appendLog(id, current.activity_log, {
-      event: 'reassigned',
-      by:    byName,
-      from:  prevStaffName,
-      to:    staffRow.name,
-    });
-
     const { data: refreshed } = await supabase.from('tasks').select(TASK_SELECT).eq('id', id).single();
     return Response.json(refreshed);
   }
@@ -174,7 +291,6 @@ export async function PATCH(request, { params }) {
       updates.completed_after_escalation = current.escalation_level > 0;
     }
 
-    // Apply status update, then log
     const { data, error } = await supabase
       .from('tasks')
       .update(updates)
@@ -191,7 +307,6 @@ export async function PATCH(request, { params }) {
       by:    byName,
     });
 
-    // Re-fetch to get updated activity_log
     const { data: withLog } = await supabase.from('tasks').select(TASK_SELECT).eq('id', id).single();
     return Response.json(withLog ?? data[0]);
   }
