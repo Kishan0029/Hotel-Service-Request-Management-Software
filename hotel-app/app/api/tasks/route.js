@@ -279,11 +279,11 @@ export async function POST(request) {
         task_id:    data.id,
         task_code:  data.task_code,
         staff_name: sup.name,
-        room:       data.rooms?.room_number ?? room_id,
+        room:       data.rooms?.room_number ?? '?',
         task_type:  data.task_type,
         notes:      data.notes,
         time,
-        assigned_staff_name: data.assigned_staff.name,
+        assigned_staff_name: data.assigned_staff?.name ?? 'Assigned Staff',
       }).catch(err => console.error('[POST SMS Sup]', err.message));
     }
   }
