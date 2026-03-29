@@ -265,6 +265,12 @@ export async function POST(request) {
       time,
     });
     sms_status = smsResult.success ? 'sent' : 'failed';
+  } else if (sendSmsNow) {
+    await supabase.from('sms_logs').insert({
+      task_id: data.id, task_code: data.task_code,
+      event_type: 'error', status: 'skipped',
+      message: `Staff notification skipped: No valid phone number for ${data.assigned_staff?.name || 'Unassigned'}`
+    });
   }
 
   // 2. Also ALWAYS send to supervisor if it reached staff level
@@ -292,6 +298,12 @@ export async function POST(request) {
         time,
         assigned_staff_name: data.assigned_staff?.name ?? 'Assigned Staff',
       }).catch(err => console.error('[POST SMS Sup]', err.message));
+    } else {
+      await supabase.from('sms_logs').insert({
+        task_id: data.id, task_code: data.task_code,
+        event_type: 'error', status: 'skipped',
+        message: `Supervisor notification skipped: No active supervisor with a valid phone number for department ${department_id}`
+      });
     }
   }
 
