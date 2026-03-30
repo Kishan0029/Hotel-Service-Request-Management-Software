@@ -3,8 +3,9 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   LogOut, Camera, Upload, X, CheckCircle2, Clock, AlertTriangle,
-  UserCheck, PlayCircle, RefreshCw, ClipboardList, Bell,
+  UserCheck, PlayCircle, RefreshCw, ClipboardList, Bell, Hotel, ChevronRight,
 } from 'lucide-react';
+import Sidebar from '@/components/Sidebar';
 
 /* ── helpers ──────────────────────────────────────────────── */
 function elapsed(iso) {
@@ -347,109 +348,110 @@ export default function StaffDashboard() {
   const completedTasks = tasks.filter(t => t.status === 'completed');
 
   return (
-    <div className="staff-shell">
-      {/* New task alert */}
-      {newAlert && (
-        <div className="new-task-alert" data-testid="staff-new-alert">
-          <Bell size={14} /> {newAlert}
-          <button onClick={() => setNewAlert(null)}><X size={13} /></button>
-        </div>
-      )}
-
-      {/* Header */}
-      <header className="staff-header" data-testid="staff-header">
-        <div className="staff-header-brand">
-          <div className="staff-header-icon">
-            <Hotel size={18} color="#C5A880" />
+    <div className="app-shell">
+      <Sidebar />
+      <div className="main-content">
+        {/* New task alert */}
+        {newAlert && (
+          <div className="new-task-alert" data-testid="staff-new-alert">
+            <Bell size={14} /> {newAlert}
+            <button onClick={() => setNewAlert(null)}><X size={13} /></button>
           </div>
-          <div>
-            <div className="staff-header-title">{user.name}</div>
-            <div className="staff-header-sub">My Assigned Tasks</div>
-          </div>
-        </div>
-        <div className="staff-header-actions">
-          <button className="staff-refresh-btn" onClick={() => loadTasks()} data-testid="staff-refresh-btn" title="Refresh tasks" aria-label="Refresh tasks">
-            <RefreshCw size={16} />
-          </button>
-          <button className="staff-logout-btn" onClick={logout} data-testid="staff-logout-btn" title="Logout" aria-label="Logout">
-            <LogOut size={16} />
-          </button>
-        </div>
-      </header>
-
-      {/* Stats bar */}
-      <div className="staff-stats-bar" data-testid="staff-stats">
-        <div className="staff-stat">
-          <span className="staff-stat-num">{activeTasks.length}</span>
-          <span className="staff-stat-label">Active</span>
-        </div>
-        <div className="staff-stat">
-          <span className="staff-stat-num" style={{ color: '#16a34a' }}>{completedTasks.length}</span>
-          <span className="staff-stat-label">Completed</span>
-        </div>
-        <div className="staff-stat">
-          <span className="staff-stat-num" style={{ color: '#dc2626' }}>
-            {tasks.filter(t => t.priority === 'urgent' && t.status !== 'completed').length}
-          </span>
-          <span className="staff-stat-label">Urgent</span>
-        </div>
-      </div>
-
-      <main className="staff-main">
-        {error && <div className="error-banner">{error}</div>}
-
-        {loading ? (
-          <div className="loading-wrap"><div className="spinner" /> Loading tasks…</div>
-        ) : tasks.length === 0 ? (
-          <div className="staff-empty-state" data-testid="staff-empty">
-            <CheckCircle2 size={48} />
-            <p>No tasks assigned right now</p>
-            <p className="staff-empty-sub">Check back soon or pull to refresh</p>
-          </div>
-        ) : (
-          <>
-            {/* Active tasks */}
-            {activeTasks.length > 0 && (
-              <div className="staff-section">
-                <div className="staff-section-title">Active Tasks ({activeTasks.length})</div>
-                <div className="staff-task-list" data-testid="staff-active-tasks">
-                  {activeTasks.map(task => (
-                    <StaffTaskCard
-                      key={task.id}
-                      task={task}
-                      user={user}
-                      onAction={taskAction}
-                      actionLoading={actionLoading}
-                      onPhotoUpload={handlePhotoUpload}
-                    />
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Completed tasks */}
-            {completedTasks.length > 0 && (
-              <div className="staff-section">
-                <div className="staff-section-title" style={{ color: '#16a34a' }}>
-                  <CheckCircle2 size={14} /> Completed Today ({completedTasks.length})
-                </div>
-                <div className="staff-task-list" data-testid="staff-completed-tasks">
-                  {completedTasks.map(task => (
-                    <StaffTaskCard
-                      key={task.id}
-                      task={task}
-                      user={user}
-                      onAction={taskAction}
-                      actionLoading={actionLoading}
-                      onPhotoUpload={handlePhotoUpload}
-                    />
-                  ))}
-                </div>
-              </div>
-            )}
-          </>
         )}
-      </main>
+
+        {/* Role bar */}
+        <div className="role-bar">
+          <span className="role-bar-pill role-staff">STAFF</span>
+          <span style={{ color: '#f1f5f9', fontWeight: 600 }}>{user.name}</span>
+          <div className="role-spacer" />
+          <button className="btn btn-ghost btn-sm" onClick={logout} style={{ color: '#94a3b8' }} data-testid="staff-logout-btn">
+            <LogOut size={13} /> Logout
+          </button>
+        </div>
+
+        <header className="page-header" data-testid="staff-header">
+          <div>
+            <div className="page-header-title">My Tasks</div>
+            <div className="page-header-sub">Service Request Management</div>
+          </div>
+          <div className="header-actions">
+            <button className="btn btn-ghost btn-sm" onClick={() => loadTasks()} data-testid="staff-refresh-btn">
+              <RefreshCw size={14} />
+            </button>
+          </div>
+        </header>
+
+        <main className="page-body">
+          {error && <div className="error-banner">{error}</div>}
+
+          {/* Stats bar */}
+          <div className="stats-row" data-testid="staff-stats" style={{ marginBottom: 24 }}>
+            <div className="stat-card stat-card-premium">
+              <div className="stat-label">Active</div>
+              <div className="stat-value">{activeTasks.length}</div>
+            </div>
+            <div className="stat-card stat-card-premium">
+              <div className="stat-label" style={{ color: '#16a34a' }}>Completed</div>
+              <div className="stat-value" style={{ color: '#16a34a' }}>{completedTasks.length}</div>
+            </div>
+            <div className="stat-card stat-card-premium">
+              <div className="stat-label" style={{ color: '#dc2626' }}>Urgent</div>
+              <div className="stat-value" style={{ color: '#dc2626' }}>{tasks.filter(t => t.priority === 'urgent' && t.status !== 'completed').length}</div>
+            </div>
+          </div>
+
+          {loading ? (
+            <div className="loading-wrap"><div className="spinner" /> Loading tasks…</div>
+          ) : tasks.length === 0 ? (
+            <div className="empty-state" data-testid="staff-empty">
+              <CheckCircle2 size={48} />
+              <p>No tasks assigned right now</p>
+            </div>
+          ) : (
+            <div className="staff-web-grid">
+              {/* Active tasks */}
+              {activeTasks.length > 0 && (
+                <div className="staff-section">
+                  <div className="staff-section-title">Active Tasks ({activeTasks.length})</div>
+                  <div className="staff-task-list" data-testid="staff-active-tasks">
+                    {activeTasks.map(task => (
+                      <StaffTaskCard
+                        key={task.id}
+                        task={task}
+                        user={user}
+                        onAction={taskAction}
+                        actionLoading={actionLoading}
+                        onPhotoUpload={handlePhotoUpload}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Completed tasks */}
+              {completedTasks.length > 0 && (
+                <div className="staff-section">
+                  <div className="staff-section-title" style={{ color: '#16a34a' }}>
+                    <CheckCircle2 size={14} /> Completed Today ({completedTasks.length})
+                  </div>
+                  <div className="staff-task-list" data-testid="staff-completed-tasks">
+                    {completedTasks.map(task => (
+                      <StaffTaskCard
+                        key={task.id}
+                        task={task}
+                        user={user}
+                        onAction={taskAction}
+                        actionLoading={actionLoading}
+                        onPhotoUpload={handlePhotoUpload}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </main>
+      </div>
     </div>
   );
 }

@@ -109,6 +109,8 @@ export async function POST(request) {
     mod_dispatch       = false,    // MOD Mode: assign directly to staff (bypass chain)
     location_id        = null,     // V7: location for MOD tasks
     before_photo_url   = null,     // V7: MOD before photo
+    initial_assignee_id   = null,  // New: manager can assign directly
+    initial_assignee_role = null,
   } = body;
 
   if (!room_id || !department_id || !task_type) {
@@ -187,22 +189,30 @@ export async function POST(request) {
     sendSmsNow   = false;
 
   } else if (creator_role === 'manager' && !mod_dispatch) {
-    // Manager creates without MOD mode → auto-assign to supervisor in dept
-    const { data: sup } = await supabase
-      .from('staff')
-      .select('id')
-      .eq('department_id', department_id)
-      .eq('role', 'supervisor')
-      .eq('is_active', true)
-      .eq('on_duty', true)
-      .order('name', { ascending: true })
-      .limit(1)
-      .single();
-    assignedTo   = sup?.id ?? null;
-    assignedRole = sup ? 'supervisor' : null;
-    currentLevel = 'supervisor';
-    isUnassigned = !sup;
-    sendSmsNow   = false;
+    if (initial_assignee_id && initial_assignee_role) {
+      assignedTo   = initial_assignee_id;
+      assignedRole = initial_assignee_role;
+      currentLevel = initial_assignee_role;
+      isUnassigned = false;
+      sendSmsNow   = false; // Managers handle SMS manually or via patch
+    } else {
+      // Manager creates without MOD mode → auto-assign to supervisor in dept
+      const { data: sup } = await supabase
+        .from('staff')
+        .select('id')
+        .eq('department_id', department_id)
+        .eq('role', 'supervisor')
+        .eq('is_active', true)
+        .eq('on_duty', true)
+        .order('name', { ascending: true })
+        .limit(1)
+        .single();
+      assignedTo   = sup?.id ?? null;
+      assignedRole = sup ? 'supervisor' : null;
+      currentLevel = 'supervisor';
+      isUnassigned = !sup;
+      sendSmsNow   = false;
+    }
 
   } else if (creator_role === 'supervisor' || creator_role === 'reception') {
     let staffId = null;

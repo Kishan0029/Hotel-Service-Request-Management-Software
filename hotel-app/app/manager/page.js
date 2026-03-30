@@ -298,12 +298,163 @@ function ModModeModal({ onClose, onCreated, user, rooms, departments, locations 
   );
 }
 
+const DEPT_TASK_TYPES = {
+  'Housekeeping': ['Room Cleaning', 'Towels', 'Extra Pillows', 'Extra Blanket', 'Bed Making', 'Trash Removal', 'Turndown Service'],
+  'Laundry':      ['Laundry Pickup', 'Dry Cleaning', 'Express Laundry', 'Ironing', 'Laundry Return', 'Stain Treatment'],
+  'Bell Desk':    ['Luggage Assistance', 'Wake-up Call', 'Taxi Booking', 'Parcel Delivery', 'Guest Arrival', 'Guest Departure'],
+  'Maintenance':  ['AC Not Working', 'Light Bulb Fix', 'Plumbing Issue', 'TV / Remote Issue', 'Door Lock Issue', 'Water Leakage', 'Safe Not Opening'],
+};
+const FALLBACK_TASK_TYPES = ['Room Service', 'Water Bottles', 'Minibar Refill', 'Other'];
+
+/* ── Manager Create Task Modal ─────────────────────────────────── */
+function ManagerCreateTaskModal({ rooms, deptStaff, supervisors, onClose, onCreated, user }) {
+  const [form, setForm] = useState({
+    room_id: '', task_type: '', task_type_custom: '',
+    priority: 'normal', type: 'request', notes: '', initial_assignee_id: '',
+  });
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError]           = useState('');
+
+  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+  const assignees = [...supervisors, ...deptStaff];
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    const taskType = form.task_type === '__custom__' ? form.task_type_custom : form.task_type;
+    if (!form.room_id || !taskType) {
+      setError('Room and Task Type are required.'); return;
+    }
+    
+    setSubmitting(true);
+    try {
+      const payload = {
+          room_id:            parseInt(form.room_id),
+          department_id:      user.department_id,
+          task_type:          taskType,
+          priority:           form.priority,
+          type:               form.type,
+          notes:              form.notes || undefined,
+          created_by:         user?.name ?? 'Manager',
+          creator_role:       'manager',
+      };
+      
+      if (form.initial_assignee_id) {
+          payload.initial_assignee_id = parseInt(form.initial_assignee_id);
+          const targetedStaff = assignees.find(s => String(s.id) === String(form.initial_assignee_id));
+          if (targetedStaff) payload.initial_assignee_role = targetedStaff.role;
+      }
+
+      const res = await fetch('/api/tasks', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'x-api-key': process.env.NEXT_PUBLIC_API_KEY 
+        },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to create task');
+      onCreated(data);
+      onClose();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
+      <div className="modal">
+        <div className="modal-header">
+          <span className="modal-title">🏨 New Request — {user.department_name}</span>
+          <button className="close-btn" onClick={onClose}><X size={18} /></button>
+        </div>
+        <form onSubmit={handleSubmit}>
+          <div className="modal-body">
+            {error && <div className="error-banner">{error}</div>}
+            {/* Type */}
+            <div className="field">
+              <label className="field-required">Type</label>
+              <div style={{ display: 'flex', gap: 10 }}>
+                {['request', 'complaint'].map(t => (
+                  <label key={t} className={`type-radio ${form.type === t ? `type-radio-${t}` : ''}`}>
+                    <input type="radio" name="type" value={t} checked={form.type === t} onChange={() => set('type', t)} style={{ display: 'none' }} />
+                    {t === 'complaint' ? '⚠ Complaint' : '📋 Request'}
+                  </label>
+                ))}
+              </div>
+            </div>
+            {/* Room */}
+            <div className="field">
+              <label className="field-required">Room</label>
+              <select value={form.room_id} onChange={e => set('room_id', e.target.value)} required>
+                <option value="">Select room…</option>
+                {rooms.map(r => <option key={r.id} value={r.id}>Room {r.room_number} (Fl. {r.floor})</option>)}
+              </select>
+            </div>
+            {/* Task Type */}
+            <div className="field">
+              <label className="field-required">Task Type</label>
+              <select value={form.task_type} onChange={e => set('task_type', e.target.value)} required>
+                <option value="">Select task type…</option>
+                {(DEPT_TASK_TYPES[user.department_name] ?? FALLBACK_TASK_TYPES).map(t => <option key={t} value={t}>{t}</option>)}
+                <option value="__custom__">Other (specify below)…</option>
+              </select>
+            </div>
+            {form.task_type === '__custom__' && (
+              <div className="field">
+                <label className="field-required">Describe Task</label>
+                <input type="text" placeholder="e.g. Special setup" value={form.task_type_custom} onChange={e => set('task_type_custom', e.target.value)} required />
+              </div>
+            )}
+            {/* Assign */}
+            <div className="field">
+              <label>Assign to (Optional)</label>
+              <select value={form.initial_assignee_id} onChange={e => set('initial_assignee_id', e.target.value)}>
+                <option value="">Auto-assign to Supervisor</option>
+                {supervisors.length > 0 && <optgroup label="Supervisors">
+                  {supervisors.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                </optgroup>}
+                {deptStaff.length > 0 && <optgroup label="Staff">
+                  {deptStaff.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                </optgroup>}
+              </select>
+            </div>
+            {/* Priority + Notes */}
+            <div className="field-row">
+              <div className="field">
+                <label>Priority</label>
+                <select value={form.priority} onChange={e => set('priority', e.target.value)}>
+                  <option value="normal">Normal</option>
+                  <option value="urgent">Urgent</option>
+                </select>
+              </div>
+            </div>
+            <div className="field">
+              <label>Notes (optional)</label>
+              <textarea placeholder="Additional context for the assignee…" value={form.notes} onChange={e => set('notes', e.target.value)} />
+            </div>
+          </div>
+          <div className="modal-footer">
+            <button type="button" className="btn btn-ghost" onClick={onClose}>Cancel</button>
+            <button type="submit" className="btn btn-primary" disabled={submitting}>
+              {submitting ? 'Creating…' : 'Create Task'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 /* ── Task Row (Manager view) ─────────────────────────────────── */
-function ManagerTaskCard({ task, currentUser, onAction, onAssign, actionLoading, staffTargets, expandedId, setExpandedId }) {
+function ManagerTaskCard({ task, currentUser, onAction, onAssign, actionLoading, supervisors, deptStaff, expandedId, setExpandedId }) {
   const expanded   = expandedId === task.id;
   const busy       = !!actionLoading[task.id];
-  const isAssigned = task.assigned_to && String(task.assigned_to) === String(currentUser?.id);
   const canAssign  = currentUser?.role === 'manager' && task.status !== 'completed';
+  const hasAssignees = supervisors.length > 0 || deptStaff.length > 0;
 
   const icons = { created: '📋', acknowledged: '✅', started: '🔧', completed: '✓', reassigned: '↩', escalated: '🔴', assigned: '→' };
 
@@ -339,8 +490,8 @@ function ManagerTaskCard({ task, currentUser, onAction, onAssign, actionLoading,
         </a>
       )}
 
-      {/* Actions */}
-      {task.status !== 'completed' && canAssign && staffTargets.length > 0 && (
+      {/* Assign dropdown — supervisors + staff */}
+      {task.status !== 'completed' && canAssign && hasAssignees && (
         <select
           className="reassign-select"
           value=""
@@ -348,8 +499,17 @@ function ManagerTaskCard({ task, currentUser, onAction, onAssign, actionLoading,
           disabled={busy}
           data-testid={`manager-assign-${task.id}`}
         >
-          <option value="">→ Assign to Supervisor…</option>
-          {staffTargets.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+          <option value="">→ Assign to…</option>
+          {supervisors.length > 0 && (
+            <optgroup label="Supervisors">
+              {supervisors.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+            </optgroup>
+          )}
+          {deptStaff.length > 0 && (
+            <optgroup label="Staff">
+              {deptStaff.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+            </optgroup>
+          )}
         </select>
       )}
 
@@ -389,6 +549,7 @@ export default function ManagerDashboard() {
   const [loading, setLoading]         = useState(true);
   const [error, setError]             = useState('');
   const [showMod, setShowMod]         = useState(false);
+  const [showCreate, setShowCreate]   = useState(false);
   const [expandedId, setExpandedId]   = useState(null);
   const [actionLoading, setActionLoading] = useState({});
   const [newTaskAlert, setNewTaskAlert]   = useState(null);
@@ -490,6 +651,7 @@ export default function ManagerDashboard() {
   }
 
   const supervisors = allStaff.filter(s => s.role === 'supervisor' && String(s.department_id) === String(user.department_id));
+  const deptStaff   = allStaff.filter(s => s.role === 'staff'      && String(s.department_id) === String(user.department_id));
   const pending   = tasks.filter(t => t.status !== 'completed').length;
   const modTasks  = tasks.filter(t => t.is_mod_task).length;
   const completed = tasks.filter(t => t.status === 'completed').length;
@@ -524,6 +686,13 @@ export default function ManagerDashboard() {
             <div className="page-header-sub">{user.department_name} — Task Management</div>
           </div>
           <div className="header-actions">
+            <button
+              className="btn btn-primary btn-sm"
+              onClick={() => setShowCreate(true)}
+              data-testid="manager-create-btn"
+            >
+              <Plus size={14} /> New Request
+            </button>
             <button
               className="btn btn-mod-cta"
               onClick={() => setShowMod(true)}
@@ -616,10 +785,19 @@ export default function ManagerDashboard() {
                             <td className="td-muted">{elapsed(task.created_at)}</td>
                             <td>
                               <div className="action-cell">
-                                {task.status !== 'completed' && supervisors.length > 0 && (
+                                {task.status !== 'completed' && (supervisors.length > 0 || deptStaff.length > 0) && (
                                   <select className="reassign-select" value="" onChange={e => taskAssign(task.id, parseInt(e.target.value), user?.role)} disabled={busy} data-testid={`table-assign-${task.id}`}>
-                                    <option value="">→ Assign Supervisor…</option>
-                                    {supervisors.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                                    <option value="">→ Assign to…</option>
+                                    {supervisors.length > 0 && (
+                                      <optgroup label="Supervisors">
+                                        {supervisors.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                                      </optgroup>
+                                    )}
+                                    {deptStaff.length > 0 && (
+                                      <optgroup label="Staff">
+                                        {deptStaff.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                                      </optgroup>
+                                    )}
                                   </select>
                                 )}
                                 {task.before_photo_url && (
@@ -651,7 +829,8 @@ export default function ManagerDashboard() {
                       onAction={taskAction}
                       onAssign={taskAssign}
                       actionLoading={actionLoading}
-                      staffTargets={supervisors}
+                      supervisors={supervisors}
+                      deptStaff={deptStaff}
                       expandedId={expandedId}
                       setExpandedId={setExpandedId}
                     />
@@ -671,6 +850,17 @@ export default function ManagerDashboard() {
           rooms={rooms}
           departments={departments}
           locations={locations}
+        />
+      )}
+
+      {showCreate && (
+        <ManagerCreateTaskModal
+          onClose={() => setShowCreate(false)}
+          onCreated={(task) => { setTasks(prev => [task, ...prev]); }}
+          user={user}
+          rooms={rooms}
+          deptStaff={deptStaff}
+          supervisors={supervisors}
         />
       )}
     </div>
