@@ -237,6 +237,7 @@ export default function GmDashboard() {
   const [rooms, setRooms]             = useState([]);
   const [allStaff, setAllStaff]       = useState([]);
   const [loading, setLoading]         = useState(true);
+  const [error, setError]             = useState('');
   const [lastRefresh, setLastRefresh] = useState(null);
   const [showCreate, setShowCreate]   = useState(false);
 
