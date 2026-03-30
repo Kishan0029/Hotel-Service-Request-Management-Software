@@ -984,6 +984,24 @@ tbody tr.row-complaint { border-left: 3px solid #ef4444; }
 .task-card-actions .reassign-select { width: 100%; padding: 10px; min-height: 44px; font-size: 0.85rem; }
 
 /* ============================================================
+   MOBILE SIDEBAR OFF-CANVAS
+   ============================================================ */
+.mobile-sidebar-toggle {
+  display: flex; align-items: center; justify-content: center;
+  position: fixed; bottom: 24px; right: 24px; z-index: 150;
+  background: linear-gradient(135deg, var(--primary) 0%, #2D5BE3 100%);
+  color: #fff; border: none; width: 56px; height: 56px; border-radius: 50%;
+  box-shadow: 0 4px 16px rgba(30,58,138,0.4); cursor: pointer;
+  transition: all var(--transition);
+}
+.mobile-sidebar-toggle:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(30,58,138,0.5); }
+.mobile-overlay {
+  position: fixed; inset: 0; background: rgba(11,19,43,0.5);
+  backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+  z-index: 190; animation: fadeIn 200ms ease;
+}
+
+/* ============================================================
    RESPONSIVE
    ============================================================ */
 @media (max-width: 1024px) {
@@ -1000,7 +1018,15 @@ tbody tr.row-complaint { border-left: 3px solid #ef4444; }
 }
 
 @media (max-width: 768px) {
-  .sidebar { display: none !important; }
+  .sidebar { 
+    display: flex !important; transform: translateX(-100%); 
+    transition: transform var(--transition); z-index: 200; 
+    width: var(--sidebar-width); overflow-y: auto;
+  }
+  .sidebar.mobile-open { transform: translateX(0); box-shadow: var(--shadow-lg); }
+  .sidebar-brand-name, .sidebar-brand-sub, .sidebar-section-label, .sidebar-role-badge, .sidebar-link span { display: block; }
+  .sidebar-link { justify-content: flex-start; padding: 10px 12px; }
+  
   .main-content { margin-left: 0 !important; }
   .desktop-only { display: none !important; }
   .mobile-only  { display: block !important; }

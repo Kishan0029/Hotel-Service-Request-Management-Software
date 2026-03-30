@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard, Users, Building2, DoorOpen,
-  Hotel, MessageSquare, Shield, ClipboardList,
+  Hotel, MessageSquare, Shield, ClipboardList, Menu, X
 } from 'lucide-react';
 
 const ALL_NAV = {
@@ -58,6 +58,7 @@ const ALL_NAV = {
 export default function Sidebar() {
   const pathname = usePathname();
   const [role, setRole] = useState(null);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
     const checkRole = () => {
@@ -72,44 +73,70 @@ export default function Sidebar() {
     return () => window.removeEventListener('storage', checkRole);
   }, []);
 
+  // Close sidebar on navigation on mobile
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [pathname]);
+
   const navItems = (role && ALL_NAV[role]) || ALL_NAV.reception;
 
   return (
-    <aside className="sidebar">
-      {/* Brand */}
-      <div className="sidebar-brand">
-        <div className="sidebar-brand-icon">
-          <Hotel size={20} color="#C5A880" />
+    <>
+      <aside className={`sidebar ${mobileOpen ? 'mobile-open' : ''}`}>
+        {/* Mobile Header (Close Button) */}
+        <div className="mobile-only" style={{ padding: '16px', display: 'flex', justifyContent: 'flex-end' }}>
+          <button className="btn-icon" onClick={() => setMobileOpen(false)}>
+            <X size={20} />
+          </button>
         </div>
-        <div className="sidebar-brand-name">Hotel Service</div>
-        <div className="sidebar-brand-sub">Management System</div>
-      </div>
 
-      {/* Role badge */}
-      {role && (
-        <div className="sidebar-role-badge">
-          <span className={`sidebar-role-pill role-${role}`}>{role.toUpperCase()}</span>
+        {/* Brand */}
+        <div className="sidebar-brand">
+          <div className="sidebar-brand-icon">
+            <Hotel size={20} color="#C5A880" />
+          </div>
+          <div className="sidebar-brand-name">Hotel Service</div>
+          <div className="sidebar-brand-sub">Management System</div>
         </div>
+
+        {/* Role badge */}
+        {role && (
+          <div className="sidebar-role-badge">
+            <span className={`sidebar-role-pill role-${role}`}>{role.toUpperCase()}</span>
+          </div>
+        )}
+
+        {/* Navigation */}
+        {navItems.map((section) => (
+          <div key={section.section}>
+            <div className="sidebar-section-label">{section.section}</div>
+            <nav className="sidebar-nav">
+              {section.links.map(({ href, label, icon: Icon }) => (
+                <Link
+                  key={href}
+                  href={href}
+                  className={`sidebar-link ${pathname === href ? 'active' : ''}`}
+                >
+                  <Icon size={16} />
+                  <span>{label}</span>
+                </Link>
+              ))}
+            </nav>
+          </div>
+        ))}
+      </aside>
+
+      {/* Mobile Backdrop overlay */}
+      {mobileOpen && (
+        <div className="mobile-overlay mobile-only" onClick={() => setMobileOpen(false)} />
       )}
 
-      {/* Navigation */}
-      {navItems.map((section) => (
-        <div key={section.section}>
-          <div className="sidebar-section-label">{section.section}</div>
-          <nav className="sidebar-nav">
-            {section.links.map(({ href, label, icon: Icon }) => (
-              <Link
-                key={href}
-                href={href}
-                className={`sidebar-link ${pathname === href ? 'active' : ''}`}
-              >
-                <Icon size={16} />
-                <span>{label}</span>
-              </Link>
-            ))}
-          </nav>
-        </div>
-      ))}
-    </aside>
+      {/* Floating Action Button (Mobile Only) */}
+      {!mobileOpen && (
+        <button className="mobile-sidebar-toggle mobile-only" onClick={() => setMobileOpen(true)}>
+          <Menu size={24} />
+        </button>
+      )}
+    </>
   );
 }
