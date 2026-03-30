@@ -328,28 +328,39 @@ tbody tr.row-complaint { border-left: 3px solid #ef4444; }
 .btn-icon { padding: 7px; border-radius: var(--radius-sm); background: transparent; border: 1px solid var(--border); color: var(--text-secondary); display: inline-flex; align-items: center; justify-content: center; }
 .btn-icon:hover { background: var(--bg); color: var(--text-primary); }
 
-/* MOD Mode Button */
-.btn-mod-cta {
-  background: linear-gradient(135deg, #1E3A8A 0%, #2D5BE3 100%);
+/* CTA Action Buttons */
+.btn-req-cta, .btn-mod-cta {
   color: #fff; padding: 10px 20px;
   border-radius: var(--radius-sm);
-  box-shadow: 0 4px 14px rgba(30,58,138,0.35);
   font-weight: 700; font-size: 0.85rem;
   border: 1px solid rgba(255,255,255,0.1);
   position: relative; overflow: hidden;
-  animation: modPulse 3s ease-in-out infinite;
+  display: inline-flex; align-items: center; gap: 7px;
+  transition: all var(--transition);
 }
-.btn-mod-cta::before {
+.btn-req-cta::before, .btn-mod-cta::before {
   content: ''; position: absolute;
   inset: 0; background: rgba(255,255,255,0.08);
   opacity: 0; transition: opacity var(--transition);
 }
-.btn-mod-cta:hover::before { opacity: 1; }
-.btn-mod-cta:hover { box-shadow: 0 6px 20px rgba(30,58,138,0.5); transform: translateY(-1px); }
+.btn-req-cta:hover::before, .btn-mod-cta:hover::before { opacity: 1; }
+
+.btn-req-cta {
+  background: linear-gradient(135deg, #1E3A8A 0%, #2D5BE3 100%);
+  box-shadow: 0 4px 14px rgba(30,58,138,0.35);
+}
+.btn-req-cta:hover { box-shadow: 0 6px 20px rgba(30,58,138,0.5); transform: translateY(-1px); }
+
+.btn-mod-cta {
+  background: linear-gradient(135deg, #92400E 0%, #D97706 100%); /* Gold/Amber */
+  box-shadow: 0 4px 14px rgba(146, 64, 14, 0.35);
+  animation: modPulse 3s ease-in-out infinite;
+}
+.btn-mod-cta:hover { transform: translateY(-1px); }
 
 @keyframes modPulse {
-  0%, 100% { box-shadow: 0 4px 14px rgba(30,58,138,0.35); }
-  50% { box-shadow: 0 4px 22px rgba(30,58,138,0.55), 0 0 0 4px rgba(30,58,138,0.08); }
+  0%, 100% { box-shadow: 0 4px 14px rgba(146, 64, 14, 0.35); }
+  50% { box-shadow: 0 4px 22px rgba(146, 64, 14, 0.55), 0 0 0 4px rgba(146, 64, 14, 0.08); }
 }
 
 .btn-mod-dispatch {

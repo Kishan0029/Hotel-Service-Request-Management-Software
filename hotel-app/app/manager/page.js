@@ -687,11 +687,12 @@ export default function ManagerDashboard() {
           </div>
           <div className="header-actions">
             <button
-              className="btn btn-primary btn-sm"
+              className="btn-req-cta"
               onClick={() => setShowCreate(true)}
               data-testid="manager-create-btn"
             >
-              <Plus size={14} /> New Request
+              <Plus size={16} />
+              New Request
             </button>
             <button
               className="btn btn-mod-cta"
