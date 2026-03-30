@@ -57,8 +57,12 @@ export default function LoginPage() {
       <div className="login-glass-card" data-testid="login-card">
         {/* Brand */}
         <div className="login-brand-v7">
-          <div className="login-brand-icon-v7">
-            <Hotel size={26} color="#C5A880" />
+          <div className="login-brand-icon-v7" style={{ background: 'none', boxShadow: 'none', padding: 0 }}>
+            <img
+              src="https://customer-assets.emergentagent.com/job_service-desk-ops-1/artifacts/3jcvjpkv_image.png"
+              alt="Hotel Service"
+              style={{ width: 72, height: 72, borderRadius: 18, objectFit: 'cover', display: 'block' }}
+            />
           </div>
           <h1 className="login-title-v7">Hotel Service</h1>
           <p className="login-subtitle-v7">Management System — Staff Portal</p>

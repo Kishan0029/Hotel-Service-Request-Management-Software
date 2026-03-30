@@ -359,8 +359,12 @@ export default function StaffDashboard() {
       {/* Header */}
       <header className="staff-header" data-testid="staff-header">
         <div className="staff-header-brand">
-          <div className="staff-header-icon">
-            <ClipboardList size={18} color="#C5A880" />
+          <div className="staff-header-icon" style={{ background: 'none', border: 'none', padding: 0 }}>
+            <img
+              src="https://customer-assets.emergentagent.com/job_service-desk-ops-1/artifacts/3jcvjpkv_image.png"
+              alt="Hotel Service"
+              style={{ width: 42, height: 42, borderRadius: 10, objectFit: 'cover', display: 'block' }}
+            />
           </div>
           <div>
             <div className="staff-header-title">{user.name}</div>
