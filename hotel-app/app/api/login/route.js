@@ -13,9 +13,9 @@ export async function POST(request) {
 
   const { data, error } = await supabase
     .from('staff')
-    .select('id, name, role, department_id, email, password, departments!department_id(id, name)')
+    .select('id, name, role, department_id, email, password')
     .eq('email', email.toLowerCase().trim())
-    .eq('is_active', true)
+    .neq('is_active', false)
     .single();
 
   if (error || !data) {
@@ -27,12 +27,23 @@ export async function POST(request) {
     return Response.json({ error: 'Invalid email or password' }, { status: 401 });
   }
 
+  // Fetch department name separately (avoids join issues)
+  let department_name = null;
+  if (data.department_id) {
+    const { data: dept } = await supabase
+      .from('departments')
+      .select('name')
+      .eq('id', data.department_id)
+      .single();
+    department_name = dept?.name ?? null;
+  }
+
   return Response.json({
     id:              data.id,
     name:            data.name,
     role:            data.role,
     department_id:   data.department_id,
-    department_name: data.departments?.name ?? null,
+    department_name,
   });
 }
 
