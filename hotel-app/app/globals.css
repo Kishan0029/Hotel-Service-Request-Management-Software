@@ -1002,6 +1002,54 @@ tbody tr.row-complaint { border-left: 3px solid #ef4444; }
 }
 
 /* ============================================================
+   PHOTO EVIDENCE (MOD & STAFF)
+   ============================================================ */
+.staff-photo-thumb {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--surface); border: 1px solid var(--border);
+  padding: 8px; border-radius: var(--radius);
+  text-decoration: none; color: var(--text-primary);
+  margin-top: 12px; transition: all var(--transition);
+}
+.staff-photo-thumb:hover { background: #F8FAFC; border-color: #CBD5E1; transform: translateY(-1px); }
+.staff-photo-thumb img {
+  width: 44px; height: 44px; object-fit: cover;
+  border-radius: 6px; border: 1px solid rgba(0,0,0,0.1);
+}
+.staff-photo-label {
+  font-size: 0.82rem; font-weight: 600; color: #475569;
+  display: flex; align-items: center; gap: 6px;
+}
+.staff-photo-after { background: #F0FDF4; border-color: #BBF7D0; }
+.staff-photo-after:hover { background: #DCFCE7; border-color: #86EFAC; }
+.staff-photo-after .staff-photo-label { color: #15803D; }
+
+/* Photo Upload Zone (Manager Modal & Staff Sheet) */
+.photo-upload-zone {
+  border: 2px dashed #CBD5E1; border-radius: var(--radius);
+  padding: 24px; text-align: center; cursor: pointer;
+  background: #F8FAFC; transition: all var(--transition);
+  min-height: 140px; display: flex; align-items: center; justify-content: center;
+}
+.photo-upload-zone:hover { border-color: var(--primary); background: #EFF6FF; }
+.photo-upload-placeholder { color: #64748B; }
+.photo-upload-icon { color: #94A3B8; margin-bottom: 8px; }
+.photo-upload-text { font-size: 0.9rem; font-weight: 600; margin: 0 0 4px 0; color: #475569; }
+.photo-upload-hint { font-size: 0.75rem; margin: 0; opacity: 0.8; }
+
+.photo-preview-wrap { position: relative; width: 100%; border-radius: var(--radius); overflow: hidden; }
+.photo-preview-img { width: 100%; max-height: 200px; object-fit: cover; display: block; }
+.photo-remove-btn {
+  position: absolute; bottom: 12px; right: 12px;
+  background: rgba(15,23,42,0.8); color: #fff; border: none;
+  padding: 6px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600;
+  display: inline-flex; align-items: center; gap: 4px;
+}
+.photo-comparison-wrap { margin-bottom: 16px; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+.photo-comparison-label { background: #F1F5F9; padding: 8px 12px; font-size: 0.8rem; font-weight: 600; color: #475569; border-bottom: 1px solid var(--border); }
+.photo-comparison-img { width: 100%; max-height: 160px; object-fit: cover; display: block; }
+
+/* ============================================================
    RESPONSIVE
    ============================================================ */
 @media (max-width: 1024px) {

@@ -482,12 +482,22 @@ function ManagerTaskCard({ task, currentUser, onAction, onAssign, actionLoading,
         <span>{elapsed(task.created_at)}</span>
       </div>
 
-      {/* Before photo thumbnail */}
-      {task.before_photo_url && (
-        <a href={task.before_photo_url} target="_blank" rel="noopener noreferrer" className="task-photo-thumb" data-testid={`task-before-photo-${task.id}`}>
-          <img src={task.before_photo_url} alt="Before" />
-          <span>Before Photo</span>
-        </a>
+      {/* Photo Evidence */}
+      {(task.before_photo_url || task.after_photo_url) && (
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 10, marginBottom: 12 }}>
+          {task.before_photo_url && (
+            <a href={task.before_photo_url} target="_blank" rel="noopener noreferrer" className="staff-photo-thumb" style={{ marginTop: 0, flex: 1, minWidth: 140 }}>
+              <img src={task.before_photo_url} alt="Before" />
+              <span className="staff-photo-label" style={{ fontSize: '0.75rem' }}>Before (Evidence)</span>
+            </a>
+          )}
+          {task.after_photo_url && (
+            <a href={task.after_photo_url} target="_blank" rel="noopener noreferrer" className="staff-photo-thumb staff-photo-after" style={{ marginTop: 0, flex: 1, minWidth: 140 }}>
+              <img src={task.after_photo_url} alt="After" />
+              <span className="staff-photo-label" style={{ fontSize: '0.75rem' }}>After (Completed)</span>
+            </a>
+          )}
+        </div>
       )}
 
       {/* Assign dropdown — supervisors + staff */}
