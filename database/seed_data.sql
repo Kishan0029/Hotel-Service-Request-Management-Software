@@ -2,10 +2,10 @@
 -- Run in Supabase SQL Editor
 
 -- Departments
-INSERT INTO departments (name, sla_minutes) VALUES
-  ('Housekeeping', 30),
-  ('Maintenance', 45),
-  ('Front Office', 20)
+INSERT INTO departments (name) VALUES
+  ('Housekeeping'),
+  ('Maintenance'),
+  ('Front Office')
 ON CONFLICT DO NOTHING;
 
 -- Rooms
