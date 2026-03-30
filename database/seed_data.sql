@@ -16,12 +16,12 @@ INSERT INTO rooms (room_number, floor) VALUES
 ON CONFLICT DO NOTHING;
 
 -- Staff (one per role for testing)
-INSERT INTO staff (name, role, department_id, phone_number, is_active, on_duty, email, password)
+INSERT INTO staff (name, role, department_id, phone_number, is_active, email, password)
 VALUES
-  ('Admin GM',       'gm',         NULL, '+1000000001', true, true, 'admin.gm@hotel.com',       'password123'),
-  ('Mike Manager',   'manager',    1,    '+1000000002', true, true, 'mike.manager@hotel.com',   'password123'),
-  ('Sara Reception', 'reception',  3,    '+1000000003', true, true, 'sara.reception@hotel.com', 'password123'),
-  ('Tom Super',      'supervisor', 1,    '+1000000004', true, true, 'tom.super@hotel.com',      'password123'),
-  ('Ali Cleaner',    'staff',      1,    '+1000000005', true, true, 'ali.cleaner@hotel.com',    'password123'),
-  ('Ben Fixer',      'staff',      2,    '+1000000006', true, true, 'ben.fixer@hotel.com',      'password123')
+  ('Admin GM',       'gm',         NULL, '+1000000001', true, 'admin.gm@hotel.com',       'password123'),
+  ('Mike Manager',   'manager',    1,    '+1000000002', true, 'mike.manager@hotel.com',   'password123'),
+  ('Sara Reception', 'reception',  3,    '+1000000003', true, 'sara.reception@hotel.com', 'password123'),
+  ('Tom Super',      'supervisor', 1,    '+1000000004', true, 'tom.super@hotel.com',      'password123'),
+  ('Ali Cleaner',    'staff',      1,    '+1000000005', true, 'ali.cleaner@hotel.com',    'password123'),
+  ('Ben Fixer',      'staff',      2,    '+1000000006', true, 'ben.fixer@hotel.com',      'password123')
 ON CONFLICT DO NOTHING;
