@@ -526,7 +526,9 @@ export default function DashboardPage() {
       const u = localStorage.getItem('currentUser');
       if (!u) { router.replace('/login'); return; }
       const parsed = JSON.parse(u);
-      if (parsed.role === 'gm') { router.replace('/gm'); return; }
+      if (parsed.role === 'gm')      { router.replace('/gm');      return; }
+      if (parsed.role === 'manager') { router.replace('/manager'); return; }
+      if (parsed.role === 'staff')   { router.replace('/staff');   return; }
       setCurrentUser(parsed);
     } catch { router.replace('/login'); }
     setAuthReady(true);

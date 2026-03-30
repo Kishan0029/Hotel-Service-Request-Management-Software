@@ -3,32 +3,57 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
-  LayoutDashboard,
-  Users,
-  Building2,
-  DoorOpen,
-  Hotel,
-  MessageSquare,
+  LayoutDashboard, Users, Building2, DoorOpen,
+  Hotel, MessageSquare, Shield, ClipboardList,
 } from 'lucide-react';
 
-const navItems = [
-  {
-    section: 'Reception',
-    links: [
-      { href: '/', label: 'Dashboard', icon: LayoutDashboard },
-    ],
-  },
-  {
-    section: 'Admin',
-    links: [
-      { href: '/admin/staff',       label: 'Staff',       icon: Users         },
-      { href: '/admin/departments', label: 'Departments', icon: Building2     },
-      { href: '/admin/rooms',       label: 'Rooms',       icon: DoorOpen      },
-      { href: '/admin/sms-logs',    label: 'SMS Logs',    icon: MessageSquare },
-    ],
-  },
-];
-
+const ALL_NAV = {
+  gm: [
+    {
+      section: 'Overview',
+      links: [{ href: '/gm', label: 'GM Dashboard', icon: LayoutDashboard }],
+    },
+    {
+      section: 'Admin',
+      links: [
+        { href: '/admin/staff',       label: 'Staff',       icon: Users      },
+        { href: '/admin/departments', label: 'Departments', icon: Building2  },
+        { href: '/admin/rooms',       label: 'Rooms',       icon: DoorOpen   },
+        { href: '/admin/sms-logs',    label: 'SMS Logs',    icon: MessageSquare },
+      ],
+    },
+  ],
+  manager: [
+    {
+      section: 'Manager',
+      links: [{ href: '/manager', label: 'My Dashboard', icon: Shield }],
+    },
+    {
+      section: 'Admin',
+      links: [
+        { href: '/admin/staff', label: 'Staff', icon: Users },
+      ],
+    },
+  ],
+  reception: [
+    {
+      section: 'Reception',
+      links: [{ href: '/', label: 'Dashboard', icon: LayoutDashboard }],
+    },
+  ],
+  supervisor: [
+    {
+      section: 'Supervisor',
+      links: [{ href: '/', label: 'Dashboard', icon: ClipboardList }],
+    },
+  ],
+  staff: [
+    {
+      section: 'My Tasks',
+      links: [{ href: '/staff', label: 'My Tasks', icon: ClipboardList }],
+    },
+  ],
+};
 
 export default function Sidebar() {
   const pathname = usePathname();
@@ -38,42 +63,37 @@ export default function Sidebar() {
     const checkRole = () => {
       try {
         const u = localStorage.getItem('currentUser');
-        if (u) {
-          const parsed = JSON.parse(u);
-          setRole(parsed.role);
-        } else {
-          setRole(null);
-        }
-      } catch (e) {
-        console.error('Sidebar auth check failed', e);
-      }
+        if (u) setRole(JSON.parse(u).role);
+        else    setRole(null);
+      } catch { setRole(null); }
     };
     checkRole();
     window.addEventListener('storage', checkRole);
     return () => window.removeEventListener('storage', checkRole);
   }, []);
 
-  // Filter sections based on role
-  const visibleNavItems = navItems.filter(section => {
-    if (section.section === 'Admin') {
-      return ['gm', 'manager'].includes(role);
-    }
-    return true;
-  });
+  const navItems = (role && ALL_NAV[role]) || ALL_NAV.reception;
 
   return (
     <aside className="sidebar">
       {/* Brand */}
       <div className="sidebar-brand">
         <div className="sidebar-brand-icon">
-          <Hotel size={20} color="#fff" />
+          <Hotel size={20} color="#C5A880" />
         </div>
         <div className="sidebar-brand-name">Hotel Service</div>
-        <div className="sidebar-brand-sub">Request Management</div>
+        <div className="sidebar-brand-sub">Management System</div>
       </div>
 
+      {/* Role badge */}
+      {role && (
+        <div className="sidebar-role-badge">
+          <span className={`sidebar-role-pill role-${role}`}>{role.toUpperCase()}</span>
+        </div>
+      )}
+
       {/* Navigation */}
-      {visibleNavItems.map((section) => (
+      {navItems.map((section) => (
         <div key={section.section}>
           <div className="sidebar-section-label">{section.section}</div>
           <nav className="sidebar-nav">
@@ -84,7 +104,7 @@ export default function Sidebar() {
                 className={`sidebar-link ${pathname === href ? 'active' : ''}`}
               >
                 <Icon size={16} />
-                {label}
+                <span>{label}</span>
               </Link>
             ))}
           </nav>

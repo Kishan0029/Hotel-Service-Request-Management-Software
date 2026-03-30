@@ -3,7 +3,7 @@ import { sendSMS } from '@/lib/sms';
 
 export const dynamic = 'force-dynamic';
 
-// Full task select — includes V4 hierarchical assignment columns
+// Full task select — includes V4 hierarchical assignment + V7 photo/location columns
 const TASK_SELECT = `
   id,
   task_code,
@@ -24,6 +24,10 @@ const TASK_SELECT = `
   assigned_to,
   assigned_role,
   current_level,
+  before_photo_url,
+  after_photo_url,
+  is_mod_task,
+  location_id,
   rooms (id, room_number, floor),
   departments (id, name, sla_minutes),
   staff!assigned_staff_id (id, name, phone_number, role),
@@ -96,12 +100,15 @@ export async function POST(request) {
     room_id,
     department_id,
     task_type,
-    priority      = 'normal',
+    priority           = 'normal',
     notes,
-    type          = 'request',
-    created_by    = 'Reception',
-    creator_role  = 'staff',       // role of user creating the task
+    type               = 'request',
+    created_by         = 'Reception',
+    creator_role       = 'staff',  // role of user creating the task
     initial_manager_id = null,     // GM must supply: which manager to assign to
+    mod_dispatch       = false,    // MOD Mode: assign directly to staff (bypass chain)
+    location_id        = null,     // V7: location for MOD tasks
+    before_photo_url   = null,     // V7: MOD before photo
   } = body;
 
   if (!room_id || !department_id || !task_type) {
@@ -134,7 +141,34 @@ export async function POST(request) {
 
   const now = new Date().toISOString();
 
-  if (creator_role === 'gm') {
+  // ── MOD Mode direct dispatch (Manager → Staff) ───────────────────────────
+  if (mod_dispatch && creator_role === 'manager') {
+    let staffId = null;
+    if (dept?.default_staff_id) {
+      const { data: def } = await supabase
+        .from('staff').select('id, is_active, on_duty').eq('id', dept.default_staff_id).single();
+      if (def?.is_active && def?.on_duty) staffId = def.id;
+    }
+    if (!staffId) {
+      const { data: any } = await supabase
+        .from('staff')
+        .select('id')
+        .eq('department_id', department_id)
+        .eq('role', 'staff')
+        .eq('is_active', true)
+        .eq('on_duty', true)
+        .order('name', { ascending: true })
+        .limit(1)
+        .single();
+      staffId = any?.id ?? null;
+    }
+    assignedTo      = staffId;
+    assignedRole    = staffId ? 'staff' : null;
+    assignedStaffId = staffId;
+    currentLevel    = 'staff';
+    isUnassigned    = !staffId;
+    sendSmsNow      = !!staffId;
+  } else if (creator_role === 'gm') {
     // GM must provide initial_manager_id
     if (!initial_manager_id) {
       return Response.json({ error: 'GM must specify a manager to assign the task to (initial_manager_id)' }, { status: 400 });
@@ -152,8 +186,8 @@ export async function POST(request) {
     currentLevel = 'manager';
     sendSmsNow   = false;
 
-  } else if (creator_role === 'manager') {
-    // Manager creates → auto-assign to supervisor in dept
+  } else if (creator_role === 'manager' && !mod_dispatch) {
+    // Manager creates without MOD mode → auto-assign to supervisor in dept
     const { data: sup } = await supabase
       .from('staff')
       .select('id')
@@ -171,7 +205,6 @@ export async function POST(request) {
     sendSmsNow   = false;
 
   } else if (creator_role === 'supervisor' || creator_role === 'reception') {
-    // Supervisor or Reception creates → auto-assign to default staff or first active+on-duty staff
     let staffId = null;
     if (dept?.default_staff_id) {
       const { data: def } = await supabase
@@ -198,23 +231,33 @@ export async function POST(request) {
     isUnassigned    = !staffId;
     sendSmsNow      = !!staffId;
 
-  } else {
-    // Default fallback (e.g. staff creates somehow) → auto-assign to supervisor
-    const { data: sup } = await supabase
-      .from('staff')
-      .select('id')
-      .eq('department_id', department_id)
-      .eq('role', 'supervisor')
-      .eq('is_active', true)
-      .eq('on_duty', true)
-      .order('name', { ascending: true })
-      .limit(1)
-      .single();
-    assignedTo   = sup?.id ?? null;
-    assignedRole = sup ? 'supervisor' : null;
-    currentLevel = 'supervisor';
-    isUnassigned = !sup;
-    sendSmsNow   = false;
+  } else if (creator_role === 'supervisor' || creator_role === 'reception') {
+    // Supervisor or Reception creates → auto-assign to default staff or first active+on-duty staff
+    let staffId = null;
+    if (dept?.default_staff_id) {
+      const { data: def } = await supabase
+        .from('staff').select('id, is_active, on_duty').eq('id', dept.default_staff_id).single();
+      if (def?.is_active && def?.on_duty) staffId = def.id;
+    }
+    if (!staffId) {
+      const { data: any2 } = await supabase
+        .from('staff')
+        .select('id')
+        .eq('department_id', department_id)
+        .eq('role', 'staff')
+        .eq('is_active', true)
+        .eq('on_duty', true)
+        .order('name', { ascending: true })
+        .limit(1)
+        .single();
+      staffId = any2?.id ?? null;
+    }
+    assignedTo      = staffId;
+    assignedRole    = staffId ? 'staff' : null;
+    assignedStaffId = staffId;
+    currentLevel    = 'staff';
+    isUnassigned    = !staffId;
+    sendSmsNow      = !!staffId;
   }
 
   // ── Build initial activity log ─────────────────────────────────────────────
@@ -238,6 +281,9 @@ export async function POST(request) {
       assigned_role:     assignedRole,
       current_level:     currentLevel,
       status:            'pending',
+      is_mod_task:       mod_dispatch === true,
+      location_id:       location_id || null,
+      before_photo_url:  before_photo_url || null,
     })
     .select('id')
     .single();

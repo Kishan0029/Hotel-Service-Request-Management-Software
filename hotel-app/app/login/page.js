@@ -1,165 +1,138 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { Hotel, Mail, Lock, ArrowRight, Eye, EyeOff } from 'lucide-react';
+
+function getRoleRoute(role) {
+  if (role === 'gm')       return '/gm';
+  if (role === 'manager')  return '/manager';
+  if (role === 'staff')    return '/staff';
+  return '/'; // reception, supervisor
+}
 
 export default function LoginPage() {
-  const router   = useRouter();
-  const [staff, setStaff]         = useState([]);
-  const [selected, setSelected]   = useState('');
-  const [loading, setLoading]     = useState(true);
-  const [submitting, setSubmitting] = useState(false);
+  const router = useRouter();
+  const [form, setForm]           = useState({ email: '', password: '' });
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading]     = useState(false);
   const [error, setError]         = useState('');
 
-  // If already logged in, redirect
   useEffect(() => {
     try {
       const u = localStorage.getItem('currentUser');
       if (u) {
         const parsed = JSON.parse(u);
-        router.replace(parsed.role === 'gm' ? '/gm' : '/');
+        router.replace(getRoleRoute(parsed.role));
       }
     } catch {}
   }, [router]);
 
-  useEffect(() => {
-    let mounted = true;
-    fetch('/api/login')
-      .then(async r => {
-        if (!r.ok) {
-          const text = await r.text().catch(() => '');
-          throw new Error(`HTTP ${r.status}: ${text}`);
-        }
-        return r.json();
-      })
-      .then(d => {
-        if (!mounted) return;
-        if (d.error) throw new Error(d.error);
-        setStaff(Array.isArray(d) ? d : []);
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error('Login fetch error:', err);
-        if (!mounted) return;
-        setError(err.message || 'Failed to load staff list');
-        setLoading(false);
-      });
-    return () => { mounted = false; };
-  }, []);
-
   const handleLogin = async (e) => {
     e.preventDefault();
-    if (!selected) return;
-    setSubmitting(true);
     setError('');
+    setLoading(true);
     try {
       const res = await fetch('/api/login', {
-        method:  'POST',
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ staff_id: parseInt(selected) }),
+        body: JSON.stringify({ email: form.email.trim(), password: form.password }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Login failed');
       localStorage.setItem('currentUser', JSON.stringify(data));
-      router.push(data.role === 'gm' ? '/gm' : '/');
+      router.push(getRoleRoute(data.role));
     } catch (err) {
       setError(err.message);
-      setSubmitting(false);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const [searchQuery, setSearchQuery] = useState('');
-
-  // Group staff by role for display, applying search filter
-  // Group staff by role for display, applying search filter
-  const roleLabels = { gm: 'General Manager', reception: 'Reception', manager: 'Managers', supervisor: 'Supervisors', staff: 'Staff' };
-  const roleOrder  = ['gm', 'reception', 'manager', 'supervisor', 'staff'];
-  
-  const filteredStaff = staff.filter(s => 
-    s.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    (s.departments?.name && s.departments.name.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
-
-  const grouped = roleOrder.reduce((acc, role) => {
-    const members = filteredStaff.filter(s => s.role === role);
-    if (members.length) acc[role] = members;
-    return acc;
-  }, {});
-
   return (
-    <div className="login-shell">
-      <div className="login-card premium-shadow">
-        <div className="login-brand">
-          <div className="login-brand-icon-premium">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008zm0 3h.008v.008h-.008v-.008z" />
-            </svg>
+    <div className="login-shell-v7">
+      {/* Background image layer */}
+      <div className="login-bg-overlay" />
+
+      {/* Login card */}
+      <div className="login-glass-card" data-testid="login-card">
+        {/* Brand */}
+        <div className="login-brand-v7">
+          <div className="login-brand-icon-v7">
+            <Hotel size={26} color="#C5A880" />
           </div>
-          <h1 className="login-title">Hotel Service System</h1>
-          <p className="login-subtitle">Select your role to continue</p>
+          <h1 className="login-title-v7">Hotel Service</h1>
+          <p className="login-subtitle-v7">Management System — Staff Portal</p>
         </div>
 
-        {loading ? (
-          <div className="login-loading" style={{ justifyContent: 'center' }}>
-            <div className="spinner" />
-            <span>Loading staff framework…</span>
-          </div>
-        ) : (
-          <form onSubmit={handleLogin} className="login-form">
-            {error && <div className="error-banner">{error}</div>}
+        {/* Form */}
+        <form onSubmit={handleLogin} className="login-form-v7" data-testid="login-form">
+          {error && (
+            <div className="login-error-v7" data-testid="login-error">
+              <span>{error}</span>
+            </div>
+          )}
 
-            <div className="login-search-wrap">
-              <svg className="login-search-icon" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clipRule="evenodd" />
-              </svg>
-              <input 
-                type="text" 
-                placeholder="Search name or department..." 
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                className="login-search-input"
+          {/* Email */}
+          <div className="login-field-v7">
+            <label className="login-label-v7" htmlFor="email">Email Address</label>
+            <div className="login-input-wrap-v7">
+              <Mail size={16} className="login-input-icon" />
+              <input
+                id="email"
+                data-testid="login-email-input"
+                type="email"
+                placeholder="your.name@hotel.com"
+                autoComplete="email"
+                value={form.email}
+                onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
+                required
               />
             </div>
+          </div>
 
-            <div className="login-list-container">
-              {Object.keys(grouped).length === 0 ? (
-                <div className="login-empty-state">No matching staff found</div>
-              ) : (
-                Object.entries(grouped).map(([role, members]) => (
-                  <div key={role} className="login-role-group">
-                    <div className="login-role-header">{roleLabels[role] || role}</div>
-                    <div className="login-role-members">
-                      {members.map(s => (
-                        <div 
-                          key={s.id} 
-                          className={`login-member-item ${selected === s.id ? 'selected' : ''}`}
-                          onClick={() => setSelected(s.id)}
-                        >
-                          <div className="login-member-name">{s.name}</div>
-                          <div className="login-member-meta">
-                            {s.role === 'gm' ? 'General Management' : (s.departments?.name ? `${roleLabels[s.role] || 'Staff'} — ${s.departments.name}` : 'Staff')}
-                          </div>
-                          {selected === s.id && (
-                            <div className="login-member-check">
-                              <svg viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clipRule="evenodd" /></svg>
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ))
-              )}
+          {/* Password */}
+          <div className="login-field-v7">
+            <label className="login-label-v7" htmlFor="password">Password</label>
+            <div className="login-input-wrap-v7">
+              <Lock size={16} className="login-input-icon" />
+              <input
+                id="password"
+                data-testid="login-password-input"
+                type={showPassword ? 'text' : 'password'}
+                placeholder="Enter your password"
+                autoComplete="current-password"
+                value={form.password}
+                onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
+                required
+              />
+              <button
+                type="button"
+                className="login-eye-btn"
+                onClick={() => setShowPassword(v => !v)}
+                aria-label="Toggle password visibility"
+              >
+                {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+              </button>
             </div>
+          </div>
 
-            <button
-              type="submit"
-              className="btn btn-primary login-btn"
-              disabled={!selected || submitting}
-            >
-              {submitting ? 'Signing in…' : 'Continue'}
-            </button>
-          </form>
-        )}
+          <button
+            type="submit"
+            className="login-submit-btn"
+            data-testid="login-submit-btn"
+            disabled={loading || !form.email || !form.password}
+          >
+            {loading ? (
+              <span className="login-btn-loading"><span className="spinner-sm" /> Signing in…</span>
+            ) : (
+              <span className="login-btn-text"><ArrowRight size={16} /> Sign In</span>
+            )}
+          </button>
+        </form>
+
+        <p className="login-hint-v7">
+          Default password: <code>password123</code>
+        </p>
       </div>
     </div>
   );
