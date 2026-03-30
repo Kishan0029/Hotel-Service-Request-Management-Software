@@ -78,12 +78,8 @@ export default function Sidebar() {
     <aside className="sidebar">
       {/* Brand */}
       <div className="sidebar-brand">
-        <div className="sidebar-brand-icon" style={{ background: 'none', border: 'none', padding: 0 }}>
-          <img
-            src="https://customer-assets.emergentagent.com/job_service-desk-ops-1/artifacts/3jcvjpkv_image.png"
-            alt="Hotel Service"
-            style={{ width: 40, height: 40, borderRadius: 10, objectFit: 'cover', display: 'block' }}
-          />
+        <div className="sidebar-brand-icon">
+          <Hotel size={20} color="#C5A880" />
         </div>
         <div className="sidebar-brand-name">Hotel Service</div>
         <div className="sidebar-brand-sub">Management System</div>
