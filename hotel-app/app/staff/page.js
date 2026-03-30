@@ -297,7 +297,11 @@ export default function StaffDashboard() {
       prevIds.current = new Set(newTasks.map(t => t.id));
       setTasks(newTasks);
     } catch (err) {
-      if (!silent) setError(err.message);
+      if (!silent) setError(
+        err.name === 'AbortError'
+          ? 'Database connection timed out. Please ensure your Supabase project is active and the V7 migration has been applied.'
+          : err.message
+      );
     }
     if (!silent) setLoading(false);
   }, [user]);

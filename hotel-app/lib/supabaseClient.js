@@ -10,4 +10,13 @@ if (!supabaseUrl || !supabaseAnonKey) {
   );
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Wrap fetch with a 12-second timeout so the app doesn't hang indefinitely
+function fetchWithTimeout(url, options = {}) {
+  const controller = new AbortController();
+  const tid = setTimeout(() => controller.abort(), 12_000);
+  return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(tid));
+}
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  global: { fetch: fetchWithTimeout },
+});

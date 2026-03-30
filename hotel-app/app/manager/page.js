@@ -303,7 +303,7 @@ function ManagerTaskCard({ task, currentUser, onAction, onAssign, actionLoading,
   const expanded   = expandedId === task.id;
   const busy       = !!actionLoading[task.id];
   const isAssigned = task.assigned_to && String(task.assigned_to) === String(currentUser?.id);
-  const canAssign  = currentUser?.role === 'manager' && ['manager', 'supervisor', 'staff'].includes(task.current_level);
+  const canAssign  = currentUser?.role === 'manager' && task.status !== 'completed';
 
   const icons = { created: '📋', acknowledged: '✅', started: '🔧', completed: '✓', reassigned: '↩', escalated: '🔴', assigned: '→' };
 
@@ -433,7 +433,11 @@ export default function ManagerDashboard() {
       setLocations(Array.isArray(l) ? l : []);
       setAllStaff(Array.isArray(s) ? s.filter(x => x.is_active) : []);
     } catch (err) {
-      if (!silent) setError(err.message);
+      if (!silent) setError(
+        err.name === 'AbortError'
+          ? 'Database connection timed out. Please ensure your Supabase project is active (not paused) and run the V7 migration.'
+          : err.message
+      );
     }
     if (!silent) setLoading(false);
   }, [user]);
@@ -598,8 +602,6 @@ export default function ManagerDashboard() {
                     <tbody>
                       {tasks.map(task => {
                         const busy  = !!actionLoading[task.id];
-                        const isAss = task.assigned_to && String(task.assigned_to) === String(user?.id);
-                        const canAss = currentUser?.role === 'manager' && supervisors.length > 0;
                         return (
                           <tr key={task.id} className={task.is_mod_task ? 'row-mod' : ''} data-testid={`manager-row-${task.id}`}>
                             <td>
@@ -614,7 +616,7 @@ export default function ManagerDashboard() {
                             <td>
                               <div className="action-cell">
                                 {task.status !== 'completed' && supervisors.length > 0 && (
-                                  <select className="reassign-select" value="" onChange={e => taskAssign(task.id, parseInt(e.target.value), 'manager')} disabled={busy} data-testid={`table-assign-${task.id}`}>
+                                  <select className="reassign-select" value="" onChange={e => taskAssign(task.id, parseInt(e.target.value), user?.role)} disabled={busy} data-testid={`table-assign-${task.id}`}>
                                     <option value="">→ Assign Supervisor…</option>
                                     {supervisors.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                                   </select>
