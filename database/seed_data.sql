@@ -18,7 +18,7 @@ ON CONFLICT DO NOTHING;
 -- Staff (one per role for testing)
 INSERT INTO staff (name, role, department_id, phone_number, is_active, email, password)
 VALUES
-  ('Admin GM',       'gm',         NULL, '+1000000001', true, 'admin.gm@hotel.com',       'password123'),
+  ('Admin GM',       'gm',         1,    '+1000000001', true, 'admin.gm@hotel.com',       'password123'),
   ('Mike Manager',   'manager',    1,    '+1000000002', true, 'mike.manager@hotel.com',   'password123'),
   ('Sara Reception', 'reception',  3,    '+1000000003', true, 'sara.reception@hotel.com', 'password123'),
   ('Tom Super',      'supervisor', 1,    '+1000000004', true, 'tom.super@hotel.com',      'password123'),
