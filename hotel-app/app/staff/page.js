@@ -145,14 +145,8 @@ function StaffTaskCard({ task, user, onAction, actionLoading, onPhotoUpload }) {
 
   return (
     <>
-      <div
-        className={`staff-task-card ${task.priority === 'urgent' ? 'staff-task-urgent' : ''} ${task.status === 'completed' ? 'staff-task-done' : ''}`}
-        data-testid={`staff-task-${task.id}`}
-      >
-        {/* Status indicator stripe */}
-        <div className={`staff-task-stripe stripe-${task.status}`} />
-
-        <div className="staff-task-body">
+      <div className={`staff-task-card card-${task.status} ${task.priority === 'urgent' ? 'staff-task-urgent' : ''} ${task.status === 'completed' ? 'staff-task-done' : ''}`} data-testid={`staff-task-${task.id}`}>
+      <div className="staff-task-body">
           {/* Top row */}
           <div className="staff-task-top">
             <div className="staff-task-room">Room {task.rooms?.room_number}</div>

@@ -460,7 +460,7 @@ function ManagerTaskCard({ task, currentUser, onAction, onAssign, actionLoading,
 
   return (
     <div
-      className={`task-card-premium ${task.is_mod_task ? 'task-card-mod' : ''} ${task.type === 'complaint' ? 'task-card-complaint' : ''} ${task.escalation_level >= 1 ? 'task-card-escalated' : ''}`}
+      className={`task-card-premium task-card-${task.status} ${task.is_mod_task ? 'task-card-mod' : ''} ${task.type === 'complaint' ? 'task-card-complaint' : ''} ${task.escalation_level >= 1 ? 'task-card-escalated' : ''}`}
       data-testid={`manager-task-${task.id}`}
     >
       <div className="task-card-header">
