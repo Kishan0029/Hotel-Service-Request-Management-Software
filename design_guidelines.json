@@ -1,0 +1,145 @@
+{
+  "theme": "Light Theme (Premium SaaS/High Contrast)",
+  "archetype": "Archetype 5: Jewel & Luxury meets SaaS",
+  "colors": {
+    "primary": {
+      "DEFAULT": "#1E3A8A",
+      "hover": "#1E40AF",
+      "text": "#FFFFFF"
+    },
+    "accent_gold": {
+      "DEFAULT": "#C5A880",
+      "hover": "#B3956D",
+      "text": "#FFFFFF",
+      "light": "#FDFBF7"
+    },
+    "surface": {
+      "card": "#FFFFFF",
+      "background": "#F8FAFC",
+      "sidebar": "#0B132B",
+      "glass": "rgba(255, 255, 255, 0.7)"
+    },
+    "text": {
+      "primary": "#0F172A",
+      "secondary": "#64748B",
+      "inverse": "#F8FAFC",
+      "muted": "#94A3B8"
+    },
+    "status": {
+      "success": "#10B981",
+      "warning": "#F59E0B",
+      "danger": "#EF4444",
+      "info": "#3B82F6"
+    },
+    "border": {
+      "light": "#E2E8F0",
+      "dark": "#1E293B"
+    }
+  },
+  "typography": {
+    "imports": "@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600&family=Outfit:wght@400;500;600;700&display=swap');",
+    "headings": {
+      "family": "'Outfit', sans-serif",
+      "weights": ["500", "600", "700"],
+      "sizes": {
+        "h1": "2.5rem",
+        "h2": "2rem",
+        "h3": "1.5rem",
+        "h4": "1.25rem"
+      },
+      "letter_spacing": "-0.02em"
+    },
+    "body": {
+      "family": "'Manrope', sans-serif",
+      "weights": ["400", "500", "600"],
+      "sizes": {
+        "lg": "1.125rem",
+        "base": "1rem",
+        "sm": "0.875rem",
+        "xs": "0.75rem"
+      },
+      "line_height": "1.6"
+    }
+  },
+  "surfaces_and_effects": {
+    "glassmorphism": {
+      "navbar": "background-color: var(--surface-glass); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-bottom: 1px solid var(--border-light);",
+      "modal_overlay": "background-color: rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px);",
+      "modal_content": "background-color: rgba(255, 255, 255, 0.95); backdrop-filter: blur(24px); border: 1px solid rgba(255, 255, 255, 0.4); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);"
+    },
+    "cards": {
+      "default": "background-color: var(--surface-card); border: 1px solid var(--border-light); border-radius: 12px; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05); transition: transform 0.2s ease, box-shadow 0.2s ease;",
+      "hover": "transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); border-color: var(--accent-gold);"
+    },
+    "buttons": {
+      "primary": "background-color: var(--primary); color: var(--text-inverse); border-radius: 8px; padding: 0.5rem 1rem; font-weight: 500; transition: all 0.2s ease;",
+      "primary_hover": "background-color: var(--primary-hover); box-shadow: 0 4px 6px -1px rgba(30, 58, 138, 0.2);",
+      "accent": "background-color: var(--accent-gold); color: var(--text-inverse); border-radius: 8px; padding: 0.5rem 1rem; font-weight: 600; transition: all 0.2s ease;",
+      "accent_hover": "background-color: var(--accent-gold-hover); box-shadow: 0 4px 6px -1px rgba(197, 168, 128, 0.3);"
+    }
+  },
+  "layout_and_spacing": {
+    "system": "8px baseline grid",
+    "sidebar_width": "260px",
+    "breakpoints": {
+      "mobile": "640px",
+      "tablet": "768px",
+      "desktop": "1024px",
+      "large": "1280px"
+    },
+    "padding": {
+      "page_desktop": "2rem",
+      "page_mobile": "1rem",
+      "card": "1.5rem"
+    }
+  },
+  "components_and_features": {
+    "login_page": {
+      "layout": "Split screen or centered glass card over a high-quality hotel image background.",
+      "styling": "Use glassmorphism for the login form container. Ensure high contrast for inputs."
+    },
+    "staff_dashboard": {
+      "layout": "Mobile-first. 100% width stacked cards.",
+      "interactions": "Large touch targets (min 44px height). Floating Action Button (FAB) for quick photo uploads. Slide-up bottom sheets instead of modals for better mobile UX.",
+      "visuals": "Clear 'Before' and 'After' photo thumbnails in task cards."
+    },
+    "gm_dashboard": {
+      "layout": "Dense data view but breathable. 3-4 column bento-grid on desktop.",
+      "styling": "Cards with muted gold accents on key metrics. Status indicators should use subtle background tints (e.g., bg-green-50 text-green-700) instead of harsh colors."
+    },
+    "manager_dashboard": {
+      "mod_mode": "Manager On Duty mode should have a prominent, pulse-animated CTA (Deep Blue or Gold). Activating it changes the header context to indicate 'Live Reporting'.",
+      "photo_upload": "Use a center glassmorphism modal on desktop, full-screen takeover on mobile."
+    },
+    "reception_dashboard": {
+      "layout": "List-heavy view with robust filtering.",
+      "styling": "Use tabular layouts or dense horizontal cards. Sticky headers with backdrop-blur for table headers."
+    }
+  },
+  "images_and_media": {
+    "login_background": {
+      "url": "https://images.pexels.com/photos/36354955/pexels-photo-36354955.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+      "description": "Modern luxury hotel exterior with glass facade, perfect for enterprise login screen background."
+    },
+    "dashboard_header_bg": {
+      "url": "https://images.pexels.com/photos/7201513/pexels-photo-7201513.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+      "description": "Vibrant exterior view of a luxury hotel, usable as a subtle header background or GM property cover photo."
+    }
+  },
+  "icons": {
+    "library": "lucide-react",
+    "usage": "Use consistent stroke width (1.5px to 2px). Ensure icons in buttons are vertically centered with text."
+  },
+  "testing_attributes": {
+    "requirement": "All interactive and key informational elements MUST include a data-testid attribute in kebab-case.",
+    "examples": ["data-testid='login-submit-btn'", "data-testid='mod-mode-toggle'", "data-testid='task-card-123'"]
+  },
+  "instructions_to_main_agent": [
+    "Since the app uses plain CSS classes via globals.css without Tailwind, you MUST define the colors, typography, shadows, and glassmorphism effects as CSS Custom Properties (:root) in globals.css.",
+    "Create highly reusable CSS utility classes in globals.css (e.g., .glass-panel, .card-premium, .btn-primary) instead of inline styles.",
+    "Implement the UI using vanilla Next.js components (.js) and apply the custom CSS classes.",
+    "Ensure the Staff Dashboard is explicitly built mobile-first, using CSS media queries (@media (min-width: 768px)) to scale up for larger devices.",
+    "Apply Outfit font to all headings and Manrope to body text.",
+    "Add 'data-testid' attributes to all actionable elements."
+  ]
+}
