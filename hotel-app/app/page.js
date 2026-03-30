@@ -232,7 +232,10 @@ function CreateTaskModal({ rooms, departments, allStaff, onClose, onCreated, cur
     try {
       const res = await fetch('/api/tasks', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'x-api-key': process.env.NEXT_PUBLIC_API_KEY 
+        },
         body: JSON.stringify({
           room_id:            parseInt(form.room_id),
           department_id:      parseInt(form.department_id),
@@ -369,7 +372,7 @@ function WorkloadPanel({ currentUser }) {
     if ((currentUser?.role === 'supervisor' || currentUser?.role === 'manager') && currentUser?.department_id) {
       url += `?department_id=${currentUser.department_id}`;
     }
-    const res = await fetch(url);
+    const res = await fetch(url, { headers: { 'x-api-key': process.env.NEXT_PUBLIC_API_KEY } });
     if (res.ok) setWorkload(await res.json());
     setLoading(false);
   }, [currentUser?.role, currentUser?.department_id]);
@@ -422,11 +425,12 @@ function TaskCard({ task, currentUser, smsStatus, onAction, onAssign, actionLoad
   const assignee = task.assigned_staff ?? task.staff;
 
   return (
-    <div className={`task-card ${task.type === 'complaint' ? 'task-card-complaint' : ''} ${task.escalation_level >= 2 ? 'task-card-critical' : task.escalation_level === 1 ? 'task-card-escalated' : ''}`}>
+    <div className={`task-card ${task.unassigned ? 'task-card-unassigned' : ''} ${task.type === 'complaint' ? 'task-card-complaint' : ''} ${task.escalation_level >= 2 ? 'task-card-critical' : task.escalation_level === 1 ? 'task-card-escalated' : ''}`} style={task.unassigned ? { backgroundColor: '#fef2f2', border: '1px solid #fecaca' } : {}}>
       {/* Header */}
       <div className="task-card-header">
         <div className="task-card-room" style={{ fontWeight: 700, fontSize: '1.1rem' }}>Room {task.rooms?.room_number}</div>
         <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap', alignItems: 'center' }}>
+          {task.unassigned && <span className="badge badge-urgent">⚠ Unassigned</span>}
           {['gm', 'reception'].includes(currentUser?.role) && <TypeBadge type={task.type || 'request'} />}
           {task.priority === 'urgent' && <span className="badge badge-urgent"><AlertTriangle size={10} /> Urgent</span>}
           <LevelBadge level={task.current_level} />
@@ -437,11 +441,13 @@ function TaskCard({ task, currentUser, smsStatus, onAction, onAssign, actionLoad
       <div className="task-card-dept" style={{ fontWeight: 500, fontSize: '0.9rem', color: '#334155' }}>{task.departments?.name} — {task.task_type}</div>
       {task.notes && <div className="task-card-notes" style={{ fontWeight: 300, color: '#64748b' }}>{task.notes}</div>}
 
-      {/* Status + SLA row */}
-      <div className="task-card-status-row">
+      <div className="task-card-status-row" style={{ marginTop: 8 }}>
         <StatusBadge status={task.status} />
         <EscalationBadge level={task.escalation_level} />
         <SlaIndicator task={task} tick={tick} />
+        {smsStatus[task.id] === 'failed' && (
+          <span className="badge badge-urgent">🔴 SMS Failed</span>
+        )}
       </div>
 
       {/* Assignee */}
@@ -449,13 +455,9 @@ function TaskCard({ task, currentUser, smsStatus, onAction, onAssign, actionLoad
         {assignee ? (
           <span>→ {assignee.name} ({task.assigned_role ?? task.current_level}) <SmsBadge status={smsStatus[task.id]} /></span>
         ) : (
-          <span className="td-muted">Unassigned</span>
+          <span style={{ color: '#dc2626', fontWeight: 600 }}>→ ⚠ Unassigned (Action Required)</span>
         )}
       </div>
-
-      {smsStatus[task.id] === 'failed' && (
-        <div className="sms-fail-alert">⚠ SMS failed to send — staff may not be notified</div>
-      )}
 
       {/* Action buttons */}
       {task.status !== 'completed' && (
@@ -578,19 +580,34 @@ export default function DashboardPage() {
   const loadAll = useCallback(async (silent = false) => {
     if (!authReady || !currentUser) return;
     try {
+      const headers = { 'x-api-key': process.env.NEXT_PUBLIC_API_KEY };
       const [tr, rr, dr, sr] = await Promise.all([
-        fetch(buildTasksUrl(currentUser)),
-        fetch('/api/rooms'),
-        fetch('/api/departments'),
-        fetch('/api/staff'),
+        fetch(buildTasksUrl(currentUser), { headers }),
+        fetch('/api/rooms', { headers }),
+        fetch('/api/departments', { headers }),
+        fetch('/api/staff', { headers }),
       ]);
-      const [t, r, d, s] = await Promise.all([tr.json(), rr.json(), dr.json(), sr.json()]);
-      if (!tr.ok) throw new Error(t.error || 'Failed to load tasks');
+
+      // Check for 401s before tr.json() to avoid syntax errors on "Unauthorized" plaintext
+      if (!tr.ok && tr.status === 401) throw new Error('Unauthorized Access. Please check your API key (Dashboard).');
+      if (!rr.ok && rr.status === 401) throw new Error('Unauthorized Access. Please check your API key (Rooms).');
+      if (!dr.ok && dr.status === 401) throw new Error('Unauthorized Access. Please check your API key (Depts).');
+      if (!sr.ok && sr.status === 401) throw new Error('Unauthorized Access. Please check your API key (Staff).');
+
+      const [t, r, d, s] = await Promise.all([
+        tr.ok ? tr.json() : tr.json().catch(() => ({error: tr.statusText})),
+        rr.ok ? rr.json() : rr.json().catch(() => ({error: rr.statusText})),
+        dr.ok ? dr.json() : dr.json().catch(() => ({error: dr.statusText})),
+        sr.ok ? sr.json() : sr.json().catch(() => ({error: sr.statusText})),
+      ]);
+
+      if (!tr.ok) throw new Error(t.error || `Failed to load tasks (${tr.status})`);
       setTasks(Array.isArray(t) ? t : []);
       setRooms(Array.isArray(r) ? r : []);
       setDepartments(Array.isArray(d) ? d : []);
       setAllStaff(Array.isArray(s) ? s.filter(x => x.is_active) : []);
     } catch (err) {
+      console.error('[Dashboard LoadAll]', err);
       if (!silent) setError(err.message);
     } finally {
       if (!silent) setLoading(false);
@@ -609,23 +626,6 @@ export default function DashboardPage() {
   useEffect(() => {
     const id = setInterval(async () => {
       loadAll(true);
-      try {
-        const res = await fetch('/api/escalation');
-        if (!res.ok) return;
-        const { escalated } = await res.json();
-        if (!Array.isArray(escalated) || escalated.length === 0) return;
-        const newAlerts = [];
-        for (const item of escalated) {
-          const key = `${item.task_id}-${item.level}`;
-          if (shownEscalations.current.has(key)) continue;
-          shownEscalations.current.add(key);
-          newAlerts.push({ key, level: item.level, message: item.level === 1 ? `Task ${item.task_code} escalated to supervisor` : `Task ${item.task_code} — CRITICAL, escalated to manager` });
-        }
-        if (newAlerts.length) {
-          setFlashAlerts(prev => [...prev, ...newAlerts]);
-          setTimeout(() => setFlashAlerts(prev => prev.filter(a => !newAlerts.some(n => n.key === a.key))), 5000);
-        }
-      } catch {}
     }, 20_000);
     return () => clearInterval(id);
   }, [loadAll]);
@@ -636,7 +636,10 @@ export default function DashboardPage() {
     try {
       const res = await fetch(`/api/tasks/${taskId}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'x-api-key': process.env.NEXT_PUBLIC_API_KEY
+        },
         body: JSON.stringify({ ...payload, by: currentUser?.name ?? 'Unknown' }),
       });
       const updated = await res.json();
@@ -655,7 +658,10 @@ export default function DashboardPage() {
     try {
       const res = await fetch(`/api/tasks/${taskId}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'x-api-key': process.env.NEXT_PUBLIC_API_KEY
+        },
         body: JSON.stringify({
           assign_to:     targetStaffId,
           assigner_role: assignerRole,

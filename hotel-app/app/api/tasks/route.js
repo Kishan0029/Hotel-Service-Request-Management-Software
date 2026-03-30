@@ -1,6 +1,5 @@
 import { supabase } from '@/lib/supabaseClient';
 import { sendSMS } from '@/lib/sms';
-import { checkAndEscalate } from '@/lib/escalation';
 
 export const dynamic = 'force-dynamic';
 
@@ -34,6 +33,11 @@ const TASK_SELECT = `
 // ── GET /api/tasks ───────────────────────────────────────────────────────────
 // Filters: role, user_id, department_id, status, type, room_number
 export async function GET(req) {
+  const key = req.headers.get('x-api-key');
+  if (key !== process.env.INTERNAL_API_KEY) {
+    return new Response('Unauthorized', { status: 401 });
+  }
+
   const { searchParams } = new URL(req.url);
   const role         = searchParams.get('role');
   const userId       = searchParams.get('user_id');
@@ -41,11 +45,6 @@ export async function GET(req) {
   const statusFilter = searchParams.get('status');
   const typeFilter   = searchParams.get('type');
   const roomFilter   = searchParams.get('room');
-
-  // Fire-and-forget escalation check on every dashboard load
-  checkAndEscalate().catch(err =>
-    console.error('[Tasks GET] Escalation check failed:', err.message)
-  );
 
   let query = supabase.from('tasks').select(TASK_SELECT);
 
@@ -87,6 +86,11 @@ export async function GET(req) {
 
 // ── POST /api/tasks ──────────────────────────────────────────────────────────
 export async function POST(request) {
+  const key = request.headers.get('x-api-key');
+  if (key !== process.env.INTERNAL_API_KEY) {
+    return new Response('Unauthorized', { status: 401 });
+  }
+
   const body = await request.json();
   const {
     room_id,
@@ -156,6 +160,7 @@ export async function POST(request) {
       .eq('department_id', department_id)
       .eq('role', 'supervisor')
       .eq('is_active', true)
+      .eq('on_duty', true)
       .order('name', { ascending: true })
       .limit(1)
       .single();
@@ -166,12 +171,12 @@ export async function POST(request) {
     sendSmsNow   = false;
 
   } else if (creator_role === 'supervisor' || creator_role === 'reception') {
-    // Supervisor or Reception creates → auto-assign to default staff or first active staff
+    // Supervisor or Reception creates → auto-assign to default staff or first active+on-duty staff
     let staffId = null;
     if (dept?.default_staff_id) {
       const { data: def } = await supabase
-        .from('staff').select('id, is_active').eq('id', dept.default_staff_id).single();
-      if (def?.is_active) staffId = def.id;
+        .from('staff').select('id, is_active, on_duty').eq('id', dept.default_staff_id).single();
+      if (def?.is_active && def?.on_duty) staffId = def.id;
     }
     if (!staffId) {
       const { data: any } = await supabase
@@ -180,6 +185,7 @@ export async function POST(request) {
         .eq('department_id', department_id)
         .eq('role', 'staff')
         .eq('is_active', true)
+        .eq('on_duty', true)
         .order('name', { ascending: true })
         .limit(1)
         .single();
@@ -200,6 +206,7 @@ export async function POST(request) {
       .eq('department_id', department_id)
       .eq('role', 'supervisor')
       .eq('is_active', true)
+      .eq('on_duty', true)
       .order('name', { ascending: true })
       .limit(1)
       .single();
@@ -307,9 +314,54 @@ export async function POST(request) {
     }
   }
 
-  checkAndEscalate().catch(err =>
-    console.error('[Tasks POST] Escalation check failed:', err.message)
-  );
+  // 3. (FIX 1) Unassigned Alerting: If no staff available (sendSmsNow is false but creator expected assignment)
+  if (isUnassigned && ['reception', 'supervisor'].includes(creator_role)) {
+    let alertTarget = null;
+
+    // Try Supervisor
+    const { data: sup } = await supabase.from('staff').select('name, phone_number').eq('department_id', department_id).eq('role', 'supervisor').eq('is_active', true).limit(1).single();
+    if (sup && sup.phone_number && sup.phone_number !== 'N/A') alertTarget = { ...sup, level: 'supervisor' };
+
+    // Try Manager
+    if (!alertTarget) {
+      const { data: mgr } = await supabase.from('staff').select('name, phone_number').eq('department_id', department_id).eq('role', 'manager').eq('is_active', true).limit(1).single();
+      if (mgr && mgr.phone_number && mgr.phone_number !== 'N/A') alertTarget = { ...mgr, level: 'manager' };
+    }
+
+    // Try GM
+    if (!alertTarget) {
+      const { data: gm } = await supabase.from('staff').select('name, phone_number').eq('role', 'gm').eq('is_active', true).limit(1).single();
+      if (gm && gm.phone_number && gm.phone_number !== 'N/A') alertTarget = { ...gm, level: 'gm' };
+    }
+
+    if (alertTarget) {
+      const rawBodyText = `🚨 UNASSIGNED TASK\n\nRoom: ${data.rooms?.room_number ?? '?'}\nTask: ${data.task_type}\n\nNo staff available.\nImmediate action required.`;
+      
+      import('twilio').then(async (twilio) => {
+        const client = twilio.default(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+        let phone = alertTarget.phone_number;
+        if (phone.length === 10 && !phone.startsWith('+')) phone = `+91${phone}`;
+        else if (!phone.startsWith('+')) phone = `+${phone}`;
+
+        try {
+          await client.messages.create({ body: rawBodyText, from: process.env.TWILIO_PHONE_NUMBER, to: phone });
+          await supabase.from('sms_logs').insert({
+            task_id: data.id, task_code: data.task_code,
+            event_type: 'unassigned_alert', status: 'sent', phone, message: rawBodyText,
+            note: `escalated_to: '${alertTarget.level}'`
+          });
+        } catch (e) {
+          console.error('[Unassigned Alert Failed]', e.message);
+        }
+      });
+    } else {
+      await supabase.from('sms_logs').insert({
+        task_id: data.id, task_code: data.task_code,
+        event_type: 'error', status: 'skipped',
+        message: `Unassigned alert skipped: No active supervisor, manager, or gm with a valid phone number.`
+      });
+    }
+  }
 
   return Response.json({ ...data, sms_status }, { status: 201 });
 }

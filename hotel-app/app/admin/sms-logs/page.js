@@ -33,7 +33,15 @@ export default function SmsLogsPage() {
   const loadLogs = useCallback(async () => {
     setLoading(true);
     try {
-      const res  = await fetch('/api/sms-logs');
+      const u = typeof window !== 'undefined' ? localStorage.getItem('currentUser') : null;
+      const parsedUser = u ? JSON.parse(u) : null;
+      const adminRole = parsedUser?.role || '';
+      const res  = await fetch('/api/sms-logs', { 
+        headers: { 
+          'x-user-role': adminRole,
+          'x-api-key': process.env.NEXT_PUBLIC_API_KEY
+        }
+      });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       setLogs(data);

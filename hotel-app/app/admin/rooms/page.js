@@ -23,7 +23,10 @@ function RoomModal({ room, onClose, onSaved }) {
       const method = editing ? 'PUT' : 'POST';
       const res = await fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'x-api-key': process.env.NEXT_PUBLIC_API_KEY
+        },
         body: JSON.stringify({
           room_number: form.room_number,
           floor: form.floor !== '' ? parseInt(form.floor) : null,
@@ -92,9 +95,9 @@ export default function RoomsPage() {
 
   const load = useCallback(async () => {
     try {
-      const res = await fetch('/api/rooms');
+      const res = await fetch('/api/rooms', { headers: { 'x-api-key': process.env.NEXT_PUBLIC_API_KEY } });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
+      if (!res.ok) throw new Error(data.error || 'Failed to load rooms');
       setRooms(data);
     } catch (err) {
       setError(err.message);
@@ -115,7 +118,10 @@ export default function RoomsPage() {
 
   const handleDelete = async (id) => {
     if (!confirm('Delete this room? This will fail if tasks reference it.')) return;
-    const res = await fetch(`/api/rooms/${id}`, { method: 'DELETE' });
+    const res = await fetch(`/api/rooms/${id}`, { 
+      method: 'DELETE',
+      headers: { 'x-api-key': process.env.NEXT_PUBLIC_API_KEY }
+    });
     const data = await res.json();
     if (res.ok) setRooms(prev => prev.filter(r => r.id !== id));
     else alert('Error: ' + data.error);

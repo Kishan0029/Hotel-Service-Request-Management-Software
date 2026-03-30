@@ -2,6 +2,14 @@ import { supabase } from '@/lib/supabaseClient';
 
 // PUT /api/departments/[id] — update a department
 export async function PUT(request, { params }) {
+  const key = request.headers.get('x-api-key');
+  if (key !== process.env.INTERNAL_API_KEY) {
+    return new Response('Unauthorized', { status: 401 });
+  }
+
+  if (request.headers.get('x-user-role') === 'reception') {
+    return Response.json({ error: 'Access denied' }, { status: 403 });
+  }
   const { id } = params;
   const body = await request.json();
   const { name, description, default_staff_id } = body;
@@ -31,6 +39,14 @@ export async function PUT(request, { params }) {
 
 // DELETE /api/departments/[id] — delete a department
 export async function DELETE(request, { params }) {
+  const key = request.headers.get('x-api-key');
+  if (key !== process.env.INTERNAL_API_KEY) {
+    return new Response('Unauthorized', { status: 401 });
+  }
+
+  if (request.headers.get('x-user-role') === 'reception') {
+    return Response.json({ error: 'Access denied' }, { status: 403 });
+  }
   const { id } = params;
 
   const { error } = await supabase

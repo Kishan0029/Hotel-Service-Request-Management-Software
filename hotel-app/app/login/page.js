@@ -22,10 +22,28 @@ export default function LoginPage() {
   }, [router]);
 
   useEffect(() => {
+    let mounted = true;
     fetch('/api/login')
-      .then(r => r.json())
-      .then(d => { setStaff(Array.isArray(d) ? d : []); setLoading(false); })
-      .catch(() => { setError('Failed to load staff list'); setLoading(false); });
+      .then(async r => {
+        if (!r.ok) {
+          const text = await r.text().catch(() => '');
+          throw new Error(`HTTP ${r.status}: ${text}`);
+        }
+        return r.json();
+      })
+      .then(d => {
+        if (!mounted) return;
+        if (d.error) throw new Error(d.error);
+        setStaff(Array.isArray(d) ? d : []);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error('Login fetch error:', err);
+        if (!mounted) return;
+        setError(err.message || 'Failed to load staff list');
+        setLoading(false);
+      });
+    return () => { mounted = false; };
   }, []);
 
   const handleLogin = async (e) => {

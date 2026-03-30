@@ -67,6 +67,11 @@ async function appendLog(taskId, currentLog, entry) {
 //   { staff_id: staffId, by }  → legacy reassign (kept for backward compat)
 //   { force_escalate: true, by }  → manual escalation
 export async function PATCH(request, { params }) {
+  const key = request.headers.get('x-api-key');
+  if (key !== process.env.INTERNAL_API_KEY) {
+    return new Response('Unauthorized', { status: 401 });
+  }
+
   const { id } = params;
   const body = await request.json().catch(() => ({}));
   const {
@@ -118,16 +123,21 @@ export async function PATCH(request, { params }) {
       return Response.json({ error: `Role '${assigner_role}' cannot assign tasks` }, { status: 403 });
     }
 
-    // Fetch the target staff member
+    // Fetch the target staff member and validate they are active AND on duty
     const { data: targetStaff, error: staffErr } = await supabase
       .from('staff')
-      .select('id, name, phone_number, role, department_id')
+      .select('id, name, phone_number, role, department_id, on_duty')
       .eq('id', assign_to)
       .eq('is_active', true)
       .single();
 
     if (staffErr || !targetStaff) {
       return Response.json({ error: 'Target staff member not found or inactive' }, { status: 400 });
+    }
+
+    // Fix 5: Reject assignment if staff is off-duty
+    if (!targetStaff.on_duty) {
+      return Response.json({ error: 'Cannot assign to off-duty staff' }, { status: 400 });
     }
 
     // Enforce role gate: target must be exactly one level down
@@ -239,7 +249,7 @@ export async function PATCH(request, { params }) {
   if (staff_id !== undefined) {
     const { data: staffRow, error: staffErr } = await supabase
       .from('staff')
-      .select('id, name, phone_number, department_id, role')
+      .select('id, name, phone_number, department_id, role, on_duty')
       .eq('id', staff_id)
       .eq('is_active', true)
       .single();
@@ -247,6 +257,12 @@ export async function PATCH(request, { params }) {
     if (staffErr || !staffRow) {
       return Response.json({ error: 'Staff member not found or inactive' }, { status: 400 });
     }
+
+    // Fix 5: Reject reassignment if target staff is off-duty
+    if (!staffRow.on_duty) {
+      return Response.json({ error: 'Cannot assign to off-duty staff' }, { status: 400 });
+    }
+
     if (staffRow.department_id !== current.department_id) {
       return Response.json(
         { error: 'Reassignment only allowed within the same department' },
@@ -373,6 +389,11 @@ export async function PATCH(request, { params }) {
 
 // ── DELETE /api/tasks/[id] ────────────────────────────────────────────────────
 export async function DELETE(request, { params }) {
+  const key = request.headers.get('x-api-key');
+  if (key !== process.env.INTERNAL_API_KEY) {
+    return new Response('Unauthorized', { status: 401 });
+  }
+
   const { id } = params;
   const { error } = await supabase.from('tasks').delete().eq('id', id);
   if (error) return Response.json({ error: error.message }, { status: 500 });

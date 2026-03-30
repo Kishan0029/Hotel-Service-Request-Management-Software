@@ -24,7 +24,10 @@ function DeptModal({ dept, allStaff, onClose, onSaved }) {
       const method = editing ? 'PUT' : 'POST';
       const res = await fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'x-api-key': process.env.NEXT_PUBLIC_API_KEY
+        },
         body: JSON.stringify({
           name: form.name,
           description: form.description || null,
@@ -91,7 +94,10 @@ export default function DepartmentsPage() {
 
   const load = useCallback(async () => {
     try {
-      const [dr, sr] = await Promise.all([fetch('/api/departments'), fetch('/api/staff')]);
+      const [dr, sr] = await Promise.all([
+        fetch('/api/departments', { headers: { 'x-api-key': process.env.NEXT_PUBLIC_API_KEY } }), 
+        fetch('/api/staff', { headers: { 'x-api-key': process.env.NEXT_PUBLIC_API_KEY } })
+      ]);
       const [d, s] = await Promise.all([dr.json(), sr.json()]);
       if (!dr.ok) throw new Error(d.error);
       if (!sr.ok) throw new Error(s.error);
@@ -116,7 +122,10 @@ export default function DepartmentsPage() {
 
   const handleDelete = async (id) => {
     if (!confirm('Delete this department? This cannot be undone.')) return;
-    const res = await fetch(`/api/departments/${id}`, { method: 'DELETE' });
+    const res = await fetch(`/api/departments/${id}`, { 
+      method: 'DELETE',
+      headers: { 'x-api-key': process.env.NEXT_PUBLIC_API_KEY } 
+    });
     const data = await res.json();
     if (res.ok) setDepartments(prev => prev.filter(d => d.id !== id));
     else alert('Error: ' + data.error);

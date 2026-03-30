@@ -6,12 +6,15 @@ export const dynamic = 'force-dynamic';
 // Returns all active staff for the login dropdown, grouped by role.
 // GM entries are always first.
 export async function GET() {
+  console.log('[Login GET] Starting request');
   try {
     const { data, error } = await supabase
       .from('staff')
       .select('id, name, role, department_id, departments!department_id(id, name)')
       .eq('is_active', true)
       .order('name', { ascending: true });
+
+    console.log('[Login GET] Supabase returned', { hasData: !!data, error });
 
     if (error) {
       console.error('[Login GET] Supabase error:', error);
@@ -21,9 +24,10 @@ export async function GET() {
     // Sort: gm first, then manager, supervisor, staff
     const roleOrder = { gm: 0, manager: 1, supervisor: 2, staff: 3 };
     const sorted = [...(data ?? [])].sort(
-      (a, b) => (roleOrder[a.role] ?? 9) - (roleOrder[b.role] ?? 9) || a.name.localeCompare(b.name)
+      (a, b) => (roleOrder[a.role] ?? 9) - (roleOrder[b.role] ?? 9) || (a.name || '').localeCompare(b.name || '')
     );
 
+    console.log('[Login GET] Sorted data returning, length:', sorted.length);
     return Response.json(sorted);
   } catch (err) {
     console.error('[Login GET] Exception:', err);

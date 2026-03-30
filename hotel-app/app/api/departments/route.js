@@ -1,7 +1,12 @@
 import { supabase } from '@/lib/supabaseClient';
 
 // GET /api/departments — list all departments with default staff
-export async function GET() {
+export async function GET(request) {
+  const key = request.headers.get('x-api-key');
+  if (key !== process.env.INTERNAL_API_KEY) {
+    return new Response('Unauthorized', { status: 401 });
+  }
+
   const { data, error } = await supabase
     .from('departments')
     .select(`
@@ -19,6 +24,11 @@ export async function GET() {
 
 // POST /api/departments — create a department
 export async function POST(request) {
+  const key = request.headers.get('x-api-key');
+  if (key !== process.env.INTERNAL_API_KEY) {
+    return new Response('Unauthorized', { status: 401 });
+  }
+
   const body = await request.json();
   const { name, description, default_staff_id } = body;
 

@@ -5,6 +5,7 @@ import {
   AlertTriangle, CheckCircle2, Clock, ClipboardList,
   Flame, BarChart2, Activity, LogOut, RefreshCw, Plus, X, ArrowRight,
 } from 'lucide-react';
+import Sidebar from '@/components/Sidebar';
 
 /* ── Helpers ─────────────────────────────────────────────── */
 function elapsed(iso) {
@@ -107,7 +108,10 @@ function GMCreateTaskModal({ rooms, departments, managers, onClose, onCreated, g
     try {
       const res = await fetch('/api/tasks', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'x-api-key': process.env.NEXT_PUBLIC_API_KEY 
+        },
         body: JSON.stringify({
           room_id:            parseInt(form.room_id),
           department_id:      parseInt(form.department_id),
@@ -249,19 +253,23 @@ export default function GmDashboard() {
 
   const loadData = useCallback(async () => {
     try {
+      const headers = { 'x-api-key': process.env.NEXT_PUBLIC_API_KEY };
       const [tr, dr, rr, sr] = await Promise.all([
-        fetch('/api/tasks?role=gm'),
-        fetch('/api/departments'),
-        fetch('/api/rooms'),
-        fetch('/api/staff'),
+        fetch('/api/tasks?role=gm', { headers }),
+        fetch('/api/departments', { headers }),
+        fetch('/api/rooms', { headers }),
+        fetch('/api/staff', { headers }),
       ]);
       const [t, d, r, s] = await Promise.all([tr.json(), dr.json(), rr.json(), sr.json()]);
+      if (!tr.ok) throw new Error(t.error || 'Failed to load GM data');
       setTasks(Array.isArray(t) ? t : []);
       setDepartments(Array.isArray(d) ? d : []);
       setRooms(Array.isArray(r) ? r : []);
       setAllStaff(Array.isArray(s) ? s.filter(x => x.is_active) : []);
       setLastRefresh(new Date());
-    } catch {}
+    } catch (err) {
+      setError(err.message);
+    }
     setLoading(false);
   }, []);
 
@@ -334,28 +342,29 @@ export default function GmDashboard() {
   const activityIcon = { created: '📋', acknowledged: '✅', started: '🔧', completed: '✓', reassigned: '↩', escalated: '🔴', assigned: '→' };
 
   return (
-    <div className="gm-shell">
-      {/* ── Header ──────────────────────────────────────── */}
-      <header className="gm-header">
-        <div className="gm-header-left">
-          <span className="gm-brand">🏨 Hotel Service Manager</span>
-          <span className="gm-role-badge">GM VIEW</span>
-        </div>
-        <div className="gm-header-right">
-          {lastRefresh && (
-            <span className="gm-refresh-time hover-sync" onClick={loadData} style={{ cursor: 'pointer' }} title="Refresh">
-              <RefreshCw size={14} style={{ marginRight: 6 }} />
-              Updated {elapsed(lastRefresh)}
-            </span>
-          )}
-          <button className="btn btn-primary btn-sm" onClick={() => setShowCreate(true)} style={{ marginLeft: 12 }}>
-            <Plus size={14} /> New Task
-          </button>
-          <button className="btn btn-ghost btn-sm" onClick={logout} style={{ marginLeft: 8 }}>
-            <LogOut size={14} /> Logout
-          </button>
-        </div>
-      </header>
+    <div className="app-shell">
+      <Sidebar />
+      <div className="main-content">
+        {error && <div className="error-banner" style={{ margin: 20 }}>{error}</div>}
+        <header className="page-header">
+          <div>
+            <div className="page-header-title">GM Dashboard Overview</div>
+            <div className="page-header-sub">Property-wide oversight</div>
+          </div>
+          <div className="header-actions">
+            {lastRefresh && (
+              <span className="gm-refresh-time" style={{ fontSize: '0.75rem', opacity: 0.7 }}>
+                Updated {elapsed(lastRefresh)}
+              </span>
+            )}
+            <button className="btn btn-primary btn-sm" onClick={() => setShowCreate(true)}>
+              <Plus size={14} /> New Task
+            </button>
+            <button className="btn btn-ghost btn-sm" onClick={logout}>
+              <LogOut size={14} /> Logout
+            </button>
+          </div>
+        </header>
 
       <main className="gm-main">
         {/* ── Summary Stats ───────────────────────────── */}
@@ -537,6 +546,7 @@ export default function GmDashboard() {
           onCreated={handleCreated}
         />
       )}
+      </div>
     </div>
   );
 }

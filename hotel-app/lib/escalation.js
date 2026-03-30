@@ -85,11 +85,49 @@ async function escalateTask(task, elapsedMinutes, newLevel) {
     return null;
   }
 
-  const target = await findStaff(department_id, targetRole);
-  if (!target) {
-    console.warn(`[Escalation] No active ${targetRole} for dept ${department_id} (task ${task_code})`);
-    return null;
+  // ── Fallback chain: Supervisor → Manager → GM (Fix 3) ────────────────────
+  let target = await findStaff(department_id, targetRole);
+
+  if (!target && targetRole === 'supervisor') {
+    // Supervisor not found in dept → try manager next
+    console.warn(`[Escalation] No active supervisor for dept ${department_id} (task ${task_code}) — falling back to manager`);
+    await supabase.from('sms_logs').insert({
+      task_id, task_code,
+      event_type: 'escalation_fallback', status: 'warning',
+      message: 'supervisor_not_found_trying_manager',
+      raw_payload: { department_id, task_code, escalated_to: 'manager' },
+    }).catch(() => {});
+    target = await findStaff(department_id, 'manager');
+    if (target) targetRole = 'manager';
   }
+
+  if (!target) {
+    // No supervisor or manager available → escalate to GM via activity log
+    console.warn(`[Escalation] No active staff in fallback chain for dept ${department_id} (task ${task_code}) — escalating to GM`);
+    const { data: gmUpdated, error: gmErr } = await supabase
+      .from('tasks')
+      .update({ escalation_level: newLevel, escalated_at: new Date().toISOString() })
+      .eq('id', task_id)
+      .eq('escalation_level', newLevel - 1)
+      .select('id');
+    if (gmErr || !gmUpdated || gmUpdated.length === 0) return null;
+
+    const { data: tg } = await supabase.from('tasks').select('activity_log').eq('id', task_id).single();
+    const glog = Array.isArray(tg?.activity_log) ? tg.activity_log : [];
+    const glog_updated = [...glog, { event: 'escalated', by: 'System', level: newLevel, to: 'General Manager (fallback)', time: new Date().toISOString() }];
+    await supabase.from('tasks').update({ activity_log: JSON.stringify(glog_updated) }).eq('id', task_id);
+
+    await supabase.from('sms_logs').insert({
+      task_id, task_code,
+      event_type: 'escalation', status: 'sent',
+      message: 'gm_fallback_no_supervisor_or_manager',
+      raw_payload: { department_id, escalated_to: 'gm', elapsed_minutes: Math.round(elapsedMinutes) },
+    }).catch(() => {});
+
+    console.log(`[Escalation] L${newLevel} — task ${task_code} escalated to GM (fallback — no supervisor/manager found)`);
+    return { task_id, task_code, level: newLevel, escalated_to: 'gm' };
+  }
+
   if (!isValidPhone(target.phone_number)) {
     console.warn(`[Escalation] ${targetRole} ${target.name} has invalid phone (task ${task_code})`);
     return null;

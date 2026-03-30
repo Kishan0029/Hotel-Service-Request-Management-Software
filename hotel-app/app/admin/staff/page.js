@@ -13,6 +13,7 @@ function StaffModal({ staff, departments, onClose, onSaved }) {
     department_id: staff?.departments?.id || '',
     role: staff?.role || 'staff',
     is_active: staff?.is_active ?? true,
+    on_duty: staff?.on_duty ?? true,
   });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
@@ -28,10 +29,17 @@ function StaffModal({ staff, departments, onClose, onSaved }) {
     setSubmitting(true);
     try {
       const url = editing ? `/api/staff/${staff.id}` : '/api/staff';
+      const u = typeof window !== 'undefined' ? localStorage.getItem('currentUser') : null;
+      const parsedUser = u ? JSON.parse(u) : null;
+      const adminRole = parsedUser?.role || '';
       const method = editing ? 'PUT' : 'POST';
       const res = await fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json', 
+          'x-user-role': adminRole,
+          'x-api-key': process.env.NEXT_PUBLIC_API_KEY
+        },
         body: JSON.stringify({ ...form, department_id: parseInt(form.department_id) }),
       });
       const data = await res.json();
@@ -79,12 +87,23 @@ function StaffModal({ staff, departments, onClose, onSaved }) {
               </div>
             </div>
             {editing && (
-              <div className="field">
-                <label>Status</label>
-                <select value={form.is_active ? 'active' : 'inactive'} onChange={e => set('is_active', e.target.value === 'active')}>
-                  <option value="active">Active</option>
-                  <option value="inactive">Inactive</option>
-                </select>
+              <div className="field-row">
+                <div className="field">
+                  <label>Status</label>
+                  <select value={form.is_active ? 'active' : 'inactive'} onChange={e => set('is_active', e.target.value === 'active')}>
+                    <option value="active">Employed</option>
+                    <option value="inactive">Terminated</option>
+                  </select>
+                </div>
+                {form.is_active && (
+                  <div className="field">
+                    <label>Shift</label>
+                    <select value={form.on_duty ? 'on' : 'off'} onChange={e => set('on_duty', e.target.value === 'on')}>
+                      <option value="on">On Duty (Available)</option>
+                      <option value="off">Off Duty (Break / Home)</option>
+                    </select>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -109,7 +128,14 @@ export default function StaffPage() {
 
   const load = useCallback(async () => {
     try {
-      const [sr, dr] = await Promise.all([fetch('/api/staff'), fetch('/api/departments')]);
+      const u = typeof window !== 'undefined' ? localStorage.getItem('currentUser') : null;
+      const parsedUser = u ? JSON.parse(u) : null;
+      const adminRole = parsedUser?.role || '';
+      
+      const [sr, dr] = await Promise.all([
+        fetch('/api/staff', { headers: { 'x-user-role': adminRole, 'x-api-key': process.env.NEXT_PUBLIC_API_KEY } }), 
+        fetch('/api/departments', { headers: { 'x-user-role': adminRole, 'x-api-key': process.env.NEXT_PUBLIC_API_KEY } })
+      ]);
       const [s, d] = await Promise.all([sr.json(), dr.json()]);
       if (!sr.ok) throw new Error(s.error);
       if (!dr.ok) throw new Error(d.error);
@@ -134,7 +160,8 @@ export default function StaffPage() {
 
   const handleDeactivate = async (id) => {
     if (!confirm('Mark this staff member as inactive? Their task history is preserved.')) return;
-    const res = await fetch(`/api/staff/${id}`, { method: 'DELETE' });
+    const adminRole = typeof window !== 'undefined' ? localStorage.getItem('userRole') : '';
+    const res = await fetch(`/api/staff/${id}`, { method: 'DELETE', headers: { 'x-user-role': adminRole, 'x-api-key': process.env.NEXT_PUBLIC_API_KEY } });
     const data = await res.json();
     if (res.ok) setStaff(prev => prev.map(s => s.id === id ? { ...s, is_active: false } : s));
     else alert('Error: ' + data.error);
@@ -176,6 +203,7 @@ export default function StaffPage() {
                       <th>Phone</th>
                       <th>Department</th>
                       <th>Role</th>
+                      <th>Shift Duty</th>
                       <th>Status</th>
                       <th>Actions</th>
                     </tr>
@@ -192,9 +220,33 @@ export default function StaffPage() {
                           </span>
                         </td>
                         <td>
+                          {s.is_active ? (
+                            <button 
+                              className={`badge ${s.on_duty ? 'badge-completed' : 'badge-normal'}`} 
+                              onClick={async () => {
+                                const adminRole = typeof window !== 'undefined' ? localStorage.getItem('userRole') : '';
+                                const res = await fetch(`/api/staff/${s.id}`, {
+                                  method: 'PUT',
+                                  headers: { 
+                                    'Content-Type': 'application/json', 
+                                    'x-user-role': adminRole,
+                                    'x-api-key': process.env.NEXT_PUBLIC_API_KEY
+                                  },
+                                  body: JSON.stringify({ on_duty: !s.on_duty })
+                                });
+                                if (res.ok) setStaff(prev => prev.map(st => st.id === s.id ? { ...st, on_duty: !s.on_duty } : st));
+                              }}
+                              style={{ cursor: 'pointer', border: 'none' }}
+                            >
+                              <span className="badge-dot" style={{ background: s.on_duty ? '#16a34a' : '#64748b' }} />
+                              {s.on_duty ? 'On Duty' : 'Off Duty'}
+                            </button>
+                          ) : <span className="td-muted">—</span>}
+                        </td>
+                        <td>
                           <span className={`badge ${s.is_active ? 'badge-completed' : 'badge-urgent'}`}>
-                            <span className="badge-dot" />
-                            {s.is_active ? 'Active' : 'Inactive'}
+                            <span className="badge-dot" style={{ background: s.is_active ? '#16a34a' : '#dc2626' }} />
+                            {s.is_active ? 'Employed' : 'Terminated'}
                           </span>
                         </td>
                         <td>

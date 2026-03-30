@@ -2,9 +2,17 @@ import { supabase } from '@/lib/supabaseClient';
 
 // PUT /api/staff/[id] — update a staff member
 export async function PUT(request, { params }) {
+  const key = request.headers.get('x-api-key');
+  if (key !== process.env.INTERNAL_API_KEY) {
+    return new Response('Unauthorized', { status: 401 });
+  }
+
+  if (request.headers.get('x-user-role') === 'reception') {
+    return Response.json({ error: 'Access denied' }, { status: 403 });
+  }
   const { id } = params;
   const body = await request.json();
-  const { name, phone_number, department_id, role, is_active } = body;
+  const { name, phone_number, department_id, role, is_active, on_duty } = body;
 
   const updates = {};
   if (name !== undefined) updates.name = name;
@@ -12,6 +20,7 @@ export async function PUT(request, { params }) {
   if (department_id !== undefined) updates.department_id = department_id;
   if (role !== undefined) updates.role = role;
   if (is_active !== undefined) updates.is_active = is_active;
+  if (on_duty !== undefined) updates.on_duty = on_duty;
 
   const { data, error } = await supabase
     .from('staff')
@@ -23,6 +32,7 @@ export async function PUT(request, { params }) {
       phone_number,
       role,
       is_active,
+      on_duty,
       created_at,
       departments!department_id (id, name)
     `)
@@ -35,6 +45,14 @@ export async function PUT(request, { params }) {
 
 // DELETE /api/staff/[id] — soft-delete by setting is_active = false
 export async function DELETE(request, { params }) {
+  const key = request.headers.get('x-api-key');
+  if (key !== process.env.INTERNAL_API_KEY) {
+    return new Response('Unauthorized', { status: 401 });
+  }
+
+  if (request.headers.get('x-user-role') === 'reception') {
+    return Response.json({ error: 'Access denied' }, { status: 403 });
+  }
   const { id } = params;
 
   const { data, error } = await supabase

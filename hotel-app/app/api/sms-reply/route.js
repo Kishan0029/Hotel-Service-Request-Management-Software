@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabaseClient';
+import { sendSMS } from '@/lib/sms';
 
 /**
  * POST /api/sms-reply
@@ -64,14 +65,35 @@ export async function POST(request) {
       command = null;           // bare code → completed (backwards compat)
       taskId  = parseInt(bareMatch[1], 10);
     } else {
+      const senderPhone = rawBody?.mobile || rawBody?.sender || rawBody?.From || null;
+
+      // Log as sms_rejected with reason
+      await supabase.from('sms_logs').insert({
+        task_id: null, task_code: null,
+        event_type: 'sms_rejected', status: 'failed',
+        phone: senderPhone,
+        message: normalized,
+        note: 'invalid_format',
+      }).catch(() => {});
+
       await logReceived({
         task_id: null, task_code: null,
         status: 'failed',
-        phone: rawBody?.mobile || rawBody?.sender || rawBody?.From || null,
+        phone: senderPhone,
         message: normalized,
         raw_payload: rawBody,
         note: 'Could not parse command or task ID from message',
       });
+
+      // Send error SMS back to the sender explaining valid commands (Fix 4)
+      if (senderPhone) {
+        try {
+          await sendSMS(senderPhone, "Invalid command. Use:\nOK T123\nSTART T123\nDONE T123");
+        } catch (smsErr) {
+          console.error('[SMS Webhook] Failed to send error SMS back to sender:', smsErr.message);
+        }
+      }
+
       return Response.json({ success: false, reason: 'invalid_message' }, { status: 200 });
     }
 
@@ -88,7 +110,7 @@ export async function POST(request) {
     // ── Look up the task ──────────────────────────────────────
     const { data: task, error: fetchError } = await supabase
       .from('tasks')
-      .select('id, task_code, status, current_level')
+      .select('id, task_code, status, current_level, assigned_staff:staff!assigned_to(phone_number)')
       .eq('id', taskId)
       .single();
 
@@ -102,6 +124,31 @@ export async function POST(request) {
         note: `Task not found: ${taskId}`,
       });
       return Response.json({ success: false, reason: 'task_not_found' }, { status: 200 });
+    }
+
+    // ── V4: Validate authorized sender ───────────────────────────────────────
+    let assignedPhone = task.assigned_staff?.phone_number;
+    let senderPhone   = rawBody?.mobile || rawBody?.sender || rawBody?.From || '';
+    
+    // Normalize both phones: strip all except digits
+    // Since TWILIO numbers start with +1 or +91, and DB numbers might be 10 digits
+    // we should just check if one ends with the other (suffix match for last 10 digits).
+    let normSender   = String(senderPhone).replace(/\D/g, '');
+    let normAssigned = assignedPhone ? String(assignedPhone).replace(/\D/g, '') : null;
+
+    if (!normAssigned || !normSender || !normSender.endsWith(normAssigned.slice(-10))) {
+      const note = `Invalid sender — task not assigned to this number. Expected ${assignedPhone}, got ${senderPhone}`;
+      console.warn(`[SMS Webhook] ${note}`);
+      await logReceived({
+        task_id: taskId, task_code: task.task_code,
+        status: 'failed',
+        phone: senderPhone,
+        message: normalized,
+        raw_payload: rawBody,
+        note,
+      });
+      // Important to return 200 so Twilio doesn't retry
+      return Response.json({ success: false, reason: 'invalid_sender', note }, { status: 200 });
     }
 
     // ── V4: Block SMS commands if task is not yet at staff level ─────────────

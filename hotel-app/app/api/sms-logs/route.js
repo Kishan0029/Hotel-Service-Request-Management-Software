@@ -4,7 +4,15 @@ import { supabase } from '@/lib/supabaseClient';
  * GET /api/sms-logs
  * Returns the 100 most recent SMS log entries, newest first.
  */
-export async function GET() {
+export async function GET(request) {
+  const key = request.headers.get('x-api-key');
+  if (key !== process.env.INTERNAL_API_KEY) {
+    return new Response('Unauthorized', { status: 401 });
+  }
+
+  if (request.headers.get('x-user-role') === 'reception') {
+    return Response.json({ error: 'Access denied' }, { status: 403 });
+  }
   const { data, error } = await supabase
     .from('sms_logs')
     .select('id, task_id, task_code, event_type, status, phone, message, created_at')

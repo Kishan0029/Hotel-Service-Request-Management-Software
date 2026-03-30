@@ -35,21 +35,28 @@ export default function Sidebar() {
   const [role, setRole] = useState(null);
 
   useEffect(() => {
-    try {
-      const u = localStorage.getItem('currentUser');
-      if (u) {
-        const parsed = JSON.parse(u);
-        setRole(parsed.role);
+    const checkRole = () => {
+      try {
+        const u = localStorage.getItem('currentUser');
+        if (u) {
+          const parsed = JSON.parse(u);
+          setRole(parsed.role);
+        } else {
+          setRole(null);
+        }
+      } catch (e) {
+        console.error('Sidebar auth check failed', e);
       }
-    } catch (e) {
-      console.error('Sidebar auth check failed', e);
-    }
+    };
+    checkRole();
+    window.addEventListener('storage', checkRole);
+    return () => window.removeEventListener('storage', checkRole);
   }, []);
 
   // Filter sections based on role
   const visibleNavItems = navItems.filter(section => {
     if (section.section === 'Admin') {
-      return ['gm', 'manager', 'reception'].includes(role);
+      return ['gm', 'manager'].includes(role);
     }
     return true;
   });
