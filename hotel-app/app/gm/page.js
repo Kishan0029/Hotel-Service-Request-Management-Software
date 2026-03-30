@@ -255,14 +255,21 @@ export default function GmDashboard() {
   const loadData = useCallback(async () => {
     try {
       const headers = { 'x-api-key': process.env.NEXT_PUBLIC_API_KEY };
-      const [tr, dr, rr, sr] = await Promise.all([
+      const responses = await Promise.all([
         fetch('/api/tasks?role=gm', { headers }),
         fetch('/api/departments', { headers }),
         fetch('/api/rooms', { headers }),
         fetch('/api/staff', { headers }),
       ]);
-      const [t, d, r, s] = await Promise.all([tr.json(), dr.json(), rr.json(), sr.json()]);
-      if (!tr.ok) throw new Error(t.error || 'Failed to load GM data');
+      
+      for (const res of responses) {
+        if (!res.ok) {
+          const text = await res.text();
+          throw new Error(text || `HTTP error ${res.status}`);
+        }
+      }
+
+      const [t, d, r, s] = await Promise.all(responses.map(res => res.json()));
       setTasks(Array.isArray(t) ? t : []);
       setDepartments(Array.isArray(d) ? d : []);
       setRooms(Array.isArray(r) ? r : []);
@@ -347,6 +354,16 @@ export default function GmDashboard() {
       <Sidebar />
       <div className="main-content">
         {error && <div className="error-banner" style={{ margin: 20 }}>{error}</div>}
+        {/* Role bar */}
+        <div className="role-bar">
+          <span className="role-bar-pill role-gm">GM</span>
+          <span style={{ color: '#f1f5f9', fontWeight: 600 }}>{user.name}</span>
+          <div className="role-spacer" />
+          <button className="btn btn-ghost btn-sm" onClick={logout} style={{ color: '#94a3b8' }}>
+            <LogOut size={13} /> Logout
+          </button>
+        </div>
+
         <header className="page-header">
           <div>
             <div className="page-header-title">GM Dashboard Overview</div>
@@ -361,15 +378,12 @@ export default function GmDashboard() {
             <button className="btn btn-primary btn-sm" onClick={() => setShowCreate(true)}>
               <Plus size={14} /> New Task
             </button>
-            <button className="btn btn-ghost btn-sm" onClick={logout}>
-              <LogOut size={14} /> Logout
-            </button>
           </div>
         </header>
 
-      <main className="gm-main">
-        {/* ── Summary Stats ───────────────────────────── */}
-        <div className="gm-stats-grid">
+        <main className="page-body">
+          {/* ── Summary Stats ───────────────────────────── */}
+          <div className="gm-stats-grid">
           <StatCard label="Today"      value={todayTasks.length} color="#1d4ed8" icon={<ClipboardList size={22} />} />
           <StatCard label="Pending"    value={pending.length}    color="#b45309" icon={<Clock size={22} />} />
           <StatCard label="Delayed"    value={delayed.length}    color="#c2410c" icon={<AlertTriangle size={22} />} />
