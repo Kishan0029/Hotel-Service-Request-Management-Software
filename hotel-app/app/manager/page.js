@@ -433,9 +433,10 @@ export default function ManagerDashboard() {
       setLocations(Array.isArray(l) ? l : []);
       setAllStaff(Array.isArray(s) ? s.filter(x => x.is_active) : []);
     } catch (err) {
+      const isTimeout = err.name === 'AbortError' || String(err.message).toLowerCase().includes('abort') || String(err.message).toLowerCase().includes('timeout');
       if (!silent) setError(
-        err.name === 'AbortError'
-          ? 'Database connection timed out. Please ensure your Supabase project is active (not paused) and run the V7 migration.'
+        isTimeout
+          ? 'Unable to connect to database. Please resume your Supabase project from the dashboard and apply the V7 migration SQL.'
           : err.message
       );
     }

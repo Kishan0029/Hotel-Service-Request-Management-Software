@@ -297,9 +297,10 @@ export default function StaffDashboard() {
       prevIds.current = new Set(newTasks.map(t => t.id));
       setTasks(newTasks);
     } catch (err) {
+      const isTimeout = err.name === 'AbortError' || String(err.message).toLowerCase().includes('abort') || String(err.message).toLowerCase().includes('timeout');
       if (!silent) setError(
-        err.name === 'AbortError'
-          ? 'Database connection timed out. Please ensure your Supabase project is active and the V7 migration has been applied.'
+        isTimeout
+          ? 'Unable to connect to database. Please resume your Supabase project and apply the V7 migration SQL.'
           : err.message
       );
     }
@@ -367,10 +368,10 @@ export default function StaffDashboard() {
           </div>
         </div>
         <div className="staff-header-actions">
-          <button className="staff-refresh-btn" onClick={() => loadTasks()} data-testid="staff-refresh-btn">
+          <button className="staff-refresh-btn" onClick={() => loadTasks()} data-testid="staff-refresh-btn" title="Refresh tasks" aria-label="Refresh tasks">
             <RefreshCw size={16} />
           </button>
-          <button className="staff-logout-btn" onClick={logout} data-testid="staff-logout-btn">
+          <button className="staff-logout-btn" onClick={logout} data-testid="staff-logout-btn" title="Logout" aria-label="Logout">
             <LogOut size={16} />
           </button>
         </div>

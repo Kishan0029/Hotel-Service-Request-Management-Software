@@ -1,27 +1,39 @@
 # Test Credentials — Hotel Service Management System V2
 
-## Important: Run V7 Migration First
-Before testing, run `/app/database/v7_migration.sql` in your Supabase SQL Editor.
-This adds: `email`, `password` columns to staff, `locations` table, `before_photo_url`, `after_photo_url` to tasks.
+## STEP 1: Apply Database Migration (REQUIRED)
+Run `/app/database/v7_migration.sql` in your **Supabase SQL Editor**.
+This adds: `email`, `password` columns to staff; `locations` table; `before_photo_url`, `after_photo_url`, `is_mod_task`, `location_id` to tasks.
 
-## Note: Supabase Project Must Be Active (Not Paused)
-If queries time out, go to https://supabase.com/dashboard and resume the project.
+## STEP 2: Resume Supabase Project (IF PAUSED)
+Free-tier projects auto-pause after 1 week of inactivity.
+Go to https://supabase.com/dashboard → Resume Project.
+
+## STEP 3: Create Supabase Storage Bucket (REQUIRED for Photos)
+In Supabase Dashboard → Storage → New Bucket:
+- Name: `task-photos`
+- Public: YES
+- File size limit: 50MB
+- Add policy: Allow all reads (public), allow all inserts (anon key)
 
 ## Login Credentials (after V7 migration is applied)
-Default password for all accounts: `password123`
+Default password for ALL accounts: `password123`
 
-Emails are auto-generated as: `firstname.lastname@hotel.com`
+Emails auto-generated from staff names:
+`firstname.lastname@hotel.com` (e.g., john.doe@hotel.com)
 
 ### By Role
-| Role       | Email Format                  | Password    |
-|------------|-------------------------------|-------------|
-| GM         | (name of your GM)@hotel.com   | password123 |
-| Manager    | (name of manager)@hotel.com   | password123 |
-| Reception  | (name of reception)@hotel.com | password123 |
-| Staff      | (name of staff)@hotel.com     | password123 |
-| Supervisor | (name of supervisor)@hotel.com| password123 |
+| Role       | Email Format                   | Password    |
+|------------|--------------------------------|-------------|
+| GM         | [gm-name]@hotel.com            | password123 |
+| Manager    | [manager-name]@hotel.com       | password123 |
+| Reception  | [reception-name]@hotel.com     | password123 |
+| Staff      | [staff-name]@hotel.com         | password123 |
+| Supervisor | [supervisor-name]@hotel.com    | password123 |
 
-## URLs
+To see exact emails, run in Supabase SQL Editor:
+`SELECT name, email, role FROM staff WHERE is_active = true ORDER BY role;`
+
+## Preview URLs (Container)
 - Login:    https://65c59c82-a266-4eb3-b4a1-6c2bb3c366f0.preview.emergentagent.com/login
 - GM:       https://65c59c82-a266-4eb3-b4a1-6c2bb3c366f0.preview.emergentagent.com/gm
 - Manager:  https://65c59c82-a266-4eb3-b4a1-6c2bb3c366f0.preview.emergentagent.com/manager
@@ -35,3 +47,8 @@ NEXT_PUBLIC_API_KEY: supersecret123
 ## Supabase
 URL: https://fdkzorihlpdthyjunydg.supabase.co
 Anon Key: sb_publishable_lSnLb_itSETlhrUkndAQug_xCfRhAEC
+
+## Test Session Injection (for UI testing without DB)
+Manager: `{"id":1,"name":"Test Manager","role":"manager","department_id":1,"department_name":"Housekeeping"}`
+Staff: `{"id":5,"name":"John Cleaner","role":"staff","department_id":1}`
+GM: `{"id":2,"name":"Test GM","role":"gm"}`
