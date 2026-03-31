@@ -748,11 +748,11 @@ export default function ManagerDashboard() {
               <Plus size={14} /> New Request
             </button>
             <button
-              className="btn btn-mod-cta"
+              className="btn btn-mod-cta btn-sm"
               onClick={() => setShowMod(true)}
               data-testid="mod-mode-btn"
             >
-              <Shield size={16} />
+              <Shield size={14} />
               MOD Mode
             </button>
             <button className="btn btn-ghost btn-sm" onClick={() => loadData()} aria-label="Refresh">

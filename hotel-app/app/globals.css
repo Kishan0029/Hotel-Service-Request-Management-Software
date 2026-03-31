@@ -339,6 +339,7 @@ tbody tr.row-complaint { border-left: 3px solid #ef4444; }
   position: relative; overflow: hidden;
   animation: modPulse 3s ease-in-out infinite;
 }
+.btn-mod-cta.btn-sm { padding: 6px 12px; font-size: 0.78rem; font-weight: 600; }
 .btn-mod-cta::before {
   content: ''; position: absolute;
   inset: 0; background: rgba(255,255,255,0.08);
