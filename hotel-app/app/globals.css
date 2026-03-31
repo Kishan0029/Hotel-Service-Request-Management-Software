@@ -333,7 +333,7 @@ tbody tr.row-complaint { border-left: 3px solid #ef4444; }
   background: linear-gradient(135deg, #1E3A8A 0%, #2D5BE3 100%);
   color: #fff; padding: 10px 20px;
   border-radius: var(--radius-sm);
-  box-shadow: 0 4px 14px rgba(30,58,138,0.35);
+  box-shadow: none; /* Removed shadow */
   font-weight: 700; font-size: 0.85rem;
   border: 1px solid rgba(255,255,255,0.1);
   position: relative; overflow: hidden;
@@ -346,18 +346,18 @@ tbody tr.row-complaint { border-left: 3px solid #ef4444; }
   opacity: 0; transition: opacity var(--transition);
 }
 .btn-mod-cta:hover::before { opacity: 1; }
-.btn-mod-cta:hover { box-shadow: 0 6px 20px rgba(30,58,138,0.5); transform: translateY(-1px); }
+.btn-mod-cta:hover { box-shadow: none; transform: translateY(-1px); }
 
 @keyframes modPulse {
-  0%, 100% { box-shadow: 0 4px 14px rgba(30,58,138,0.35); }
-  50% { box-shadow: 0 4px 22px rgba(30,58,138,0.55), 0 0 0 4px rgba(30,58,138,0.08); }
+  0%, 100% { box-shadow: none; }
+  50% { box-shadow: 0 0 0 4px rgba(30,58,138,0.08); }
 }
 
 .btn-mod-dispatch {
   background: linear-gradient(135deg, var(--primary) 0%, #2D5BE3 100%);
   color: #fff; padding: 11px 22px; font-weight: 700;
   border-radius: var(--radius-sm);
-  box-shadow: 0 4px 14px rgba(30,58,138,0.35);
+  box-shadow: none;
 }
 .btn-mod-dispatch:hover:not(:disabled) { box-shadow: 0 6px 20px rgba(30,58,138,0.5); transform: translateY(-1px); }
 
