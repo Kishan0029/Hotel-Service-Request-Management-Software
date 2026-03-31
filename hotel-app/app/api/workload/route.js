@@ -27,6 +27,7 @@ export async function GET(req) {
     .from('tasks')
     .select('assigned_staff_id, status')
     .neq('status', 'completed')
+    .eq('current_level', 'staff')
     .not('assigned_staff_id', 'is', null);
 
   if (departmentId) {

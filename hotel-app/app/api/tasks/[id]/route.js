@@ -144,6 +144,11 @@ export async function PATCH(request, { params }) {
       return Response.json({ error: 'Cannot assign to off-duty staff' }, { status: 400 });
     }
 
+    // Safety: prevent circular assignment back to the same person
+    if (String(assign_to) === String(current.assigned_to)) {
+      return Response.json({ error: 'Task is already assigned to this person' }, { status: 400 });
+    }
+
     // Enforce role gate: target must be exactly one level down
     if (targetStaff.role !== targetRole) {
       return Response.json(

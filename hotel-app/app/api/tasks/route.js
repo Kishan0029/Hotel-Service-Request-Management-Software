@@ -190,11 +190,13 @@ export async function POST(request) {
 
   } else if (creator_role === 'manager' && !mod_dispatch) {
     if (initial_assignee_id && initial_assignee_role) {
-      assignedTo   = initial_assignee_id;
-      assignedRole = initial_assignee_role;
-      currentLevel = initial_assignee_role;
-      isUnassigned = false;
-      sendSmsNow   = false; // Managers handle SMS manually or via patch
+      assignedTo      = initial_assignee_id;
+      assignedRole    = initial_assignee_role;
+      currentLevel    = initial_assignee_role;
+      assignedStaffId = (initial_assignee_role === 'staff') ? initial_assignee_id : null;
+      isUnassigned    = false;
+      // V8: SMS should be sent if assigning down to supervisor or staff
+      sendSmsNow      = (initial_assignee_role === 'staff' || initial_assignee_role === 'supervisor');
     } else {
       // Manager creates without MOD mode → auto-assign to supervisor in dept
       const { data: sup } = await supabase
@@ -207,11 +209,11 @@ export async function POST(request) {
         .order('name', { ascending: true })
         .limit(1)
         .single();
-      assignedTo   = sup?.id ?? null;
-      assignedRole = sup ? 'supervisor' : null;
-      currentLevel = 'supervisor';
-      isUnassigned = !sup;
-      sendSmsNow   = false;
+      assignedTo      = sup?.id ?? null;
+      assignedRole    = sup ? 'supervisor' : null;
+      currentLevel    = 'supervisor';
+      isUnassigned    = !sup;
+      sendSmsNow      = !!sup; // Supervisor should get SMS
     }
 
   } else if (creator_role === 'supervisor' || creator_role === 'reception') {

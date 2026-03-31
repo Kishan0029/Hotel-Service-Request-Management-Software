@@ -10,7 +10,7 @@ import Sidebar from '@/components/Sidebar';
 
 /* ════════════════════════════════════════════════════════════
    HELPERS
-═══════════════════════════════════════════════════════════════ */
+   ═══════════════════════════════════════════════════════════════ */
 function elapsed(iso) {
   if (!iso) return '—';
   const diff = Math.floor((Date.now() - new Date(iso)) / 1000);
@@ -48,7 +48,7 @@ const FALLBACK_TASK_TYPES = ['Room Service', 'Water Bottles', 'Minibar Refill', 
 
 /* ════════════════════════════════════════════════════════════
    SMALL BADGE COMPONENTS
-═══════════════════════════════════════════════════════════════ */
+   ═══════════════════════════════════════════════════════════════ */
 function StatusBadge({ status }) {
   const map = {
     pending:      { label: 'Pending',      cls: 'badge-pending' },
@@ -133,7 +133,7 @@ function ActivityLog({ log }) {
 
 /* ════════════════════════════════════════════════════════════
    TEST SMS MODAL
-═══════════════════════════════════════════════════════════════ */
+   ═══════════════════════════════════════════════════════════════ */
 function TestSmsModal({ onClose, onDone }) {
   const [command, setCommand] = useState('DONE');
   const [code, setCode]       = useState('');
@@ -200,7 +200,7 @@ function TestSmsModal({ onClose, onDone }) {
 
 /* ════════════════════════════════════════════════════════════
    CREATE TASK MODAL
-═══════════════════════════════════════════════════════════════ */
+   ═══════════════════════════════════════════════════════════════ */
 function CreateTaskModal({ rooms, departments, allStaff, onClose, onCreated, currentUser }) {
   const isReceptionOrGM = ['gm', 'reception'].includes(currentUser?.role);
   const [form, setForm] = useState({ 
@@ -361,7 +361,7 @@ function CreateTaskModal({ rooms, departments, allStaff, onClose, onCreated, cur
 
 /* ════════════════════════════════════════════════════════════
    WORKLOAD PANEL
-═══════════════════════════════════════════════════════════════ */
+   ═══════════════════════════════════════════════════════════════ */
 function WorkloadPanel({ currentUser }) {
   const [workload, setWorkload] = useState([]);
   const [loading, setLoading]  = useState(true);
@@ -406,7 +406,7 @@ function WorkloadPanel({ currentUser }) {
 
 /* ════════════════════════════════════════════════════════════
    MOBILE TASK CARD (V4)
-═══════════════════════════════════════════════════════════════ */
+   ═══════════════════════════════════════════════════════════════ */
 function TaskCard({ task, currentUser, smsStatus, onAction, onAssign, actionLoading, assignTargets, expandedId, setExpandedId }) {
   const isLoading = (key) => actionLoading[task.id] === key;
   const busy     = !!actionLoading[task.id];
@@ -488,7 +488,9 @@ function TaskCard({ task, currentUser, smsStatus, onAction, onAssign, actionLoad
               <option value="">
                 {role === 'manager' ? '→ Assign to Supervisor…' : '→ Assign to Staff…'}
               </option>
-              {assignTargets.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+              {assignTargets
+                .filter(s => String(s.id) !== String(task.assigned_to))
+                .map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
             </select>
           )}
           {/* Status actions — only for the directly assigned person */}
@@ -531,7 +533,7 @@ function TaskCard({ task, currentUser, smsStatus, onAction, onAssign, actionLoad
 
 /* ════════════════════════════════════════════════════════════
    MAIN DASHBOARD PAGE
-═══════════════════════════════════════════════════════════════ */
+   ═══════════════════════════════════════════════════════════════ */
 export default function DashboardPage() {
   const router = useRouter();
 
@@ -901,7 +903,9 @@ export default function DashboardPage() {
                                     <option value="">
                                       {currentUser?.role === 'manager' ? '→ Assign Supervisor…' : '→ Assign Staff…'}
                                     </option>
-                                    {assignTargets.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                                    {assignTargets
+                                      .filter(s => String(s.id) !== String(task.assigned_to))
+                                      .map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                                   </select>
                                 )}
                               </>

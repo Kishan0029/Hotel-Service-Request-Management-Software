@@ -118,6 +118,9 @@ function ModModeModal({ onClose, onCreated, user, rooms, departments, locations 
         fd.append('by', user?.name ?? 'Manager');
         const photoRes = await fetch(`/api/tasks/${taskData.id}/photo`, { method: 'POST', body: fd });
         const photoData = await photoRes.json();
+        if (!photoRes.ok) {
+           throw new Error(photoData.error || 'Task created, but failed to upload photo.');
+        }
         if (photoRes.ok && photoData.task) {
           onCreated(photoData.task);
           onClose();
@@ -512,12 +515,16 @@ function ManagerTaskCard({ task, currentUser, onAction, onAssign, actionLoading,
           <option value="">→ Assign to…</option>
           {supervisors.length > 0 && (
             <optgroup label="Supervisors">
-              {supervisors.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+              {supervisors
+                .filter(s => String(s.id) !== String(task.assigned_to))
+                .map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
             </optgroup>
           )}
           {deptStaff.length > 0 && (
             <optgroup label="Staff">
-              {deptStaff.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+              {deptStaff
+                .filter(s => String(s.id) !== String(task.assigned_to))
+                .map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
             </optgroup>
           )}
         </select>
@@ -855,7 +862,12 @@ export default function ManagerDashboard() {
       {showMod && (
         <ModModeModal
           onClose={() => setShowMod(false)}
-          onCreated={(task) => { setTasks(prev => [task, ...prev]); }}
+          onCreated={(task) => { 
+            setTasks(prev => {
+              const exists = prev.some(t => t.id === task.id);
+              return exists ? prev.map(t => t.id === task.id ? task : t) : [task, ...prev];
+            }); 
+          }}
           user={user}
           rooms={rooms}
           departments={departments}
@@ -866,7 +878,12 @@ export default function ManagerDashboard() {
       {showCreate && (
         <ManagerCreateTaskModal
           onClose={() => setShowCreate(false)}
-          onCreated={(task) => { setTasks(prev => [task, ...prev]); }}
+          onCreated={(task) => { 
+            setTasks(prev => {
+              const exists = prev.some(t => t.id === task.id);
+              return exists ? prev.map(t => t.id === task.id ? task : t) : [task, ...prev];
+            }); 
+          }}
           user={user}
           rooms={rooms}
           deptStaff={deptStaff}

@@ -97,15 +97,31 @@ export async function POST(request, { params }) {
     updateData.completed_after_escalation = false;
   }
 
-  await supabase.from('tasks').update(updateData).eq('id', id);
-
   // Append activity log
-  const log = Array.isArray(current.activity_log) ? current.activity_log : [];
+  let log = [];
+  try {
+    if (typeof current.activity_log === 'string') {
+      log = JSON.parse(current.activity_log) || [];
+    } else if (Array.isArray(current.activity_log)) {
+      log = current.activity_log;
+    }
+  } catch (e) {}
+  
   const eventName = photoType === 'before' ? 'before_photo_uploaded' : 'completed_with_photo';
   const updatedLog = [...log, { event: eventName, by: byName, time: new Date().toISOString() }];
-  await supabase.from('tasks').update({ activity_log: JSON.stringify(updatedLog) }).eq('id', id);
+  
+  updateData.activity_log = JSON.stringify(updatedLog);
+
+  // Single atomic update
+  const { error: updateError } = await supabase.from('tasks').update(updateData).eq('id', id);
+  if (updateError) {
+    return Response.json({ error: `Database update failed: ${updateError.message}` }, { status: 500 });
+  }
 
   // Re-fetch full task
-  const { data: task } = await supabase.from('tasks').select(TASK_SELECT).eq('id', id).single();
+  const { data: task, error: fetchErr } = await supabase.from('tasks').select(TASK_SELECT).eq('id', id).single();
+  if (fetchErr) {
+     return Response.json({ error: fetchErr.message }, { status: 500 });
+  }
   return Response.json({ url: publicUrl, task });
 }
