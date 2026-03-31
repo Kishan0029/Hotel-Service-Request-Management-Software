@@ -1,0 +1,29 @@
+Buckets: [] Error: undefined
+Tasks: [
+  {
+    "id": 12,
+    "before_photo_url": null,
+    "after_photo_url": null
+  },
+  {
+    "id": 11,
+    "before_photo_url": null,
+    "after_photo_url": null
+  },
+  {
+    "id": 10,
+    "before_photo_url": null,
+    "after_photo_url": null
+  },
+  {
+    "id": 9,
+    "before_photo_url": null,
+    "after_photo_url": null
+  },
+  {
+    "id": 8,
+    "before_photo_url": null,
+    "after_photo_url": null
+  }
+]
+Upload test error: new row violates row-level security policy

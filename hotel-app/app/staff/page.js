@@ -3,9 +3,10 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   LogOut, Camera, Upload, X, CheckCircle2, Clock, AlertTriangle,
-  UserCheck, PlayCircle, RefreshCw, ClipboardList, Bell, Hotel, ChevronRight,
+  UserCheck, PlayCircle, RefreshCw, ClipboardList, Bell, Hotel, ChevronRight, Image as ImageIcon
 } from 'lucide-react';
 import Sidebar from '@/components/Sidebar';
+import { useToast } from '@/components/Toast';
 
 /* ── helpers ──────────────────────────────────────────────── */
 function elapsed(iso) {
@@ -35,6 +36,13 @@ function AfterPhotoSheet({ task, user, onClose, onDone }) {
   const [uploading, setUploading] = useState(false);
   const [error, setError]     = useState('');
   const fileRef = useRef();
+  const galleryRef = useRef();
+
+  useEffect(() => {
+    const handleEscape = (e) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, [onClose]);
 
   const handleFile = (e) => {
     const f = e.target.files[0];
@@ -85,11 +93,7 @@ function AfterPhotoSheet({ task, user, onClose, onDone }) {
           )}
 
           {/* After photo upload */}
-          <div
-            className="photo-upload-zone"
-            onClick={() => fileRef.current?.click()}
-            data-testid="after-photo-upload-zone"
-          >
+          <div className="photo-upload-zone" data-testid="after-photo-upload-zone">
             {preview ? (
               <div className="photo-preview-wrap">
                 <img src={preview} alt="After preview" className="photo-preview-img" />
@@ -103,9 +107,16 @@ function AfterPhotoSheet({ task, user, onClose, onDone }) {
               </div>
             ) : (
               <div className="photo-upload-placeholder">
-                <Camera size={32} className="photo-upload-icon" />
-                <p className="photo-upload-text">Take or upload After photo</p>
-                <p className="photo-upload-hint">Tap to open camera / gallery</p>
+                <div style={{ display: 'flex', gap: 10 }}>
+                  <button type="button" className="btn btn-ghost" onClick={() => fileRef.current?.click()} style={{ flexDirection: 'column', height: 'auto', padding: '16px 20px' }}>
+                    <Camera size={28} />
+                    <span style={{ fontSize: '0.8rem', marginTop: 4 }}>Take Photo</span>
+                  </button>
+                  <button type="button" className="btn btn-ghost" onClick={() => galleryRef.current?.click()} style={{ flexDirection: 'column', height: 'auto', padding: '16px 20px' }}>
+                    <ImageIcon size={28} />
+                    <span style={{ fontSize: '0.8rem', marginTop: 4 }}>Gallery</span>
+                  </button>
+                </div>
               </div>
             )}
             <input
@@ -113,9 +124,16 @@ function AfterPhotoSheet({ task, user, onClose, onDone }) {
               type="file"
               accept="image/*"
               capture="environment"
-              style={{ display: 'none' }}
+              style={{ opacity: 0, position: 'absolute', width: 1, height: 1 }}
               onChange={handleFile}
               data-testid="after-photo-input"
+            />
+            <input
+              ref={galleryRef}
+              type="file"
+              accept="image/*"
+              style={{ opacity: 0, position: 'absolute', width: 1, height: 1 }}
+              onChange={handleFile}
             />
           </div>
         </div>
@@ -139,9 +157,17 @@ function AfterPhotoSheet({ task, user, onClose, onDone }) {
 /* ── Staff Task Card ─────────────────────────────────────────── */
 function StaffTaskCard({ task, user, onAction, actionLoading, onPhotoUpload }) {
   const [showSheet, setShowSheet] = useState(false);
+  const [timeText, setTimeText] = useState(elapsed(task.created_at));
+  const showToast = useToast();
+  
   const busy = !!actionLoading[task.id];
   const isAssigned = task.assigned_to && String(task.assigned_to) === String(user?.id);
   const canAct = isAssigned && task.current_level !== 'manager';
+
+  useEffect(() => {
+    const id = setInterval(() => setTimeText(elapsed(task.created_at)), 60000);
+    return () => clearInterval(id);
+  }, [task.created_at]);
 
   return (
     <>
@@ -166,7 +192,7 @@ function StaffTaskCard({ task, user, onAction, actionLoading, onPhotoUpload }) {
           </div>
           {task.notes && <div className="staff-task-notes">{task.notes}</div>}
 
-          <div className="staff-task-time">{elapsed(task.created_at)}</div>
+          <div className="staff-task-time">{timeText}</div>
 
           {/* Before photo */}
           {task.before_photo_url && (
@@ -262,6 +288,7 @@ export default function StaffDashboard() {
   const [actionLoading, setActionLoading] = useState({});
   const [newAlert, setNewAlert] = useState(null);
   const prevIds = useRef(new Set());
+  const showToast = useToast();
 
   // Auth guard
   useEffect(() => {
@@ -320,7 +347,8 @@ export default function StaffDashboard() {
       const updated = await res.json();
       if (!res.ok) throw new Error(updated.error);
       setTasks(prev => prev.map(t => t.id === taskId ? updated : t));
-    } catch (err) { alert('Error: ' + err.message); }
+      showToast({ type: 'success', message: `Task ${actionKey} successfully` });
+    } catch (err) { showToast({ type: 'error', message: err.message }); }
     finally { setActionLoading(prev => ({ ...prev, [taskId]: null })); }
   };
 
@@ -328,7 +356,11 @@ export default function StaffDashboard() {
     setTasks(prev => prev.map(t => t.id === updatedTask.id ? updatedTask : t));
   };
 
-  const logout = () => { localStorage.removeItem('currentUser'); router.push('/login'); };
+  const logout = () => { 
+    if (window.confirm('Are you sure you want to log out?')) {
+      localStorage.removeItem('currentUser'); router.push('/login'); 
+    }
+  };
 
   if (!user || loading) {
     return (
@@ -338,7 +370,13 @@ export default function StaffDashboard() {
     );
   }
 
-  const activeTasks    = tasks.filter(t => t.status !== 'completed');
+  const sortedTasks = [...tasks].sort((a, b) => {
+    if (a.priority === 'urgent' && b.priority !== 'urgent') return -1;
+    if (b.priority === 'urgent' && a.priority !== 'urgent') return 1;
+    return new Date(b.created_at) - new Date(a.created_at); // newer first 
+  });
+
+  const activeTasks    = sortedTasks.filter(t => t.status !== 'completed');
   const completedTasks = tasks.filter(t => t.status === 'completed');
 
   return (
@@ -353,24 +391,19 @@ export default function StaffDashboard() {
           </div>
         )}
 
-        {/* Role bar */}
-        <div className="role-bar">
-          <span className="role-bar-pill role-staff">STAFF</span>
-          <span style={{ color: '#f1f5f9', fontWeight: 600 }}>{user.name}</span>
-          <div className="role-spacer" />
-          <button className="btn btn-ghost btn-sm" onClick={logout} style={{ color: '#94a3b8' }} data-testid="staff-logout-btn">
-            <LogOut size={13} /> Logout
-          </button>
-        </div>
-
         <header className="page-header" data-testid="staff-header">
           <div>
             <div className="page-header-title">My Tasks</div>
-            <div className="page-header-sub">Service Request Management</div>
+            <div className="page-header-sub">
+              {user.name} <span className="badge badge-level-staff ml-1">Staff</span>
+            </div>
           </div>
           <div className="header-actions">
-            <button className="btn btn-ghost btn-sm" onClick={() => loadTasks()} data-testid="staff-refresh-btn">
+            <button className="btn btn-ghost btn-sm" onClick={() => loadTasks()} data-testid="staff-refresh-btn" aria-label="Refresh tasks">
               <RefreshCw size={14} />
+            </button>
+            <button className="btn btn-ghost btn-sm desktop-only" onClick={logout}>
+              <LogOut size={13} /> Logout
             </button>
           </div>
         </header>

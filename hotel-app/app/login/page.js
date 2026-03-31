@@ -130,9 +130,11 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <p className="login-hint-v7">
-          Default password: <code>password123</code>
-        </p>
+        {process.env.NODE_ENV !== 'production' && (
+          <p className="login-hint-v7">
+            Default password: <code>password123</code>
+          </p>
+        )}
       </div>
     </div>
   );

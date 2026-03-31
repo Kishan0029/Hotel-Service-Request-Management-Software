@@ -4,8 +4,10 @@ import { useRouter } from 'next/navigation';
 import {
   AlertTriangle, CheckCircle2, Clock, ClipboardList,
   Flame, BarChart2, Activity, LogOut, RefreshCw, Plus, X, ArrowRight,
+  ClipboardCheck, Wrench, ShieldAlert, ArrowRightCircle
 } from 'lucide-react';
 import Sidebar from '@/components/Sidebar';
+import { useToast } from '@/components/Toast';
 
 /* ── Helpers ─────────────────────────────────────────────── */
 function elapsed(iso) {
@@ -84,6 +86,13 @@ function GMCreateTaskModal({ rooms, departments, managers, onClose, onCreated, g
   });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError]           = useState('');
+  const showToast = useToast();
+
+  useEffect(() => {
+    const handleEsc = (e) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', handleEsc);
+    return () => window.removeEventListener('keydown', handleEsc);
+  }, [onClose]);
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
@@ -127,9 +136,11 @@ function GMCreateTaskModal({ rooms, departments, managers, onClose, onCreated, g
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to create task');
       onCreated(data);
+      showToast({ type: 'success', message: 'Task created and assigned successfully' });
       onClose();
     } catch (err) {
       setError(err.message);
+      showToast({ type: 'error', message: err.message });
     } finally {
       setSubmitting(false);
     }
@@ -240,6 +251,7 @@ export default function GmDashboard() {
   const [error, setError]             = useState('');
   const [lastRefresh, setLastRefresh] = useState(null);
   const [showCreate, setShowCreate]   = useState(false);
+  const showToast = useToast();
 
   // Auth guard
   useEffect(() => {
@@ -277,6 +289,7 @@ export default function GmDashboard() {
       setLastRefresh(new Date());
     } catch (err) {
       setError(err.message);
+      showToast({ type: 'error', message: 'Failed to load data: ' + err.message });
     }
     setLoading(false);
   }, []);
@@ -290,8 +303,10 @@ export default function GmDashboard() {
   }, [user, loadData]);
 
   const logout = () => {
-    localStorage.removeItem('currentUser');
-    router.push('/login');
+    if (window.confirm('Are you sure you want to log out?')) {
+      localStorage.removeItem('currentUser');
+      router.push('/login');
+    }
   };
 
   const handleCreated = (task) => {
@@ -347,7 +362,19 @@ export default function GmDashboard() {
   recentActivity.sort((a, b) => new Date(b.time) - new Date(a.time));
   const recentSlice = recentActivity.slice(0, 20);
 
-  const activityIcon = { created: '📋', acknowledged: '✅', started: '🔧', completed: '✓', reassigned: '↩', escalated: '🔴', assigned: '→' };
+  const ActivityIconCmp = ({ event }) => {
+    const s = 14;
+    switch (event) {
+      case 'created': return <ClipboardList size={s} color="#3B82F6" />;
+      case 'acknowledged': return <CheckCircle2 size={s} color="#10B981" />;
+      case 'started': return <Wrench size={s} color="#F59E0B" />;
+      case 'completed': return <ClipboardCheck size={s} color="#059669" />;
+      case 'reassigned': return <RefreshCw size={s} color="#8B5CF6" />;
+      case 'escalated': return <ShieldAlert size={s} color="#DC2626" />;
+      case 'assigned': return <ArrowRightCircle size={s} color="#6366F1" />;
+      default: return <Activity size={s} color="#6B7280" />;
+    }
+  };
 
   return (
     <div className="app-shell">
@@ -494,28 +521,22 @@ export default function GmDashboard() {
               {deptStats.length === 0 ? (
                 <p className="td-muted" style={{ padding: '12px 16px' }}>No tasks today.</p>
               ) : (
-                <table className="gm-dept-table">
-                  <thead>
-                    <tr>
-                      <th>Department</th>
-                      <th>Today</th>
-                      <th>Done</th>
-                      <th>Delayed</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {deptStats.map(d => (
-                      <tr key={d.id}>
-                        <td>{d.name}</td>
-                        <td>{d.total}</td>
-                        <td style={{ color: '#16a34a' }}>{d.completed}</td>
-                        <td style={{ color: d.delayed > 0 ? '#dc2626' : 'inherit', fontWeight: d.delayed > 0 ? 700 : 400 }}>
-                          {d.delayed > 0 ? `${d.delayed} ⚠` : '—'}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 16, padding: '16px 20px' }}>
+                  {deptStats.map(d => {
+                    const pctDone = d.total === 0 ? 0 : Math.round((d.completed / d.total) * 100);
+                    return (
+                      <div key={d.id} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem' }}>
+                          <span style={{ fontWeight: 600 }}>{d.name}</span>
+                          <span className="td-muted">{d.completed}/{d.total} Done {d.delayed > 0 && <span style={{ color: '#dc2626', fontWeight: 700, marginLeft: 6 }}>{d.delayed} Delayed</span>}</span>
+                        </div>
+                        <div style={{ width: '100%', height: 6, background: '#E2E8F0', borderRadius: 4, overflow: 'hidden' }}>
+                          <div style={{ width: `${pctDone}%`, height: '100%', background: '#10B981', transition: 'width 0.5s ease' }} />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               )}
             </div>
 
@@ -530,7 +551,7 @@ export default function GmDashboard() {
                 <div className="gm-activity-feed">
                   {recentSlice.map((entry, i) => (
                     <div key={i} className="gm-activity-item">
-                      <span className="gm-activity-icon">{activityIcon[entry.event] ?? '•'}</span>
+                      <span className="gm-activity-icon"><ActivityIconCmp event={entry.event} /></span>
                       <div className="gm-activity-body">
                         <span className="gm-activity-event">
                           {entry.task_code} — {entry.event}

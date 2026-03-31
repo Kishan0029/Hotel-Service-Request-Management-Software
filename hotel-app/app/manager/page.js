@@ -5,9 +5,10 @@ import {
   LogOut, Plus, X, RefreshCw, Shield, MapPin, Camera,
   ClipboardList, Clock, AlertTriangle, CheckCircle2, ArrowRight,
   Upload, Flame, Activity, ChevronDown, ChevronUp, History, Zap,
-  UserCheck, PlayCircle,
+  UserCheck, PlayCircle, Search, Filter
 } from 'lucide-react';
 import Sidebar from '@/components/Sidebar';
+import { useToast } from '@/components/Toast';
 
 /* ── helpers ──────────────────────────────────────────────── */
 function elapsed(iso) {
@@ -44,6 +45,12 @@ const MOD_TASK_TYPES = {
 function ModModeModal({ onClose, onCreated, user, rooms, departments, locations }) {
   const cleaningDept  = departments.find(d => d.name === 'Housekeeping' || d.name.toLowerCase().includes('housekeep'));
   const maintDept     = departments.find(d => d.name === 'Maintenance'  || d.name.toLowerCase().includes('mainten'));
+
+  useEffect(() => {
+    const handleEsc = (e) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', handleEsc);
+    return () => window.removeEventListener('keydown', handleEsc);
+  }, [onClose]);
 
   const [form, setForm] = useState({
     location_id: '',
@@ -311,6 +318,12 @@ const FALLBACK_TASK_TYPES = ['Room Service', 'Water Bottles', 'Minibar Refill', 
 
 /* ── Manager Create Task Modal ─────────────────────────────────── */
 function ManagerCreateTaskModal({ rooms, deptStaff, supervisors, onClose, onCreated, user }) {
+  useEffect(() => {
+    const handleEsc = (e) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', handleEsc);
+    return () => window.removeEventListener('keydown', handleEsc);
+  }, [onClose]);
+
   const [form, setForm] = useState({
     room_id: '', task_type: '', task_type_custom: '',
     priority: 'normal', type: 'request', notes: '', initial_assignee_id: '',
@@ -454,10 +467,25 @@ function ManagerCreateTaskModal({ rooms, deptStaff, supervisors, onClose, onCrea
 
 /* ── Task Row (Manager view) ─────────────────────────────────── */
 function ManagerTaskCard({ task, currentUser, onAction, onAssign, actionLoading, supervisors, deptStaff, expandedId, setExpandedId }) {
+  const [timeText, setTimeText] = useState(elapsed(task.created_at));
   const expanded   = expandedId === task.id;
   const busy       = !!actionLoading[task.id];
   const canAssign  = currentUser?.role === 'manager' && task.status !== 'completed';
   const hasAssignees = supervisors.length > 0 || deptStaff.length > 0;
+
+  useEffect(() => {
+    const id = setInterval(() => setTimeText(elapsed(task.created_at)), 60000);
+    return () => clearInterval(id);
+  }, [task.created_at]);
+
+  const handleAssignSelect = (e) => {
+    const targetId = parseInt(e.target.value);
+    if (!targetId) return;
+    if (window.confirm(`Are you sure you want to reassign this task?`)) {
+      onAssign(task.id, targetId, currentUser.role);
+    }
+    e.target.value = "";
+  };
 
   const icons = { created: '📋', acknowledged: '✅', started: '🔧', completed: '✓', reassigned: '↩', escalated: '🔴', assigned: '→' };
 
@@ -482,7 +510,7 @@ function ManagerTaskCard({ task, currentUser, onAction, onAssign, actionLoading,
 
       <div className="task-card-meta">
         <span>{task.assigned_staff?.name ? `→ ${task.assigned_staff.name}` : '⚠ Unassigned'}</span>
-        <span>{elapsed(task.created_at)}</span>
+        <span>{timeText}</span>
       </div>
 
       {/* Photo Evidence */}
@@ -508,7 +536,7 @@ function ManagerTaskCard({ task, currentUser, onAction, onAssign, actionLoading,
         <select
           className="reassign-select"
           value=""
-          onChange={e => onAssign(task.id, parseInt(e.target.value), currentUser.role)}
+          onChange={handleAssignSelect}
           disabled={busy}
           data-testid={`manager-assign-${task.id}`}
         >
@@ -570,7 +598,11 @@ export default function ManagerDashboard() {
   const [expandedId, setExpandedId]   = useState(null);
   const [actionLoading, setActionLoading] = useState({});
   const [newTaskAlert, setNewTaskAlert]   = useState(null);
+  const [filterQuery, setFilterQuery]     = useState('');
+  const [filterStatus, setFilterStatus]   = useState('all');
+  const [filterPriority, setFilterPriority] = useState('all');
   const prevTaskIds = useRef(new Set());
+  const showToast = useToast();
 
   // Auth guard
   useEffect(() => {
@@ -638,7 +670,8 @@ export default function ManagerDashboard() {
       const updated = await res.json();
       if (!res.ok) throw new Error(updated.error);
       setTasks(prev => prev.map(t => t.id === taskId ? updated : t));
-    } catch (err) { alert('Error: ' + err.message); }
+      showToast({ type: 'success', message: `Task ${actionKey} successfully` });
+    } catch (err) { showToast({ type: 'error', message: err.message }); }
     finally { setActionLoading(prev => ({ ...prev, [taskId]: null })); }
   };
 
@@ -653,11 +686,16 @@ export default function ManagerDashboard() {
       const updated = await res.json();
       if (!res.ok) throw new Error(updated.error);
       setTasks(prev => prev.map(t => t.id === taskId ? updated : t));
-    } catch (err) { alert('Error: ' + err.message); }
+      showToast({ type: 'success', message: 'Task reassigned successfully' });
+    } catch (err) { showToast({ type: 'error', message: err.message }); }
     finally { setActionLoading(prev => ({ ...prev, [taskId]: null })); }
   };
 
-  const logout = () => { localStorage.removeItem('currentUser'); router.push('/login'); };
+  const logout = () => { 
+    if (window.confirm('Are you sure you want to log out?')) {
+      localStorage.removeItem('currentUser'); router.push('/login'); 
+    }
+  };
 
   if (!user || loading) {
     return (
@@ -674,6 +712,13 @@ export default function ManagerDashboard() {
   const completed = tasks.filter(t => t.status === 'completed').length;
   const delayed   = tasks.filter(isDelayed).length;
 
+  const filteredTasks = tasks.filter(t => {
+    if (filterStatus !== 'all' && t.status !== filterStatus) return false;
+    if (filterPriority !== 'all' && t.priority !== filterPriority) return false;
+    if (filterQuery && !String(t.rooms?.room_number).includes(filterQuery)) return false;
+    return true;
+  });
+
   return (
     <div className="app-shell">
       <Sidebar />
@@ -686,21 +731,13 @@ export default function ManagerDashboard() {
           </div>
         )}
 
-        {/* Role bar */}
-        <div className="role-bar">
-          <span className="role-bar-pill role-manager">MANAGER</span>
-          <span style={{ color: '#f1f5f9', fontWeight: 600 }}>{user.name}</span>
-          {user.department_name && <span className="td-muted">{user.department_name}</span>}
-          <div className="role-spacer" />
-          <button className="btn btn-ghost btn-sm" onClick={logout} style={{ color: '#94a3b8' }} data-testid="manager-logout-btn">
-            <LogOut size={13} /> Logout
-          </button>
-        </div>
-
         <header className="page-header" data-testid="manager-header">
           <div>
             <div className="page-header-title">Manager Dashboard</div>
-            <div className="page-header-sub">{user.department_name} — Task Management</div>
+            <div className="page-header-sub">
+              {user.name} <span className="badge badge-level-manager ml-1">Manager</span>
+              <span className="td-muted ml-1">· {user.department_name}</span>
+            </div>
           </div>
           <div className="header-actions">
             <button
@@ -718,8 +755,11 @@ export default function ManagerDashboard() {
               <Shield size={16} />
               MOD Mode
             </button>
-            <button className="btn btn-ghost btn-sm" onClick={() => loadData()}>
+            <button className="btn btn-ghost btn-sm" onClick={() => loadData()} aria-label="Refresh">
               <RefreshCw size={14} />
+            </button>
+            <button className="btn btn-ghost btn-sm desktop-only" onClick={logout}>
+              <LogOut size={13} /> Logout
             </button>
           </div>
         </header>
@@ -771,10 +811,36 @@ export default function ManagerDashboard() {
               <span className="card-title"><ClipboardList size={14} /> Department Tasks ({tasks.length})</span>
             </div>
 
+            {/* Filter Bar */}
+            <div className="filter-bar">
+              <div className="filter-field">
+                <Search size={14} className="filter-icon" />
+                <input 
+                  type="text" 
+                  placeholder="Room #..." 
+                  value={filterQuery} 
+                  onChange={e => setFilterQuery(e.target.value)} 
+                  className="filter-input" 
+                />
+              </div>
+              <select className="filter-select" value={filterStatus} onChange={e => setFilterStatus(e.target.value)}>
+                <option value="all">Any Status</option>
+                <option value="pending">Pending</option>
+                <option value="acknowledged">Acknowledged</option>
+                <option value="in_progress">In Progress</option>
+                <option value="completed">Completed</option>
+              </select>
+              <select className="filter-select" value={filterPriority} onChange={e => setFilterPriority(e.target.value)}>
+                <option value="all">Any Priority</option>
+                <option value="urgent">Urgent</option>
+                <option value="normal">Normal</option>
+              </select>
+            </div>
+
             {loading ? (
               <div className="loading-wrap"><div className="spinner" /> Loading tasks…</div>
-            ) : tasks.length === 0 ? (
-              <div className="empty-state"><CheckCircle2 size={36} /><p>No tasks yet. Use MOD Mode to report issues.</p></div>
+            ) : filteredTasks.length === 0 ? (
+              <div className="empty-state"><CheckCircle2 size={36} /><p>No tasks match your filters.</p></div>
             ) : (
               <>
                 {/* Desktop table */}
@@ -787,7 +853,7 @@ export default function ManagerDashboard() {
                       </tr>
                     </thead>
                     <tbody>
-                      {tasks.map(task => {
+                      {filteredTasks.map(task => {
                         const busy  = !!actionLoading[task.id];
                         return (
                           <tr key={task.id} className={task.is_mod_task ? 'row-mod' : ''} data-testid={`manager-row-${task.id}`}>
@@ -803,7 +869,19 @@ export default function ManagerDashboard() {
                             <td>
                               <div className="action-cell">
                                 {task.status !== 'completed' && (supervisors.length > 0 || deptStaff.length > 0) && (
-                                  <select className="reassign-select" value="" onChange={e => taskAssign(task.id, parseInt(e.target.value), user?.role)} disabled={busy} data-testid={`table-assign-${task.id}`}>
+                                  <select 
+                                    className="reassign-select" 
+                                    value="" 
+                                    onChange={e => {
+                                      const tid = parseInt(e.target.value);
+                                      if (tid && window.confirm('Are you sure you want to reassign this task?')) {
+                                        taskAssign(task.id, tid, user?.role);
+                                      }
+                                      e.target.value = "";
+                                    }} 
+                                    disabled={busy} 
+                                    data-testid={`table-assign-${task.id}`}
+                                  >
                                     <option value="">→ Assign to…</option>
                                     {supervisors.length > 0 && (
                                       <optgroup label="Supervisors">
@@ -836,9 +914,9 @@ export default function ManagerDashboard() {
                   </table>
                 </div>
 
-                {/* Mobile cards */}
-                <div className="task-cards mobile-only" style={{ padding: '12px' }}>
-                  {tasks.map(task => (
+                {/* Mobile view */}
+                <div className="mobile-only task-card-list">
+                  {filteredTasks.map(task => (
                     <ManagerTaskCard
                       key={task.id}
                       task={task}
