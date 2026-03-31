@@ -158,8 +158,9 @@ export default function RoomsPage() {
             ) : rooms.length === 0 ? (
               <div className="empty-state"><DoorOpen size={40} /><p>No rooms added yet.</p></div>
             ) : (
-              <div className="table-wrapper">
-                <table>
+              <>
+                <div className="table-wrapper desktop-only">
+                  <table>
                   <thead>
                     <tr>
                       <th>Room Number</th>
@@ -193,6 +194,32 @@ export default function RoomsPage() {
                   </tbody>
                 </table>
               </div>
+
+              {/* Mobile view */}
+              <div className="mobile-only" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {rooms.map(r => (
+                  <div key={r.id} className="card" style={{ padding: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                      <div style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--text-primary)' }}>
+                        Room {r.room_number}
+                      </div>
+                      <div className="td-muted" style={{ fontSize: '0.85rem', marginTop: '4px' }}>
+                        {r.floor != null ? `Floor ${r.floor}` : 'No floor assigned'}
+                      </div>
+                    </div>
+                    
+                    <div className="row-actions" style={{ gap: '8px' }}>
+                      <button className="btn btn-ghost btn-icon" onClick={() => setModal(r)}>
+                        <Pencil size={15} />
+                      </button>
+                      <button className="btn btn-danger btn-icon" onClick={() => handleDelete(r.id)}>
+                        <Trash2 size={15} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
             )}
           </div>
         </main>

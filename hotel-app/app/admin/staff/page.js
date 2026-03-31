@@ -195,8 +195,10 @@ export default function StaffPage() {
             ) : staff.length === 0 ? (
               <div className="empty-state"><Users size={40} /><p>No staff added yet.</p></div>
             ) : (
-              <div className="table-wrapper">
-                <table>
+              <>
+                {/* Desktop view */}
+                <div className="table-wrapper desktop-only">
+                  <table>
                   <thead>
                     <tr>
                       <th>Name</th>
@@ -266,6 +268,74 @@ export default function StaffPage() {
                   </tbody>
                 </table>
               </div>
+
+              {/* Mobile view */}
+              <div className="mobile-only" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {staff.map(s => (
+                  <div key={s.id} className="card" style={{ padding: '16px', opacity: s.is_active ? 1 : 0.6 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+                      <div>
+                        <div style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--text-primary)' }}>{s.name}</div>
+                        <div className="td-muted" style={{ fontSize: '0.8rem', marginTop: '2px' }}>{s.phone_number}</div>
+                      </div>
+                      <span className={`badge ${s.is_active ? 'badge-completed' : 'badge-urgent'}`}>
+                        <span className="badge-dot" style={{ background: s.is_active ? '#16a34a' : '#dc2626' }} />
+                        {s.is_active ? 'Employed' : 'Terminated'}
+                      </span>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px', fontSize: '0.85rem' }}>
+                      <div>
+                        <div className="td-muted" style={{ fontSize: '0.75rem', marginBottom: '2px' }}>Department</div>
+                        <div style={{ fontWeight: 600 }}>{s.departments?.name || '—'}</div>
+                      </div>
+                      <div>
+                        <div className="td-muted" style={{ fontSize: '0.75rem', marginBottom: '2px' }}>Role</div>
+                        <div style={{ textTransform: 'capitalize', fontWeight: 600 }}>{s.role}</div>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div>
+                        {s.is_active ? (
+                          <button 
+                            className={`badge ${s.on_duty ? 'badge-completed' : 'badge-normal'}`} 
+                            onClick={async () => {
+                              const adminRole = typeof window !== 'undefined' ? localStorage.getItem('userRole') : '';
+                              const res = await fetch(`/api/staff/${s.id}`, {
+                                method: 'PUT',
+                                headers: { 
+                                  'Content-Type': 'application/json', 
+                                  'x-user-role': adminRole,
+                                  'x-api-key': process.env.NEXT_PUBLIC_API_KEY
+                                },
+                                body: JSON.stringify({ on_duty: !s.on_duty })
+                              });
+                              if (res.ok) setStaff(prev => prev.map(st => st.id === s.id ? { ...st, on_duty: !s.on_duty } : st));
+                            }}
+                            style={{ cursor: 'pointer', border: 'none', padding: '6px 12px' }}
+                          >
+                            <span className="badge-dot" style={{ background: s.on_duty ? '#16a34a' : '#64748b' }} />
+                            {s.on_duty ? 'On Duty' : 'Off Duty'}
+                          </button>
+                        ) : <span className="td-muted" style={{ fontSize: '0.8rem' }}>Not active</span>}
+                      </div>
+
+                      <div className="row-actions" style={{ gap: '8px' }}>
+                        {s.is_active && (
+                          <button className="btn btn-danger btn-icon" onClick={() => handleDeactivate(s.id)}>
+                            <X size={14} />
+                          </button>
+                        )}
+                        <button className="btn btn-ghost btn-sm" onClick={() => setModal(s)}>
+                          <Pencil size={13} /> Edit
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
             )}
           </div>
         </main>

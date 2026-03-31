@@ -95,8 +95,9 @@ export default function SmsLogsPage() {
                 <p style={{ marginTop: 6 }}>SMS activity will appear here once tasks are created or replies received.</p>
               </div>
             ) : (
-              <div className="table-wrapper">
-                <table>
+              <>
+                <div className="table-wrapper desktop-only">
+                  <table>
                   <thead>
                     <tr>
                       <th>Time</th>
@@ -146,6 +147,42 @@ export default function SmsLogsPage() {
                   </tbody>
                 </table>
               </div>
+
+              {/* Mobile view */}
+              <div className="mobile-only" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {logs.map(log => {
+                  const sb = STATUS_BADGE[log.status] ?? { label: log.status, cls: 'badge' };
+                  return (
+                    <div key={log.id} className="card" style={{ padding: '16px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-primary)' }}>
+                          {EVENT_ICON[log.event_type] ?? null}
+                          <span style={{ textTransform: 'capitalize' }}>{log.event_type}</span>
+                        </div>
+                        <span className="timer-cell" style={{ fontSize: '0.75rem' }}>{elapsed(log.created_at)}</span>
+                      </div>
+                      
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                        {log.task_code ? (
+                          <div style={{ fontSize: '0.8rem' }}><span className="td-muted">Task:</span> <span className="task-code">{log.task_code}</span></div>
+                        ) : (
+                          <div className="td-muted" style={{ fontSize: '0.8rem' }}>No task code</div>
+                        )}
+                        <span className={sb.cls}>
+                          <span className="badge-dot" />
+                          {sb.label}
+                        </span>
+                      </div>
+
+                      <div style={{ background: 'var(--bg)', padding: '10px', borderRadius: '6px', fontSize: '0.8rem' }}>
+                        <div className="td-muted" style={{ marginBottom: '4px', fontSize: '0.75rem' }}>To/From: {log.phone ?? 'Unknown'}</div>
+                        <div style={{ whiteSpace: 'pre-wrap', color: 'var(--text-secondary)' }}>{log.message ?? '—'}</div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </>
             )}
           </div>
         </main>

@@ -159,8 +159,9 @@ export default function DepartmentsPage() {
             ) : departments.length === 0 ? (
               <div className="empty-state"><Building2 size={40} /><p>No departments yet.</p></div>
             ) : (
-              <div className="table-wrapper">
-                <table>
+              <>
+                <div className="table-wrapper desktop-only">
+                  <table>
                   <thead>
                     <tr>
                       <th>Department</th>
@@ -198,6 +199,42 @@ export default function DepartmentsPage() {
                   </tbody>
                 </table>
               </div>
+
+              {/* Mobile view */}
+              <div className="mobile-only" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {departments.map(d => (
+                  <div key={d.id} className="card" style={{ padding: '16px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                      <strong style={{ fontWeight: 700, fontSize: '1rem', textTransform: 'capitalize' }}>{d.name}</strong>
+                    </div>
+                    {d.description && (
+                      <div className="td-muted" style={{ fontSize: '0.85rem', marginBottom: '12px' }}>{d.description}</div>
+                    )}
+                    
+                    <div style={{ background: 'var(--bg)', padding: '10px 12px', borderRadius: '8px', marginBottom: '16px' }}>
+                      <div className="td-muted" style={{ fontSize: '0.75rem', marginBottom: '4px' }}>Default Staff</div>
+                      {d.staff ? (
+                        <div>
+                          <div style={{ fontWeight: 600, fontSize: '0.85rem', marginBottom: '2px' }}>{d.staff.name}</div>
+                          <div className="td-muted" style={{ fontSize: '0.8rem' }}>{d.staff.phone_number}</div>
+                        </div>
+                      ) : (
+                        <div className="td-muted" style={{ fontSize: '0.85rem' }}>Not assigned</div>
+                      )}
+                    </div>
+
+                    <div className="row-actions" style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+                      <button className="btn btn-ghost btn-sm" onClick={() => setModal(d)}>
+                        <Pencil size={13} /> Edit
+                      </button>
+                      <button className="btn btn-danger btn-icon" onClick={() => handleDelete(d.id)}>
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
             )}
           </div>
         </main>
