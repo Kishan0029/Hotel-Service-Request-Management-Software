@@ -56,14 +56,21 @@ function LevelBadge({ level }) {
   return <span className={`badge badge-level ${b.cls}`}>{b.label}</span>;
 }
 
-/* ── Stat Card ───────────────────────────────────────────── */
-function StatCard({ label, value, color, icon, onClick }) {
+/* ── KPI Stat Card ───────────────────────────────────────── */
+function StatCard({ label, value, color, colorClass, icon, onClick, context, contextClass }) {
   return (
-    <div className="gm-stat-card" onClick={onClick} style={{ cursor: onClick ? 'pointer' : 'default', transition: 'transform 0.1s' }} onMouseDown={e => e.currentTarget.style.transform='scale(0.98)'} onMouseUp={e => e.currentTarget.style.transform='scale(1)'} onMouseLeave={e => e.currentTarget.style.transform='scale(1)'}>
-      <div className="gm-stat-icon">{icon}</div>
-      <div>
-        <div className="gm-stat-value">{value}</div>
+    <div
+      className={`gm-stat-card ${colorClass || ''}`}
+      onClick={onClick}
+      style={{ cursor: onClick ? 'pointer' : 'default' }}
+    >
+      <div className="gm-stat-kpi-top">
+        <div className={`gm-stat-value ${colorClass ? colorClass.replace('gm-stat-card-', 'gm-stat-value-') : ''}`}>{value}</div>
+        <div className="gm-stat-icon">{icon}</div>
+      </div>
+      <div className="gm-stat-bottom">
         <div className="gm-stat-label">{label}</div>
+        {context && <div className={`gm-stat-context ${contextClass || 'gm-stat-context-muted'}`}>{context}</div>}
       </div>
     </div>
   );
@@ -471,31 +478,70 @@ export default function GmDashboard() {
 
         <main className="page-body">
           {/* ── Summary Stats ───────────────────────────── */}
-          <div className="gm-stats-grid">
-          <StatCard label="Total Requests"  value={todayTasks.length} color="#1d4ed8" icon={<ClipboardList size={22} />} onClick={() => setDetailView({ title: 'Total Requests (Today)', tasks: todayTasks })} />
-          <StatCard label="Completed in Time" value={completedInTime.length} color="#10B981" icon={<CheckCircle2 size={22} />} onClick={() => setDetailView({ title: 'Completed in Time', tasks: completedInTime })} />
-          <StatCard label="Total Delays"    value={delayed.length}    color="#c2410c" icon={<AlertTriangle size={22} />} onClick={() => setDetailView({ title: 'Delayed Tasks', tasks: delayed })} />
-          <StatCard label="Complaints" value={complaints.length} color="#b91c1c" icon={<Flame size={22} />} onClick={() => setDetailView({ title: 'Complaints', tasks: complaints })} />
-          <StatCard label="Escalated"  value={escalated.length}  color="#c2410c" icon={<AlertTriangle size={22} />} onClick={() => setDetailView({ title: 'Escalated Tasks', tasks: escalated })} />
+        <div className="gm-stats-grid">
+          <StatCard
+            label="Total Requests"
+            value={todayTasks.length}
+            colorClass="gm-stat-card-total"
+            icon={<ClipboardList size={20} />}
+            context={todayTasks.length === 0 ? 'No requests today' : `${todayTasks.length} task${todayTasks.length !== 1 ? 's' : ''} logged today`}
+            contextClass="gm-stat-context-muted"
+            onClick={() => setDetailView({ title: 'Total Requests (Today)', tasks: todayTasks })}
+          />
+          <StatCard
+            label="Completed in Time"
+            value={completedInTime.length}
+            colorClass="gm-stat-card-good"
+            icon={<CheckCircle2 size={20} />}
+            context={completedInTime.length > 0 ? `${completedInTime.length} resolved on time ✓` : 'None completed yet'}
+            contextClass={completedInTime.length > 0 ? 'gm-stat-context-ok' : 'gm-stat-context-muted'}
+            onClick={() => setDetailView({ title: 'Completed in Time', tasks: completedInTime })}
+          />
+          <StatCard
+            label="Delays"
+            value={delayed.length}
+            colorClass={delayed.length > 0 ? 'gm-stat-card-delay' : 'gm-stat-card-good'}
+            icon={<AlertTriangle size={20} />}
+            context={delayed.length === 0 ? 'All tasks on schedule ✓' : `⚠️ ${delayed.length} task${delayed.length !== 1 ? 's' : ''} past SLA`}
+            contextClass={delayed.length === 0 ? 'gm-stat-context-ok' : 'gm-stat-context-warn'}
+            onClick={() => setDetailView({ title: 'Delayed Tasks', tasks: delayed })}
+          />
+          <StatCard
+            label="Complaints"
+            value={complaints.length}
+            colorClass={complaints.length > 0 ? 'gm-stat-card-danger' : 'gm-stat-card-good'}
+            icon={<Flame size={20} />}
+            context={complaints.length === 0 ? 'No active complaints' : `🔴 Requires immediate attention`}
+            contextClass={complaints.length === 0 ? 'gm-stat-context-ok' : 'gm-stat-context-danger'}
+            onClick={() => setDetailView({ title: 'Complaints', tasks: complaints })}
+          />
+          <StatCard
+            label="Escalated"
+            value={escalated.length}
+            colorClass={escalated.length > 0 ? 'gm-stat-card-danger' : 'gm-stat-card-good'}
+            icon={<AlertTriangle size={20} />}
+            context={escalated.length === 0 ? 'No escalations' : `Escalated — action needed`}
+            contextClass={escalated.length === 0 ? 'gm-stat-context-ok' : 'gm-stat-context-danger'}
+            onClick={() => setDetailView({ title: 'Escalated Tasks', tasks: escalated })}
+          />
         </div>
 
-        {/* ── Chain Level Overview ─────────────────────── */}
+        {/* ── Pipeline Chain Bar ────────────────────── */}
         <div className="gm-chain-bar">
-          <div className="gm-chain-item">
-            <span className="badge badge-level badge-level-manager">{atManager}</span>
-            <span className="gm-chain-label">At Manager</span>
+          <div className="gm-chain-segment">
+            <div className="gm-chain-count gm-chain-count-manager">{atManager}</div>
+            <div className="gm-chain-label">At Manager</div>
           </div>
-          <div className="gm-chain-arrow">→</div>
-          <div className="gm-chain-item">
-            <span className="badge badge-level badge-level-supervisor">{atSupervisor}</span>
-            <span className="gm-chain-label">At Supervisor</span>
+          <div className="gm-chain-segment">
+            <div className="gm-chain-count gm-chain-count-supervisor">{atSupervisor}</div>
+            <div className="gm-chain-label">At Supervisor</div>
           </div>
-          <div className="gm-chain-arrow">→</div>
-          <div className="gm-chain-item">
-            <span className="badge badge-level badge-level-staff">{atStaff}</span>
-            <span className="gm-chain-label">At Staff</span>
+          <div className="gm-chain-segment">
+            <div className="gm-chain-count gm-chain-count-staff">{atStaff}</div>
+            <div className="gm-chain-label">At Staff</div>
           </div>
         </div>
+
 
         <div className="gm-content-grid">
           {/* ── Left Column ─────────────────────────── */}
@@ -504,13 +550,16 @@ export default function GmDashboard() {
             {/* Active Complaints */}
             <div className="gm-section">
               <div className="gm-section-title">
-                <Flame size={15} color="#dc2626" /> Active Complaints ({complaints.length})
+                <Flame size={14} color="#DC2626" />
+                Active Complaints
+                <span className="gm-section-count">{complaints.length}</span>
               </div>
               <div className="gm-list">
                 {complaints.length === 0 ? (
-                  <div className="empty-state" style={{ padding: '30px 24px' }}>
-                    <CheckCircle2 size={32} />
-                    <p>No complaints at the moment</p>
+                  <div className="gm-empty-state">
+                    <div className="gm-empty-icon"><CheckCircle2 size={36} /></div>
+                    <div className="gm-empty-title">Operations clear</div>
+                    <div className="gm-empty-sub">No active complaints at this time</div>
                   </div>
                 ) : (
                   complaints.map(t => (
@@ -524,11 +573,11 @@ export default function GmDashboard() {
                       </div>
                       <div className="gm-item-body">
                         {t.departments?.name} — {t.task_type}
-                        {t.notes && <span className="td-muted"> · {t.notes}</span>}
+                        {t.notes && <span className="td-muted"> &middot; {t.notes}</span>}
                       </div>
                       <div className="gm-item-footer">
                         {isDelayed(t) && <span className="sla-delayed">⚠ Delayed {delayMins(t)}m</span>}
-                        {t.escalation_level >= 1 && <span className="badge badge-critical">🔴 Escalated</span>}
+                        {t.escalation_level >= 1 && <span className="badge badge-critical">Escalated</span>}
                         <span className="td-muted">{elapsed(t.created_at)}</span>
                       </div>
                     </div>
@@ -540,13 +589,16 @@ export default function GmDashboard() {
             {/* Delayed Tasks */}
             <div className="gm-section">
               <div className="gm-section-title">
-                <AlertTriangle size={15} color="#dc2626" /> Delayed Tasks ({delayed.length})
+                <AlertTriangle size={14} color="#D97706" />
+                Delayed Tasks
+                <span className="gm-section-count">{delayed.length}</span>
               </div>
               <div className="gm-list">
                 {delayed.length === 0 ? (
-                  <div className="empty-state" style={{ padding: '30px 24px' }}>
-                    <CheckCircle2 size={32} />
-                    <p>All tasks are on time</p>
+                  <div className="gm-empty-state">
+                    <div className="gm-empty-icon"><CheckCircle2 size={36} /></div>
+                    <div className="gm-empty-title">All tasks on schedule</div>
+                    <div className="gm-empty-sub">No SLA breaches detected</div>
                   </div>
                 ) : (
                   delayed.sort((a, b) => delayMins(b) - delayMins(a)).map(t => (
@@ -577,22 +629,32 @@ export default function GmDashboard() {
             {/* Department Performance */}
             <div className="gm-section">
               <div className="gm-section-title">
-                <BarChart2 size={15} /> Department Performance
+                <BarChart2 size={14} /> Department Performance
               </div>
               {deptStats.length === 0 ? (
-                <p className="td-muted" style={{ padding: '12px 16px' }}>No tasks today.</p>
+                <div className="gm-empty-state">
+                  <div className="gm-empty-icon"><BarChart2 size={36} /></div>
+                  <div className="gm-empty-title">No activity today</div>
+                  <div className="gm-empty-sub">Performance data will appear as tasks are logged</div>
+                </div>
               ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 16, padding: '16px 20px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
                   {deptStats.map(d => {
                     const pctDone = d.total === 0 ? 0 : Math.round((d.completed / d.total) * 100);
+                    const barClass = pctDone >= 75 ? 'gm-perf-bar-good' : pctDone >= 40 ? 'gm-perf-bar-warn' : 'gm-perf-bar-low';
                     return (
-                      <div key={d.id} style={{ display: 'flex', flexDirection: 'column', gap: 6, cursor: 'pointer' }} onClick={() => setDetailView({ title: `Logs: ${d.name}`, tasks: tasks.filter(t => t.departments?.id === d.id && isToday(t.created_at)) })}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem' }}>
-                          <span style={{ fontWeight: 600 }}>{d.name}</span>
-                          <span className="td-muted">{d.completed}/{d.total} Done {d.delayed > 0 && <span style={{ color: '#dc2626', fontWeight: 700, marginLeft: 6 }}>{d.delayed} Delayed</span>}</span>
+                      <div key={d.id} style={{ padding: '14px 20px', borderBottom: '1px solid var(--border)', cursor: 'pointer' }}
+                        onClick={() => setDetailView({ title: `Logs: ${d.name}`, tasks: tasks.filter(t => t.departments?.id === d.id && isToday(t.created_at)) })}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8, fontSize: '0.845rem' }}>
+                          <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{d.name}</span>
+                          <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                            <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>{d.completed}/{d.total} done</span>
+                            {d.delayed > 0 && <span style={{ color: '#DC2626', fontWeight: 700, fontSize: '0.75rem' }}>{d.delayed} delayed</span>}
+                            <span style={{ fontWeight: 700, color: pctDone >= 75 ? '#059669' : pctDone >= 40 ? '#D97706' : 'var(--text-muted)', fontSize: '0.82rem' }}>{pctDone}%</span>
+                          </div>
                         </div>
-                        <div style={{ width: '100%', height: 6, background: '#E2E8F0', borderRadius: 4, overflow: 'hidden' }}>
-                          <div style={{ width: `${pctDone}%`, height: '100%', background: '#10B981', transition: 'width 0.5s ease' }} />
+                        <div className="gm-perf-bar-wrap">
+                          <div className={`gm-perf-bar-fill ${barClass}`} style={{ width: `${pctDone}%` }} />
                         </div>
                       </div>
                     );
@@ -601,25 +663,37 @@ export default function GmDashboard() {
               )}
             </div>
 
-            {/* Guest Service Score */}
-            <div className="gm-section" style={{ marginTop: '20px' }}>
+            {/* Guest Service Score — Leaderboard */}
+            <div className="gm-section" style={{ marginTop: 0 }}>
               <div className="gm-section-title">
-                <Star size={15} color="#F59E0B" /> Guest Service Score (GSS)
+                <Star size={14} color="#D97706" /> Guest Service Score
+                <span className="gm-section-count">{staffScores.filter(s => s.inTime + s.isLate + s.escs > 0).length} staff</span>
               </div>
-              {staffScores.length === 0 ? (
-                <p className="td-muted" style={{ padding: '12px 16px' }}>No staff scores.</p>
+              {staffScores.filter(s => s.inTime + s.isLate + s.escs > 0).length === 0 ? (
+                <div className="gm-empty-state">
+                  <div className="gm-empty-icon"><Star size={36} /></div>
+                  <div className="gm-empty-title">No scores yet</div>
+                  <div className="gm-empty-sub">Scores populate as tasks are completed</div>
+                </div>
               ) : (
-                <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  {staffScores.slice(0, 10).map(staff => (
-                    <div key={staff.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <div style={{ display: 'flex', flexDirection: 'column' }}>
-                        <span style={{ fontWeight: 500 }}>{staff.name}</span>
-                        <span className="td-muted" style={{ fontSize: '0.75rem' }}>
-                          ✅ {staff.inTime} | ⚠ {staff.isLate} | 🔴 {staff.escs}
-                        </span>
+                <div className="gm-leaderboard">
+                  {staffScores.filter(s => s.inTime + s.isLate + s.escs > 0).slice(0, 10).map((staff, idx) => (
+                    <div key={staff.id} className={`gm-leaderboard-row ${idx === 0 ? 'top-performer' : ''}`}>
+                      <div className={`gm-leaderboard-rank ${idx === 0 ? 'rank-1' : ''}`}>
+                        {idx + 1}
                       </div>
-                      <div style={{ fontWeight: 700, color: staff.score >= 0 ? '#10B981' : '#EF4444' }}>
-                        {staff.score > 0 ? `+${staff.score}` : staff.score} pts
+                      <div className="gm-leaderboard-info">
+                        <div className="gm-leaderboard-name">{staff.name}</div>
+                        <div className="gm-leaderboard-sub">
+                          <span className="gm-leaderboard-stat" style={{ color: '#059669' }}>✓ {staff.inTime}</span>
+                          <span style={{ color: 'var(--border)' }}>|</span>
+                          <span className="gm-leaderboard-stat" style={{ color: '#D97706' }}>~ {staff.isLate}</span>
+                          <span style={{ color: 'var(--border)' }}>|</span>
+                          <span className="gm-leaderboard-stat" style={{ color: '#DC2626' }}>↑ {staff.escs}</span>
+                        </div>
+                      </div>
+                      <div className={`gm-leaderboard-score ${staff.score > 0 ? 'gm-score-pos' : staff.score < 0 ? 'gm-score-neg' : 'gm-score-zero'}`}>
+                        {staff.score > 0 ? `+${staff.score}` : staff.score}
                       </div>
                     </div>
                   ))}
@@ -627,28 +701,37 @@ export default function GmDashboard() {
               )}
             </div>
 
-            {/* Recent Activity */}
+            {/* Recent Activity — Timeline */}
             <div className="gm-section">
               <div className="gm-section-title">
-                <Activity size={15} /> Recent Activity
+                <Activity size={14} /> Live Activity Feed
               </div>
               {recentSlice.length === 0 ? (
-                <p className="td-muted" style={{ padding: '12px 16px' }}>No activity yet.</p>
+                <div className="gm-empty-state">
+                  <div className="gm-empty-icon"><Activity size={36} /></div>
+                  <div className="gm-empty-title">No recent activity</div>
+                  <div className="gm-empty-sub">Events will appear here as tasks are actioned</div>
+                </div>
               ) : (
                 <div className="gm-activity-feed">
                   {recentSlice.map((entry, i) => (
                     <div key={i} className="gm-activity-item">
-                      <span className="gm-activity-icon"><ActivityIconCmp event={entry.event} /></span>
+                      <div className="gm-activity-icon">
+                        <ActivityIconCmp event={entry.event} />
+                      </div>
                       <div className="gm-activity-body">
                         <span className="gm-activity-event">
-                          {entry.task_code} — {entry.event}
+                          <strong>{entry.task_code}</strong> — {entry.event}
                           {entry.by && entry.by !== 'System' && <span className="td-muted"> by {entry.by}</span>}
                           {entry.to && <span className="td-muted"> → {entry.to}</span>}
                         </span>
                         <span className="gm-activity-meta">
-                          Room {entry.room} · {entry.task_type} · {elapsed(entry.time)}
+                          Room {entry.room}
+                          <span className="gm-activity-meta-dot" />
+                          {entry.task_type}
                         </span>
                       </div>
+                      <div className="gm-activity-time">{elapsed(entry.time)}</div>
                     </div>
                   ))}
                 </div>
