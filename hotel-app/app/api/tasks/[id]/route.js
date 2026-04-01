@@ -211,7 +211,7 @@ export async function PATCH(request, { params }) {
         const time = new Date(taskForSms.created_at).toLocaleTimeString('en-IN', {
           hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'Asia/Kolkata',
         });
-        sendSMS(targetStaff.phone_number, {
+        await sendSMS(targetStaff.phone_number, {
           task_id:    taskForSms.id,
           task_code:  taskForSms.task_code,
           staff_name: targetStaff.name,
@@ -237,7 +237,7 @@ export async function PATCH(request, { params }) {
           .single();
 
         if (sup && sup.phone_number && sup.phone_number !== 'N/A') {
-          sendSMS(sup.phone_number, {
+          await sendSMS(sup.phone_number, {
             task_id:    taskForSms.id,
             task_code:  taskForSms.task_code,
             staff_name: sup.name,
@@ -312,7 +312,7 @@ export async function PATCH(request, { params }) {
         const time = new Date(taskForSms.created_at).toLocaleTimeString('en-IN', {
           hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'Asia/Kolkata',
         });
-        sendSMS(staffRow.phone_number, {
+        await sendSMS(staffRow.phone_number, {
           task_id:    taskForSms.id,
           task_code:  taskForSms.task_code,
           staff_name: staffRow.name,
@@ -338,7 +338,7 @@ export async function PATCH(request, { params }) {
           .single();
 
         if (sup && sup.phone_number && sup.phone_number !== 'N/A') {
-          sendSMS(sup.phone_number, {
+          await sendSMS(sup.phone_number, {
             task_id:    taskForSms.id,
             task_code:  taskForSms.task_code,
             staff_name: sup.name,

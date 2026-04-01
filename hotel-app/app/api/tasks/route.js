@@ -326,7 +326,7 @@ export async function POST(request) {
       .single();
 
     if (sup && sup.phone_number && sup.phone_number !== 'N/A') {
-      sendSMS(sup.phone_number, {
+      await sendSMS(sup.phone_number, {
         task_id:    data.id,
         task_code:  data.task_code,
         staff_name: sup.name,
