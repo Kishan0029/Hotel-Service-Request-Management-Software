@@ -212,12 +212,12 @@ export async function checkAndEscalate() {
 
     for (const task of tasks ?? []) {
       const elapsedMinutes = (now - new Date(task.created_at).getTime()) / 60_000;
-      const sla = task.expected_time || 10;
+      const sla = task.expected_time || L1_MINUTES;
 
       if (task.escalation_level === 0 && elapsedMinutes >= sla) {
         const r = await escalateTask(task, elapsedMinutes, 1);
         if (r) results.push(r);
-      } else if (task.escalation_level === 1 && elapsedMinutes >= (sla + 2)) {
+      } else if (task.escalation_level === 1 && elapsedMinutes >= (sla + L2_MINUTES)) {
         const r = await escalateTask(task, elapsedMinutes, 2);
         if (r) results.push(r);
       }
