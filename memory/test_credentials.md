@@ -34,11 +34,11 @@ To see exact emails, run in Supabase SQL Editor:
 `SELECT name, email, role FROM staff WHERE is_active = true ORDER BY role;`
 
 ## Preview URLs (Container)
-- Login:    https://65c59c82-a266-4eb3-b4a1-6c2bb3c366f0.preview.emergentagent.com/login
-- GM:       https://65c59c82-a266-4eb3-b4a1-6c2bb3c366f0.preview.emergentagent.com/gm
-- Manager:  https://65c59c82-a266-4eb3-b4a1-6c2bb3c366f0.preview.emergentagent.com/manager
-- Staff:    https://65c59c82-a266-4eb3-b4a1-6c2bb3c366f0.preview.emergentagent.com/staff
-- Reception:https://65c59c82-a266-4eb3-b4a1-6c2bb3c366f0.preview.emergentagent.com/
+- Login:    https://app-makeover-17.preview.emergentagent.com/login
+- GM:       https://app-makeover-17.preview.emergentagent.com/gm
+- Manager:  https://app-makeover-17.preview.emergentagent.com/manager
+- Staff:    https://app-makeover-17.preview.emergentagent.com/staff
+- Reception:https://app-makeover-17.preview.emergentagent.com/
 
 ## API Keys
 INTERNAL_API_KEY: supersecret123
