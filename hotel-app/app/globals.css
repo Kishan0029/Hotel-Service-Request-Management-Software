@@ -848,9 +848,9 @@ tbody tr.row-complaint { border-left: 3px solid #EF4444; }
   display: flex; align-items: center; justify-content: center; padding: 20px;
   position: relative;
 }
-.login-bg-overlay {
+ .login-bg-overlay {
   position: absolute; inset: 0;
-  background: linear-gradient(135deg, rgba(15, 23, 42, 0.65) 0%, rgba(15, 118, 110, 0.45) 100%);
+  background: transparent;
 }
 .login-shell {
   min-height: 100vh;
