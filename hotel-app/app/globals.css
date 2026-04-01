@@ -4,32 +4,32 @@
    CSS CUSTOM PROPERTIES — Premium Hotel Control System
    ============================================================ */
 :root {
-  /* Primary — Deep Navy */
-  --primary:        #1A3A5C;
-  --primary-hover:  #14304E;
-  --primary-light:  #EEF3FF;
-  --primary-mid:    #2A5080;
+  /* Primary — Vibrant Blue */
+  --primary:        #2563EB;
+  --primary-hover:  #1D4ED8;
+  --primary-light:  #EFF6FF;
+  --primary-mid:    #3B82F6;
 
   /* Accent */
-  --accent:         #1A3A5C;
-  --accent-light:   #EEF3FF;
+  --accent:         #2563EB;
+  --accent-light:   #EFF6FF;
 
   /* Surfaces */
-  --bg:             #F4F5F7;
+  --bg:             #F8FAFC;
   --surface:        #FFFFFF;
-  --surface-2:      #F9FAFB;
-  --sidebar-bg:     #0F2035;
-  --sidebar-border: transparent;
+  --surface-2:      #F1F5F9;
+  --sidebar-bg:     #FFFFFF;
+  --sidebar-border: #E2E8F0;
 
   /* Text */
-  --text-primary:   #111827;
-  --text-secondary: #4B5563;
-  --text-muted:     #9CA3AF;
+  --text-primary:   #0F172A;
+  --text-secondary: #475569;
+  --text-muted:     #94A3B8;
   --text-inverse:   #FFFFFF;
 
   /* Borders */
-  --border:         #E5E7EB;
-  --border-focus:   #1A3A5C;
+  --border:         #E2E8F0;
+  --border-focus:   #2563EB;
 
   /* Status */
   --status-success: #059669;
@@ -37,12 +37,12 @@
   --status-danger:  #DC2626;
   --status-info:    #2563EB;
 
-  /* Shadows — slightly richer */
-  --shadow-xs:   0 1px 2px 0 rgba(15, 32, 53, 0.06);
-  --shadow-sm:   0 1px 3px 0 rgba(15, 32, 53, 0.07), 0 1px 2px -1px rgba(15, 32, 53, 0.05);
-  --shadow-md:   0 4px 8px -2px rgba(15, 32, 53, 0.1), 0 2px 4px -2px rgba(15, 32, 53, 0.06);
-  --shadow-lg:   0 12px 28px -4px rgba(15, 32, 53, 0.13), 0 4px 8px -4px rgba(15, 32, 53, 0.08);
-  --shadow-xl:   0 24px 48px -8px rgba(15, 32, 53, 0.18), 0 8px 16px -4px rgba(15, 32, 53, 0.08);
+  /* Shadows — clean and modern */
+  --shadow-xs:   0 1px 2px 0 rgba(15, 23, 42, 0.05);
+  --shadow-sm:   0 1px 3px 0 rgba(15, 23, 42, 0.06), 0 1px 2px -1px rgba(15, 23, 42, 0.04);
+  --shadow-md:   0 4px 8px -2px rgba(15, 23, 42, 0.08), 0 2px 4px -2px rgba(15, 23, 42, 0.05);
+  --shadow-lg:   0 12px 28px -4px rgba(15, 23, 42, 0.10), 0 4px 8px -4px rgba(15, 23, 42, 0.06);
+  --shadow-xl:   0 24px 48px -8px rgba(15, 23, 42, 0.14), 0 8px 16px -4px rgba(15, 23, 42, 0.06);
 
   /* Layout */
   --sidebar-width: 240px;
@@ -87,7 +87,7 @@ input, select, textarea { font-family: inherit; font-size: 0.875rem; }
 /* ── SIDEBAR ── */
 .sidebar {
   width: var(--sidebar-width);
-  background: linear-gradient(180deg, #0F2035 0%, #0C1B2E 100%);
+  background: #FFFFFF;
   display: flex;
   flex-direction: column;
   position: fixed;
@@ -95,34 +95,34 @@ input, select, textarea { font-family: inherit; font-size: 0.875rem; }
   height: 100vh;
   z-index: 100;
   overflow-y: auto;
-  border-right: 1px solid rgba(255,255,255,0.05);
-  box-shadow: 4px 0 24px rgba(0,0,0,0.2);
+  border-right: 1px solid #E2E8F0;
+  box-shadow: 2px 0 12px rgba(15, 23, 42, 0.06);
 }
 
 .sidebar-brand {
   padding: 22px 16px 18px;
-  border-bottom: 1px solid rgba(255,255,255,0.07);
+  border-bottom: 1px solid #E2E8F0;
 }
 
 .sidebar-brand-icon {
   width: 36px; height: 36px;
-  background: rgba(255,255,255,0.1);
-  border: 1px solid rgba(255,255,255,0.12);
+  background: #EFF6FF;
+  border: 1px solid #BFDBFE;
   border-radius: 8px;
   display: flex; align-items: center; justify-content: center;
   margin-bottom: 10px;
-  color: rgba(255,255,255,0.8);
+  color: #2563EB;
 }
 
 .sidebar-brand-name {
   font-family: 'Plus Jakarta Sans', sans-serif;
   font-size: 0.875rem; font-weight: 700;
-  color: #FFFFFF;
+  color: #0F172A;
   letter-spacing: -0.01em; line-height: 1.2;
 }
 .sidebar-brand-sub {
   font-size: 0.68rem;
-  color: rgba(255,255,255,0.4);
+  color: #94A3B8;
   margin-top: 2px;
 }
 
@@ -133,17 +133,17 @@ input, select, textarea { font-family: inherit; font-size: 0.875rem; }
   font-size: 0.65rem; font-weight: 700; letter-spacing: 0.05em;
   text-transform: uppercase;
 }
-.role-gm         { background: rgba(139,92,246,0.2); color: #C4B5FD; border: 1px solid rgba(139,92,246,0.3); }
-.role-manager    { background: rgba(96,165,250,0.15); color: #93C5FD; border: 1px solid rgba(96,165,250,0.25); }
-.role-reception  { background: rgba(96,165,250,0.15); color: #93C5FD; border: 1px solid rgba(96,165,250,0.2); }
-.role-supervisor { background: rgba(251,191,36,0.15); color: #FDE68A; border: 1px solid rgba(251,191,36,0.25); }
-.role-staff      { background: rgba(52,211,153,0.15); color: #6EE7B7; border: 1px solid rgba(52,211,153,0.25); }
+.role-gm         { background: #F3E8FF; color: #7C3AED; border: 1px solid #DDD6FE; }
+.role-manager    { background: #EFF6FF; color: #1D4ED8; border: 1px solid #BFDBFE; }
+.role-reception  { background: #EFF6FF; color: #1D4ED8; border: 1px solid #BFDBFE; }
+.role-supervisor { background: #FFFBEB; color: #B45309; border: 1px solid #FDE68A; }
+.role-staff      { background: #ECFDF5; color: #065F46; border: 1px solid #A7F3D0; }
 
 .sidebar-section-label {
   padding: 18px 16px 6px;
   font-size: 0.6rem; font-weight: 700;
   text-transform: uppercase; letter-spacing: 0.1em;
-  color: rgba(255,255,255,0.28);
+  color: #CBD5E1;
 }
 
 .sidebar-nav { display: flex; flex-direction: column; padding: 2px 8px; gap: 2px; }
@@ -152,24 +152,24 @@ input, select, textarea { font-family: inherit; font-size: 0.875rem; }
   display: flex; align-items: center; gap: 9px;
   padding: 8px 10px; border-radius: var(--radius-sm);
   font-size: 0.825rem; font-weight: 500;
-  color: rgba(255,255,255,0.55);
+  color: #64748B;
   transition: background var(--transition), color var(--transition);
   border: 1px solid transparent;
   border-left: 2px solid transparent;
 }
 .sidebar-link:hover {
-  background: rgba(255,255,255,0.06);
-  color: rgba(255,255,255,0.88);
+  background: #F1F5F9;
+  color: #0F172A;
 }
 .sidebar-link.active {
-  background: rgba(255,255,255,0.09);
-  color: #FFFFFF;
-  border-left: 2px solid #7EA8D8;
+  background: #EFF6FF;
+  color: #2563EB;
+  border-left: 2px solid #2563EB;
   font-weight: 600;
 }
 .sidebar-link svg { flex-shrink: 0; opacity: 0.7; }
 .sidebar-link:hover svg { opacity: 0.9; }
-.sidebar-link.active svg { opacity: 1; color: #A8C8E8; }
+.sidebar-link.active svg { opacity: 1; color: #2563EB; }
 
 /* ── MAIN CONTENT ── */
 .main-content {
@@ -849,7 +849,7 @@ tbody tr.row-complaint { border-left: 3px solid #EF4444; }
    ============================================================ */
 .login-shell-v7 {
   min-height: 100vh;
-  background: linear-gradient(145deg, #0c1c2e 0%, #1a3a5c 55%, #0f2035 100%);
+  background: linear-gradient(145deg, #1e3a8a 0%, #2563eb 55%, #1d4ed8 100%);
   display: flex; align-items: center; justify-content: center; padding: 20px;
   position: relative;
 }
@@ -918,8 +918,8 @@ tbody tr.row-complaint { border-left: 3px solid #EF4444; }
   height: 46px;
 }
 .login-input-wrap-v7 input:focus {
-  border-color: #1A3A5C; background: #fff;
-  box-shadow: 0 0 0 3px rgba(26,58,92,0.1);
+  border-color: #2563EB; background: #fff;
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
 }
 .login-eye-btn {
   position: absolute; right: 11px; background: none; border: none;
@@ -930,17 +930,17 @@ tbody tr.row-complaint { border-left: 3px solid #EF4444; }
 
 .login-submit-btn {
   width: 100%; height: 48px;
-  background: #1A3A5C;
+  background: #2563EB;
   color: #fff; border: none; border-radius: 8px;
   font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.9rem; font-weight: 700;
   cursor: pointer; transition: all var(--transition);
-  box-shadow: 0 4px 14px rgba(15, 32, 53, 0.3);
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);
   display: flex; align-items: center; justify-content: center; gap: 7px;
   letter-spacing: 0.01em;
 }
 .login-submit-btn:hover:not(:disabled) {
-  background: #14304E;
-  box-shadow: 0 8px 24px rgba(15, 32, 53, 0.38);
+  background: #1D4ED8;
+  box-shadow: 0 8px 24px rgba(37, 99, 235, 0.38);
   transform: translateY(-1px);
 }
 .login-submit-btn:disabled { opacity: 0.55; cursor: not-allowed; }
@@ -1163,7 +1163,7 @@ tbody tr.row-complaint { border-left: 3px solid #EF4444; }
   position: relative; overflow: hidden;
 }
 .gm-stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
-.gm-stat-card-total   { border-top-color: #1A3A5C; }
+.gm-stat-card-total   { border-top-color: #2563EB; }
 .gm-stat-card-good    { border-top-color: #059669; }
 .gm-stat-card-delay   { border-top-color: #D97706; }
 .gm-stat-card-danger  { border-top-color: #DC2626; }
@@ -1175,7 +1175,7 @@ tbody tr.row-complaint { border-left: 3px solid #EF4444; }
   font-size: 2.4rem; font-weight: 800; line-height: 1;
   letter-spacing: -0.04em;
 }
-.gm-stat-value-total  { color: #1A3A5C; }
+.gm-stat-value-total  { color: #2563EB; }
 .gm-stat-value-good   { color: #059669; }
 .gm-stat-value-delay  { color: #D97706; }
 .gm-stat-value-danger { color: #DC2626; }
@@ -1227,7 +1227,7 @@ tbody tr.row-complaint { border-left: 3px solid #EF4444; }
   font-size: 2rem; font-weight: 800; line-height: 1;
   letter-spacing: -0.04em;
 }
-.gm-chain-count-manager    { color: #1A3A5C; }
+.gm-chain-count-manager    { color: #2563EB; }
 .gm-chain-count-supervisor { color: #D97706; }
 .gm-chain-count-staff      { color: #059669; }
 .gm-chain-label {
@@ -1275,7 +1275,7 @@ tbody tr.row-complaint { border-left: 3px solid #EF4444; }
 .gm-item-escalated { border-left-color: #D97706; background: rgba(217, 119, 6, 0.025); }
 .gm-item-complaint { border-left-color: #EF4444; }
 .gm-item-delayed   { border-left-color: #F59E0B; }
-.gm-item-manager   { border-left-color: #1A3A5C; background: rgba(26, 58, 92, 0.02); }
+.gm-item-manager   { border-left-color: #2563EB; background: rgba(37, 99, 235, 0.02); }
 .gm-item-header    { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
 .gm-item-body      { font-size: 0.83rem; color: var(--text-secondary); }
 .gm-item-footer    { display: flex; gap: 7px; align-items: center; margin-top: 6px; flex-wrap: wrap; }
@@ -1403,10 +1403,10 @@ tbody tr.row-complaint { border-left: 3px solid #EF4444; }
   font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
 }
 .role-bar-pill.role-gm         { background: rgba(139,92,246,0.1); color: #7C3AED; }
-.role-bar-pill.role-manager    { background: rgba(26,58,92,0.1); color: #1A3A5C; }
+.role-bar-pill.role-manager    { background: rgba(37,99,235,0.1); color: #2563EB; }
 .role-bar-pill.role-supervisor { background: rgba(217,119,6,0.1); color: #B45309; }
 .role-bar-pill.role-staff      { background: rgba(5,150,105,0.1); color: #047857; }
-.role-bar-pill.role-reception  { background: rgba(26,58,92,0.1); color: #1A3A5C; }
+.role-bar-pill.role-reception  { background: rgba(37,99,235,0.1); color: #2563EB; }
 
 /* ============================================================
    SLA / TIMER
