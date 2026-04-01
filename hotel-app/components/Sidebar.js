@@ -35,20 +35,27 @@ const ALL_NAV = {
     {
       section: 'Admin',
       links: [
-        { href: '/admin/staff', label: 'Staff', icon: Users },
+        { href: '/admin/staff',    label: 'Staff',    icon: Users },
+        { href: '/admin/sms-logs', label: 'SMS Logs', icon: MessageSquare },
       ],
     },
   ],
   reception: [
     {
       section: 'Reception',
-      links: [{ href: '/', label: 'Dashboard', icon: LayoutDashboard }],
+      links: [
+        { href: '/',               label: 'Dashboard', icon: LayoutDashboard },
+        { href: '/admin/sms-logs', label: 'SMS Logs',  icon: MessageSquare },
+      ],
     },
   ],
   supervisor: [
     {
       section: 'Supervisor',
-      links: [{ href: '/', label: 'Dashboard', icon: ClipboardList }],
+      links: [
+        { href: '/',               label: 'Dashboard', icon: ClipboardList },
+        { href: '/admin/sms-logs', label: 'SMS Logs',  icon: MessageSquare },
+      ],
     },
   ],
   staff: [

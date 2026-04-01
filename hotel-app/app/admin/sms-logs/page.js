@@ -36,9 +36,11 @@ export default function SmsLogsPage() {
       const u = typeof window !== 'undefined' ? localStorage.getItem('currentUser') : null;
       const parsedUser = u ? JSON.parse(u) : null;
       const adminRole = parsedUser?.role || '';
+      const adminUserId = parsedUser?.id || '';
       const res  = await fetch('/api/sms-logs', { 
         headers: { 
           'x-user-role': adminRole,
+          'x-user-id': adminUserId,
           'x-api-key': process.env.NEXT_PUBLIC_API_KEY
         }
       });
