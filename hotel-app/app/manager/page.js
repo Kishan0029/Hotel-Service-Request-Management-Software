@@ -758,7 +758,7 @@ export default function ManagerDashboard() {
             <button className="btn btn-ghost btn-sm" onClick={() => loadData()} aria-label="Refresh">
               <RefreshCw size={14} />
             </button>
-            <button className="btn btn-ghost btn-sm desktop-only" onClick={logout}>
+            <button className="btn btn-ghost btn-sm" onClick={logout}>
               <LogOut size={13} /> Logout
             </button>
           </div>

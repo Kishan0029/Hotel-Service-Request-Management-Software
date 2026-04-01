@@ -402,7 +402,7 @@ export default function StaffDashboard() {
             <button className="btn btn-ghost btn-sm" onClick={() => loadTasks()} data-testid="staff-refresh-btn" aria-label="Refresh tasks">
               <RefreshCw size={14} />
             </button>
-            <button className="btn btn-ghost btn-sm desktop-only" onClick={logout}>
+            <button className="btn btn-ghost btn-sm" onClick={logout}>
               <LogOut size={13} /> Logout
             </button>
           </div>

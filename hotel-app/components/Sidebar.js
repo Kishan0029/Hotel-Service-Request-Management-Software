@@ -4,8 +4,9 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard, Users, Building2, DoorOpen,
-  Hotel, MessageSquare, Shield, ClipboardList, Menu, X
+  Hotel, MessageSquare, Shield, ClipboardList, Menu, X, LogOut
 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 const ALL_NAV = {
   gm: [
@@ -59,6 +60,14 @@ export default function Sidebar() {
   const pathname = usePathname();
   const [role, setRole] = useState(null);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const router = useRouter();
+
+  const logout = () => {
+    if (window.confirm('Are you sure you want to log out?')) {
+      localStorage.removeItem('currentUser');
+      router.push('/login');
+    }
+  };
 
   useEffect(() => {
     const checkRole = () => {
@@ -124,6 +133,17 @@ export default function Sidebar() {
             </nav>
           </div>
         ))}
+        {/* Logout at bottom */}
+        <div style={{ marginTop: 'auto', padding: '20px', borderTop: '1px solid var(--sidebar-border)' }}>
+          <button 
+            className="sidebar-link" 
+            onClick={logout}
+            style={{ width: '100%', background: 'transparent', border: 'none', cursor: 'pointer' }}
+          >
+            <LogOut size={16} />
+            <span>Logout</span>
+          </button>
+        </div>
       </aside>
 
       {/* Mobile Backdrop overlay */}
