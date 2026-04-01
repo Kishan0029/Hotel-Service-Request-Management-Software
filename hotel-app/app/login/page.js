@@ -128,14 +128,18 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <div className="login-footer-credits" style={{ marginTop: '40px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
+        <div className="login-footer-credits" style={{ marginTop: '45px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
+          <p style={{ margin: 0, fontSize: '1.1rem', color: '#4b5563', fontWeight: 500, letterSpacing: '0.01em' }}>
+            Engineered by Nextverse
+          </p>
           <img 
             src="/images/nextverse-logo.png" 
             alt="Nextverse Logo" 
-            style={{ width: '140px', filter: 'brightness(0)', objectFit: 'contain', marginBottom: '4px' }} 
+            style={{ width: '165px', filter: 'brightness(0) opacity(0.8)', objectFit: 'contain' }} 
           />
-          <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 500 }}>Developed by Nextverse</p>
-          <a href="https://gonextverse.in" target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.85rem', color: 'var(--text-primary)', textDecoration: 'none', fontWeight: 600 }}>gonextverse.in</a>
+          <a href="https://gonextverse.in" target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.95rem', color: '#6b7280', textDecoration: 'none', fontWeight: 500 }}>
+            gonextverse.in
+          </a>
         </div>
 
       </div>
