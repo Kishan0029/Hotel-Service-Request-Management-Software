@@ -540,15 +540,15 @@ function ManagerTaskCard({ task, currentUser, onAction, onAssign, actionLoading,
           disabled={busy}
           data-testid={`manager-assign-${task.id}`}
         >
-          <option value="">→ Assign to…</option>
-          {supervisors.length > 0 && (
+          <option value="">→ {currentUser?.role === 'manager' ? 'Reassign to…' : 'Assign to…'}</option>
+          {supervisors.filter(s => String(s.id) !== String(task.assigned_to)).length > 0 && (
             <optgroup label="Supervisors">
               {supervisors
                 .filter(s => String(s.id) !== String(task.assigned_to))
                 .map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
             </optgroup>
           )}
-          {deptStaff.length > 0 && (
+          {deptStaff.filter(s => String(s.id) !== String(task.assigned_to)).length > 0 && (
             <optgroup label="Staff">
               {deptStaff
                 .filter(s => String(s.id) !== String(task.assigned_to))
@@ -882,15 +882,19 @@ export default function ManagerDashboard() {
                                     disabled={busy} 
                                     data-testid={`table-assign-${task.id}`}
                                   >
-                                    <option value="">→ Assign to…</option>
-                                    {supervisors.length > 0 && (
+                                    <option value="">→ {user?.role === 'manager' ? 'Reassign…' : 'Assign…'}</option>
+                                    {supervisors.filter(s => String(s.id) !== String(task.assigned_to)).length > 0 && (
                                       <optgroup label="Supervisors">
-                                        {supervisors.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                                        {supervisors
+                                          .filter(s => String(s.id) !== String(task.assigned_to))
+                                          .map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                                       </optgroup>
                                     )}
-                                    {deptStaff.length > 0 && (
+                                    {deptStaff.filter(s => String(s.id) !== String(task.assigned_to)).length > 0 && (
                                       <optgroup label="Staff">
-                                        {deptStaff.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                                        {deptStaff
+                                          .filter(s => String(s.id) !== String(task.assigned_to))
+                                          .map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                                       </optgroup>
                                     )}
                                   </select>

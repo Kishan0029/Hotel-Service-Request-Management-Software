@@ -481,7 +481,7 @@ function TaskCard({ task, currentUser, smsStatus, onAction, onAssign, actionLoad
       {task.status !== 'completed' && (
         <div className="task-card-actions">
           {/* Assign down the chain */}
-          {canAssignDown && assignTargets.length > 0 && (
+          {canAssignDown && assignTargets.filter(s => String(s.id) !== String(task.assigned_to)).length > 0 && (
             <select className="reassign-select" value=""
               onChange={e => onAssign(task.id, parseInt(e.target.value), currentUser.role)}
               disabled={busy}>
