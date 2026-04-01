@@ -89,27 +89,29 @@ export default function HistoryPage() {
     <div className="app-shell">
       <Sidebar />
       <div className="main-content">
-        <header className="page-header" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '10px' }}>
+        <header className="page-header">
           <div>
             <div className="page-header-title">History</div>
             <div className="page-header-sub">View past logs and requests by date</div>
           </div>
-          <div className="header-actions" style={{ width: '100%', display: 'flex', gap: '10px', alignItems: 'center' }}>
-            <Calendar size={18} color="#64748b" />
-            <input 
-              type="date" 
-              value={date} 
-              onChange={(e) => setDate(e.target.value)} 
-              className="search-input"
-              style={{ padding: '8px 12px', flex: 1, maxWidth: '200px' }}
-            />
-            <button className="btn btn-primary btn-sm" onClick={loadData}>
-              <Search size={14} /> Fetch
-            </button>
-          </div>
         </header>
 
         <main className="page-body">
+          <div className="filter-bar">
+            <div className="filter-field" style={{ width: 'auto' }}>
+              <Calendar size={14} className="filter-icon" />
+              <input 
+                type="date" 
+                value={date} 
+                onChange={(e) => setDate(e.target.value)} 
+                className="filter-input"
+                style={{ width: '130px' }}
+              />
+            </div>
+            <button className="btn btn-primary btn-sm" onClick={loadData} style={{ marginLeft: '4px' }}>
+              <Search size={14} /> Fetch
+            </button>
+          </div>
           {loading ? (
             <div style={{ padding: '20px' }}>Loading tasks...</div>
           ) : tasks.length === 0 ? (
