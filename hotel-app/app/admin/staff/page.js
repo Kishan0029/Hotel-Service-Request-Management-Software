@@ -323,8 +323,8 @@ export default function StaffPage() {
 
                       <div className="row-actions" style={{ gap: '8px' }}>
                         {s.is_active && (
-                          <button className="btn btn-danger btn-icon" onClick={() => handleDeactivate(s.id)}>
-                            <X size={14} />
+                          <button className="btn btn-danger btn-sm" onClick={() => handleDeactivate(s.id)}>
+                            <X size={13} />
                           </button>
                         )}
                         <button className="btn btn-ghost btn-sm" onClick={() => setModal(s)}>

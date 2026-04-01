@@ -771,19 +771,19 @@ export default function ManagerDashboard() {
           <div className="stats-row" data-testid="manager-stats">
             <div className="stat-card stat-card-premium">
               <div className="stat-label"><Clock size={12} /> Pending</div>
-              <div className="stat-value" style={{ color: '#d97706' }}>{pending}</div>
+              <div className="stat-value">{pending}</div>
             </div>
             <div className="stat-card stat-card-premium">
               <div className="stat-label"><CheckCircle2 size={12} /> Completed</div>
-              <div className="stat-value" style={{ color: '#16a34a' }}>{completed}</div>
+              <div className="stat-value">{completed}</div>
             </div>
             <div className="stat-card stat-card-premium">
               <div className="stat-label"><AlertTriangle size={12} /> Delayed</div>
-              <div className="stat-value" style={{ color: delayed > 0 ? '#dc2626' : 'inherit' }}>{delayed}</div>
+              <div className="stat-value">{delayed}</div>
             </div>
             <div className="stat-card stat-card-premium">
               <div className="stat-label"><Shield size={12} /> MOD Tasks</div>
-              <div className="stat-value" style={{ color: '#7c3aed' }}>{modTasks}</div>
+              <div className="stat-value">{modTasks}</div>
             </div>
           </div>
 

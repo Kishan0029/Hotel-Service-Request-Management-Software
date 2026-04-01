@@ -4,13 +4,13 @@
    CSS CUSTOM PROPERTIES — Modern SaaS Design System
    ============================================================ */
 :root {
-  /* Primary — Teal */
-  --primary:        #0F766E;
-  --primary-hover:  #115E59;
-  --primary-light:  #F0FDFA;
-  --primary-mid:    #14B8A6;
+  /* Primary — Blue */
+  --primary:        #2563EB;
+  --primary-hover:  #1D4ED8;
+  --primary-light:  #EFF6FF;
+  --primary-mid:    #3B82F6;
 
-  /* Accent Blue */
+  /* Accent */
   --accent:         #2563EB;
   --accent-light:   #EFF6FF;
 
@@ -29,7 +29,7 @@
 
   /* Borders */
   --border:         #E2E8F0;
-  --border-focus:   #0F766E;
+  --border-focus:   #2563EB;
 
   /* Status */
   --status-success: #10B981;
@@ -134,7 +134,7 @@ input, select, textarea { font-family: inherit; font-size: 0.875rem; }
 }
 .role-gm         { background: #EDE9FE; color: #6D28D9; border: 1px solid #C4B5FD; }
 .role-manager    { background: #DBEAFE; color: #1D4ED8; border: 1px solid #BFDBFE; }
-.role-reception  { background: var(--primary-light); color: var(--primary); border: 1px solid rgba(15, 118, 110, 0.2); }
+.role-reception  { background: #EFF6FF; color: #1D4ED8; border: 1px solid rgba(37, 99, 235, 0.2); }
 .role-supervisor { background: #FEF3C7; color: #92400E; border: 1px solid #FDE68A; }
 .role-staff      { background: #D1FAE5; color: #065F46; border: 1px solid #A7F3D0; }
 
@@ -160,9 +160,9 @@ input, select, textarea { font-family: inherit; font-size: 0.875rem; }
   color: var(--text-primary);
 }
 .sidebar-link.active {
-  background: var(--primary-light);
+  background: #EFF6FF;
   color: var(--primary);
-  border-color: rgba(15, 118, 110, 0.12);
+  border-color: rgba(37, 99, 235, 0.12);
   font-weight: 600;
 }
 .sidebar-link svg { flex-shrink: 0; }
@@ -275,8 +275,8 @@ tbody td { padding: 11px 16px; font-size: 0.845rem; color: var(--text-primary); 
 .td-muted { color: var(--text-secondary); }
 .td-dept-label { color: var(--text-muted); font-size: 0.78rem; }
 
-.row-mod { background: rgba(15, 118, 110, 0.02); border-left: 3px solid var(--primary); }
-.row-mod:hover { background: rgba(15, 118, 110, 0.04) !important; }
+.row-mod { background: rgba(37, 99, 235, 0.02); border-left: 3px solid var(--primary); }
+.row-mod:hover { background: rgba(37, 99, 235, 0.04) !important; }
 tbody tr.row-escalated { background: #FFFBEB; }
 tbody tr.row-critical  { background: #FFF5F5; }
 tbody tr.row-complaint { border-left: 3px solid #EF4444; }
@@ -331,12 +331,12 @@ tbody tr.row-complaint { border-left: 3px solid #EF4444; }
   background: var(--primary);
   color: #fff;
   border-color: var(--primary);
-  box-shadow: 0 1px 2px rgba(15, 118, 110, 0.2);
+  box-shadow: 0 1px 2px rgba(37, 99, 235, 0.2);
 }
 .btn-primary:hover:not(:disabled) {
   background: var(--primary-hover);
   border-color: var(--primary-hover);
-  box-shadow: 0 4px 12px rgba(15, 118, 110, 0.25);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
   transform: translateY(-1px);
 }
 
@@ -387,13 +387,12 @@ tbody tr.row-complaint { border-left: 3px solid #EF4444; }
 }
 .btn-icon:hover { background: var(--bg); color: var(--text-primary); border-color: #CBD5E1; }
 
-/* MOD Mode Button — clean teal variant */
 .btn-mod-cta {
   background: var(--primary);
   color: #fff;
   border-color: var(--primary);
   height: 36px;
-  box-shadow: 0 1px 2px rgba(15, 118, 110, 0.2);
+  box-shadow: 0 1px 2px rgba(37, 99, 235, 0.2);
   font-weight: 600; font-size: 0.825rem;
   border-radius: var(--radius-sm);
 }
@@ -401,7 +400,7 @@ tbody tr.row-complaint { border-left: 3px solid #EF4444; }
 .btn-mod-cta:hover:not(:disabled) {
   background: var(--primary-hover);
   border-color: var(--primary-hover);
-  box-shadow: 0 4px 12px rgba(15, 118, 110, 0.3);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
   transform: translateY(-1px);
 }
 
@@ -413,11 +412,11 @@ tbody tr.row-complaint { border-left: 3px solid #EF4444; }
   padding: 0 20px;
   font-weight: 600;
   border-radius: var(--radius-sm);
-  box-shadow: 0 1px 2px rgba(15, 118, 110, 0.2);
+  box-shadow: 0 1px 2px rgba(37, 99, 235, 0.2);
 }
 .btn-mod-dispatch:hover:not(:disabled) {
   background: var(--primary-hover);
-  box-shadow: 0 4px 16px rgba(15, 118, 110, 0.3);
+  box-shadow: 0 4px 16px rgba(37, 99, 235, 0.3);
   transform: translateY(-1px);
 }
 
@@ -599,7 +598,7 @@ tbody tr.row-complaint { border-left: 3px solid #EF4444; }
 }
 .photo-upload-zone:hover {
   border-color: var(--primary);
-  background: var(--primary-light);
+  background: #EFF6FF;
 }
 
 .photo-upload-placeholder { display: flex; flex-direction: column; align-items: center; gap: 7px; }
@@ -636,7 +635,7 @@ tbody tr.row-complaint { border-left: 3px solid #EF4444; }
   transition: all var(--transition);
   cursor: pointer;
 }
-.task-photo-thumb:hover { background: var(--primary-light); border-color: rgba(15, 118, 110, 0.2); }
+.task-photo-thumb:hover { background: #EFF6FF; border-color: rgba(37, 99, 235, 0.2); }
 .task-photo-thumb img { width: 38px; height: 28px; object-fit: cover; border-radius: 3px; }
 
 .photo-comparison-wrap { margin-bottom: 4px; }
@@ -828,7 +827,7 @@ tbody tr.row-complaint { border-left: 3px solid #EF4444; }
   display: flex; align-items: center; justify-content: space-between; gap: 8px;
   transition: all var(--transition);
 }
-.workload-card:hover { border-color: rgba(15, 118, 110, 0.3); background: var(--primary-light); }
+.workload-card:hover { border-color: rgba(37, 99, 235, 0.3); background: var(--primary-light); }
 .workload-name { font-size: 0.82rem; font-weight: 600; color: var(--text-primary); }
 .workload-role { font-size: 0.67rem; color: var(--text-muted); text-transform: capitalize; margin-top: 1px; }
 .workload-count {
@@ -876,7 +875,7 @@ tbody tr.row-complaint { border-left: 3px solid #EF4444; }
   width: 58px; height: 58px;
   background: var(--primary);
   border-radius: 14px; margin-bottom: 16px;
-  box-shadow: 0 8px 20px rgba(15, 118, 110, 0.35);
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.35);
 }
 .login-title-v7 {
   font-family: 'Plus Jakarta Sans', sans-serif;
@@ -920,13 +919,13 @@ tbody tr.row-complaint { border-left: 3px solid #EF4444; }
   color: #fff; border: none; border-radius: 8px;
   font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.9rem; font-weight: 700;
   cursor: pointer; transition: all var(--transition);
-  box-shadow: 0 4px 14px rgba(15, 118, 110, 0.3);
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);
   display: flex; align-items: center; justify-content: center; gap: 7px;
   letter-spacing: -0.01em;
 }
 .login-submit-btn:hover:not(:disabled) {
   background: var(--primary-hover);
-  box-shadow: 0 6px 20px rgba(15, 118, 110, 0.4);
+  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
   transform: translateY(-1px);
 }
 .login-submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
@@ -991,7 +990,7 @@ tbody tr.row-complaint { border-left: 3px solid #EF4444; }
 
 .task-card-mod {
   border-left-color: var(--primary) !important;
-  background: rgba(15, 118, 110, 0.015);
+  background: rgba(37, 99, 235, 0.015);
 }
 .task-card-complaint { border-left-color: #EF4444 !important; }
 .task-card-escalated { border-left-color: #F97316 !important; background: #FFFBF5; }
@@ -1008,8 +1007,8 @@ tbody tr.row-complaint { border-left: 3px solid #EF4444; }
 .task-card-meta    { display: flex; justify-content: space-between; font-size: 0.73rem; color: var(--text-muted); margin-top: 8px; }
 .mod-badge {
   display: inline-flex; align-items: center; gap: 3px;
-  background: var(--primary-light); color: var(--primary);
-  border: 1px solid rgba(15, 118, 110, 0.2);
+  background: #EFF6FF; color: var(--primary);
+  border: 1px solid rgba(37, 99, 235, 0.2);
   border-radius: 4px; padding: 1px 6px; font-size: 0.62rem; font-weight: 700;
 }
 
@@ -1026,7 +1025,7 @@ tbody tr.row-complaint { border-left: 3px solid #EF4444; }
   background: var(--primary);
   padding: 16px 16px; display: flex; align-items: center; justify-content: space-between;
   position: sticky; top: 0; z-index: 50;
-  box-shadow: 0 2px 12px rgba(15, 118, 110, 0.25);
+  box-shadow: 0 2px 12px rgba(37, 99, 235, 0.25);
 }
 .staff-header-brand { display: flex; align-items: center; gap: 10px; }
 .staff-header-icon {
@@ -1146,7 +1145,6 @@ tbody tr.row-complaint { border-left: 3px solid #EF4444; }
   box-shadow: var(--shadow-sm); border-top: 2px solid var(--primary);
   transition: all var(--transition);
 }
-.gm-stat-card:hover { transform: translateY(-1px); box-shadow: var(--shadow-md); }
 .gm-stat-icon  { color: var(--text-muted); }
 .gm-stat-value {
   font-family: 'Plus Jakarta Sans', sans-serif;
@@ -1187,7 +1185,7 @@ tbody tr.row-complaint { border-left: 3px solid #EF4444; }
 .gm-item-escalated { border-left-color: #F97316; background: rgba(249, 115, 22, 0.02); }
 .gm-item-complaint { border-left-color: #F87171; }
 .gm-item-delayed   { border-left-color: #FBBF24; }
-.gm-item-manager   { border-left-color: var(--primary); background: rgba(15, 118, 110, 0.02); }
+.gm-item-manager   { border-left-color: var(--primary); background: rgba(37, 99, 235, 0.02); }
 .gm-item-header    { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px; }
 .gm-item-body      { font-size: 0.82rem; color: var(--text-secondary); }
 .gm-item-footer    { display: flex; gap: 7px; align-items: center; margin-top: 5px; flex-wrap: wrap; }
@@ -1236,7 +1234,7 @@ tbody tr.row-complaint { border-left: 3px solid #EF4444; }
 .role-bar-pill.role-manager    { background: #DBEAFE; color: #1D4ED8; }
 .role-bar-pill.role-supervisor { background: #FEF3C7; color: #92400E; }
 .role-bar-pill.role-staff      { background: #D1FAE5; color: #065F46; }
-.role-bar-pill.role-reception  { background: var(--primary-light); color: var(--primary); }
+.role-bar-pill.role-reception  { background: #EFF6FF; color: #1D4ED8; }
 
 /* ============================================================
    SLA / TIMER

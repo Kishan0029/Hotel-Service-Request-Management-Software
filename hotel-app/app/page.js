@@ -803,13 +803,13 @@ export default function DashboardPage() {
 
           {/* ── Stats Row ────────────────────────────── */}
           <div className="stats-row">
-            <div className="stat-card"><div className="stat-label">⏳ Pending</div><div className="stat-value pending">{pendingCount}</div></div>
-            <div className="stat-card"><div className="stat-label">✅ Acknowledged</div><div className="stat-value" style={{ color: '#1e40af' }}>{ackCount}</div></div>
-            <div className="stat-card"><div className="stat-label">🔧 In Progress</div><div className="stat-value" style={{ color: '#c2410c' }}>{inProgCount}</div></div>
-            <div className="stat-card"><div className="stat-label">🔴 Delayed</div><div className="stat-value" style={{ color: '#dc2626' }}>{delayedCount}</div></div>
-            {['gm', 'reception'].includes(currentUser?.role) && complaintCount > 0 && <div className="stat-card"><div className="stat-label">⚠ Complaints</div><div className="stat-value" style={{ color: '#dc2626' }}>{complaintCount}</div></div>}
-            {escalatedCount > 0 && <div className="stat-card"><div className="stat-label">🟠 Escalated</div><div className="stat-value" style={{ color: '#ea580c' }}>{escalatedCount}</div></div>}
-            {unassignedCount > 0 && <div className="stat-card"><div className="stat-label">⚠ Unassigned</div><div className="stat-value" style={{ color: '#92400e' }}>{unassignedCount}</div></div>}
+            <div className="stat-card"><div className="stat-label">Pending</div><div className="stat-value">{pendingCount}</div></div>
+            <div className="stat-card"><div className="stat-label">Acknowledged</div><div className="stat-value">{ackCount}</div></div>
+            <div className="stat-card"><div className="stat-label">In Progress</div><div className="stat-value">{inProgCount}</div></div>
+            <div className="stat-card"><div className="stat-label">Delayed</div><div className="stat-value">{delayedCount}</div></div>
+            {['gm', 'reception'].includes(currentUser?.role) && complaintCount > 0 && <div className="stat-card"><div className="stat-label">Complaints</div><div className="stat-value">{complaintCount}</div></div>}
+            {escalatedCount > 0 && <div className="stat-card"><div className="stat-label">Escalated</div><div className="stat-value">{escalatedCount}</div></div>}
+            {unassignedCount > 0 && <div className="stat-card"><div className="stat-label">Unassigned</div><div className="stat-value">{unassignedCount}</div></div>}
           </div>
 
           {/* ── Filter Bar ───────────────────────────── */}

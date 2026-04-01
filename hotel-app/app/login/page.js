@@ -60,8 +60,8 @@ export default function LoginPage() {
           <div className="login-brand-icon-v7">
             <Hotel size={28} color="#C5A880" />
           </div>
-          <h1 className="login-title-v7">Hotel Service</h1>
-          <p className="login-subtitle-v7">Management System — Staff Portal</p>
+          <h1 className="login-title-v7">Regenta Resort</h1>
+          <p className="login-subtitle-v7">Hotel Management — Staff Portal</p>
         </div>
 
         {/* Form */}

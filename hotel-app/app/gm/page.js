@@ -62,7 +62,7 @@ function StatCard({ label, value, color, icon, onClick }) {
     <div className="gm-stat-card" onClick={onClick} style={{ cursor: onClick ? 'pointer' : 'default', transition: 'transform 0.1s' }} onMouseDown={e => e.currentTarget.style.transform='scale(0.98)'} onMouseUp={e => e.currentTarget.style.transform='scale(1)'} onMouseLeave={e => e.currentTarget.style.transform='scale(1)'}>
       <div className="gm-stat-icon">{icon}</div>
       <div>
-        <div className="gm-stat-value" style={{ color }}>{value}</div>
+        <div className="gm-stat-value">{value}</div>
         <div className="gm-stat-label">{label}</div>
       </div>
     </div>
