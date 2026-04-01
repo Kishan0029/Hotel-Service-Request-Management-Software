@@ -94,7 +94,7 @@ export async function POST(request, { params }) {
     updateData.after_photo_url  = publicUrl;
     updateData.status           = 'completed';
     updateData.completed_at     = new Date().toISOString();
-    updateData.completed_after_escalation = false;
+    updateData.completed_after_escalation = (current.escalation_level > 0);
   }
 
   // Append activity log

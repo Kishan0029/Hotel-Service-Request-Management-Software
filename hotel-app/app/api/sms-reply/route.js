@@ -88,7 +88,12 @@ export async function POST(request) {
       // Send error SMS back to the sender explaining valid commands (Fix 4)
       if (senderPhone) {
         try {
-          await sendSMS(senderPhone, "Invalid command. Use:\nOK T123\nSTART T123\nDONE T123");
+          // sendSMS expects (phone, { task_id, task_code, ..., notes })
+          await sendSMS(senderPhone, { 
+            staff_name: 'Staff', 
+            task_type: 'Invalid Command', 
+            notes: 'Use OK T123, START T123, or DONE T123' 
+          });
         } catch (smsErr) {
           console.error('[SMS Webhook] Failed to send error SMS back to sender:', smsErr.message);
         }
@@ -209,7 +214,19 @@ export async function POST(request) {
     const updatePayload = { status: newStatus };
     if (newStatus === 'completed') {
       updatePayload.completed_at = new Date().toISOString();
+      updatePayload.completed_after_escalation = (task.escalation_level > 0);
     }
+
+    // Audit log update
+    let log = [];
+    try {
+      if (typeof task.activity_log === 'string') log = JSON.parse(task.activity_log) || [];
+      else if (Array.isArray(task.activity_log)) log = task.activity_log;
+    } catch (e) {}
+    
+    const eventName = command === 'OK' ? 'acknowledged' : (command === 'START' ? 'started' : 'completed_via_sms');
+    const updatedLog = [...log, { event: eventName, by: 'SMS Member', time: new Date().toISOString() }];
+    updatePayload.activity_log = JSON.stringify(updatedLog);
 
     const { error: updateError } = await supabase
       .from('tasks')

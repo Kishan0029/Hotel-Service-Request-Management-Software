@@ -367,25 +367,23 @@ export async function POST(request) {
     }
 
     if (alertTarget) {
-      const rawBodyText = `🚨 UNASSIGNED TASK\n\nRoom: ${data.rooms?.room_number ?? '?'}\nTask: ${data.task_type}\n\nNo staff available.\nImmediate action required.`;
+      const msg = `🚨 UNASSIGNED TASK\n\nRoom: ${data.rooms?.room_number ?? '?'}\nTask: ${data.task_type}\n\nNo staff available.\nImmediate action required.`;
       
-      import('twilio').then(async (twilio) => {
-        const client = twilio.default(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
-        let phone = alertTarget.phone_number;
-        if (phone.length === 10 && !phone.startsWith('+')) phone = `+91${phone}`;
-        else if (!phone.startsWith('+')) phone = `+${phone}`;
-
-        try {
-          await client.messages.create({ body: rawBodyText, from: process.env.TWILIO_PHONE_NUMBER, to: phone });
-          await supabase.from('sms_logs').insert({
-            task_id: data.id, task_code: data.task_code,
-            event_type: 'unassigned_alert', status: 'sent', phone, message: rawBodyText,
-            note: `escalated_to: '${alertTarget.level}'`
-          });
-        } catch (e) {
-          console.error('[Unassigned Alert Failed]', e.message);
-        }
-      });
+      try {
+        await sendSMS(alertTarget.phone_number, {
+          task_id:    data.id,
+          task_code:  data.task_code,
+          staff_name: alertTarget.name,
+          room:       data.rooms?.room_number ?? '?',
+          task_type:  data.task_type,
+          notes:      '🚨 ALERT: No staff available for this task.',
+          time:       'Immediate',
+          unassigned_alert: true,
+          custom_msg: msg
+        });
+      } catch (e) {
+        console.error('[Unassigned Alert Failed]', e.message);
+      }
     } else {
       await supabase.from('sms_logs').insert({
         task_id: data.id, task_code: data.task_code,
