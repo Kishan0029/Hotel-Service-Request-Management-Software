@@ -446,9 +446,9 @@ export default function GmDashboard() {
         {/* Role bar */}
         <div className="role-bar">
           <span className="role-bar-pill role-gm">GM</span>
-          <span style={{ color: '#f1f5f9', fontWeight: 600 }}>{user.name}</span>
+          <span style={{ fontWeight: 600 }}>{user.name}</span>
           <div className="role-spacer" />
-          <button className="btn btn-ghost btn-sm" onClick={logout} style={{ color: '#94a3b8' }}>
+          <button className="btn btn-ghost btn-sm" onClick={logout}>
             <LogOut size={13} /> Logout
           </button>
         </div>

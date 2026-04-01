@@ -769,10 +769,10 @@ export default function DashboardPage() {
         {/* ── Role / User Header Bar ───────────────────── */}
         <div className="role-bar">
           <span className={`role-bar-pill role-${currentUser?.role}`}>{currentUser?.role?.toUpperCase()}</span>
-          <span style={{ color: '#f1f5f9', fontWeight: 600 }}>{currentUser?.name}</span>
+          <span style={{ fontWeight: 600 }}>{currentUser?.name}</span>
           {currentUser?.department_id && <span className="td-muted td-dept-label">{departments.find(d => d.id === currentUser.department_id)?.name}</span>}
           <div className="role-spacer"></div>
-          <button className="btn btn-ghost btn-sm" onClick={logout} style={{ color: '#94a3b8' }}>
+          <button className="btn btn-ghost btn-sm" onClick={logout}>
             <LogOut size={13} /> Logout
           </button>
         </div>
