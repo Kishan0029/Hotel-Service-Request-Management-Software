@@ -128,6 +128,15 @@ export default function LoginPage() {
           </button>
         </form>
 
+        <div className="login-footer-credits" style={{ marginTop: '40px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px' }}>
+          <img 
+            src="/images/nextverse-logo.png" 
+            alt="Nextverse Logo" 
+            style={{ width: '140px', filter: 'brightness(0)', objectFit: 'contain', marginBottom: '4px' }} 
+          />
+          <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 500 }}>Developed by Nextverse</p>
+          <a href="https://gonextverse.in" target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.85rem', color: 'var(--text-primary)', textDecoration: 'none', fontWeight: 600 }}>gonextverse.in</a>
+        </div>
 
       </div>
     </div>
