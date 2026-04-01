@@ -445,7 +445,6 @@ export default function GmDashboard() {
         {error && <div className="error-banner" style={{ margin: 20 }}>{error}</div>}
         {/* Role bar */}
         <div className="role-bar">
-          <span className="role-bar-pill role-gm">GM</span>
           <span style={{ fontWeight: 600 }}>{user.name}</span>
           <div className="role-spacer" />
           <button className="btn btn-ghost btn-sm" onClick={logout}>
@@ -455,7 +454,7 @@ export default function GmDashboard() {
 
         <header className="page-header">
           <div>
-            <div className="page-header-title">GM Dashboard Overview</div>
+            <div className="page-header-title">Executive Dashboard</div>
             <div className="page-header-sub">Property-wide oversight</div>
           </div>
           <div className="header-actions">

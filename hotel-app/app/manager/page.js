@@ -733,9 +733,9 @@ export default function ManagerDashboard() {
 
         <header className="page-header" data-testid="manager-header">
           <div>
-            <div className="page-header-title">Manager Dashboard</div>
+            <div className="page-header-title">Operations Dashboard</div>
             <div className="page-header-sub">
-              {user.name} <span className="badge badge-level-manager ml-1">Manager</span>
+              {user.name} 
               <span className="td-muted ml-1">· {user.department_name}</span>
             </div>
           </div>

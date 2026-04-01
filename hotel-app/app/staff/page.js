@@ -395,7 +395,7 @@ export default function StaffDashboard() {
           <div>
             <div className="page-header-title">My Tasks</div>
             <div className="page-header-sub">
-              {user.name} <span className="badge badge-level-staff ml-1">Staff</span>
+              {user.name}
             </div>
           </div>
           <div className="header-actions">

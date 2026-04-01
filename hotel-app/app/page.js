@@ -768,7 +768,6 @@ export default function DashboardPage() {
 
         {/* ── Role / User Header Bar ───────────────────── */}
         <div className="role-bar">
-          <span className={`role-bar-pill role-${currentUser?.role}`}>{currentUser?.role?.toUpperCase()}</span>
           <span style={{ fontWeight: 600 }}>{currentUser?.name}</span>
           {currentUser?.department_id && <span className="td-muted td-dept-label">{departments.find(d => d.id === currentUser.department_id)?.name}</span>}
           <div className="role-spacer"></div>
@@ -779,7 +778,7 @@ export default function DashboardPage() {
 
         <header className="page-header">
           <div>
-            <div className="page-header-title">{currentUser?.role === 'reception' ? 'Reception Dashboard' : (currentUser?.role === 'manager' ? 'Manager Dashboard' : (currentUser?.role === 'supervisor' ? 'Supervisor Dashboard' : 'Staff Dashboard'))}</div>
+            <div className="page-header-title">{currentUser?.role === 'reception' ? 'Reception Dashboard' : 'Operational Dashboard'}</div>
             <div className="page-header-sub">Guest Service Requests</div>
           </div>
           <div className="header-actions">
