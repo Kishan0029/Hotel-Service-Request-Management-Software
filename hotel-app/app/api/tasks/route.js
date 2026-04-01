@@ -217,33 +217,6 @@ export async function POST(request) {
     }
 
   } else if (creator_role === 'supervisor' || creator_role === 'reception') {
-    let staffId = null;
-    if (dept?.default_staff_id) {
-      const { data: def } = await supabase
-        .from('staff').select('id, is_active, on_duty').eq('id', dept.default_staff_id).single();
-      if (def?.is_active && def?.on_duty) staffId = def.id;
-    }
-    if (!staffId) {
-      const { data: any } = await supabase
-        .from('staff')
-        .select('id')
-        .eq('department_id', department_id)
-        .eq('role', 'staff')
-        .eq('is_active', true)
-        .eq('on_duty', true)
-        .order('name', { ascending: true })
-        .limit(1)
-        .single();
-      staffId = any?.id ?? null;
-    }
-    assignedTo      = staffId;
-    assignedRole    = staffId ? 'staff' : null;
-    assignedStaffId = staffId;
-    currentLevel    = 'staff';
-    isUnassigned    = !staffId;
-    sendSmsNow      = !!staffId;
-
-  } else if (creator_role === 'supervisor' || creator_role === 'reception') {
     // Supervisor or Reception creates → auto-assign to default staff or first active+on-duty staff
     let staffId = null;
     if (dept?.default_staff_id) {
@@ -372,8 +345,9 @@ export async function POST(request) {
     }
   }
 
-  // 3. (FIX 1) Unassigned Alerting: If no staff available (sendSmsNow is false but creator expected assignment)
-  if (isUnassigned && ['reception', 'supervisor'].includes(creator_role)) {
+  // 3. Unassigned Alerting: If no staff available → alert supervisor/manager/GM
+  // This fires for reception, supervisor, AND manager (MOD mode) when no on-duty staff is found
+  if (isUnassigned && ['reception', 'supervisor', 'manager'].includes(creator_role)) {
     let alertTarget = null;
 
     // Try Supervisor
