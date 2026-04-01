@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Hotel, Mail, Lock, ArrowRight, Eye, EyeOff } from 'lucide-react';
+import { Mail, Lock, ArrowRight, Eye, EyeOff } from 'lucide-react';
 
 function getRoleRoute(role) {
   if (role === 'gm')       return '/gm';
@@ -57,9 +57,7 @@ export default function LoginPage() {
       <div className="login-glass-card" data-testid="login-card">
         {/* Brand */}
         <div className="login-brand-v7">
-          <div className="login-brand-icon-v7">
-            <Hotel size={28} color="#C5A880" />
-          </div>
+
           <h1 className="login-title-v7">Regenta Resort</h1>
           <p className="login-subtitle-v7">Hotel Management — Staff Portal</p>
         </div>

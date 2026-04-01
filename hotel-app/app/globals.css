@@ -869,15 +869,8 @@ tbody tr.row-complaint { border-left: 3px solid #EF4444; }
   animation: slideUp 350ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.login-brand-v7 { text-align: center; margin-bottom: 32px; }
-.login-brand-icon-v7 {
-  display: inline-flex; align-items: center; justify-content: center;
-  width: 58px; height: 58px;
-  background: var(--primary);
-  border-radius: 14px; margin-bottom: 16px;
-  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.35);
-}
-.login-title-v7 {
+ .login-brand-v7 { text-align: center; margin-bottom: 32px; }
+ .login-title-v7 {
   font-family: 'Plus Jakarta Sans', sans-serif;
   font-size: 1.6rem; font-weight: 800; color: var(--text-primary);
   letter-spacing: -0.03em; margin-bottom: 4px;
