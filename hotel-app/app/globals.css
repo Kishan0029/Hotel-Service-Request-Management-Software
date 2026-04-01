@@ -790,6 +790,7 @@ tbody tr.row-complaint { border-left: 3px solid #EF4444; }
    ACTION CELL
    ============================================================ */
 .action-cell { display: flex; flex-direction: column; gap: 4px; align-items: flex-start; }
+.row-actions { display: flex; gap: 8px; align-items: center; }
 .reassign-select {
   margin-top: 2px; padding: 5px 8px;
   border: 1.5px solid var(--border);
@@ -844,7 +845,7 @@ tbody tr.row-complaint { border-left: 3px solid #EF4444; }
    ============================================================ */
   .login-shell-v7 {
   min-height: 100vh;
-  background: url('/images/login-bg.png') center/cover no-repeat;
+  background: var(--bg);
   display: flex; align-items: center; justify-content: center; padding: 20px;
   position: relative;
 }
@@ -1492,6 +1493,13 @@ tbody tr.row-complaint { border-left: 3px solid #EF4444; }
   .filter-select { flex: 1 1 calc(50% - 7px); height: 40px; }
   .filter-field  { flex: 1 1 100%; }
   .filter-input  { width: 100%; }
+
+  .reassign-select { margin-bottom: 8px; }
+  .activity-toggle {
+    padding: 10px 0; font-size: 0.82rem; margin-top: 8px; display: flex;
+    justify-content: center; width: 100%; border-radius: var(--radius-sm);
+    background: rgba(0,0,0,0.02);
+  }
 
   .btn  { height: 42px; font-size: 0.875rem; }
   .btn-sm { height: 36px; font-size: 0.8rem; }
