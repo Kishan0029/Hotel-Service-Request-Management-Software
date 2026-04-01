@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import {
   AlertTriangle, CheckCircle2, Clock, ClipboardList,
   Flame, BarChart2, Activity, LogOut, RefreshCw, Plus, X, ArrowRight,
-  ClipboardCheck, Wrench, ShieldAlert, ArrowRightCircle
+  ClipboardCheck, Wrench, ShieldAlert, ArrowRightCircle, Star
 } from 'lucide-react';
 import Sidebar from '@/components/Sidebar';
 import { useToast } from '@/components/Toast';
@@ -57,9 +57,9 @@ function LevelBadge({ level }) {
 }
 
 /* ── Stat Card ───────────────────────────────────────────── */
-function StatCard({ label, value, color, icon }) {
+function StatCard({ label, value, color, icon, onClick }) {
   return (
-    <div className="gm-stat-card">
+    <div className="gm-stat-card" onClick={onClick} style={{ cursor: onClick ? 'pointer' : 'default', transition: 'transform 0.1s' }} onMouseDown={e => e.currentTarget.style.transform='scale(0.98)'} onMouseUp={e => e.currentTarget.style.transform='scale(1)'} onMouseLeave={e => e.currentTarget.style.transform='scale(1)'}>
       <div className="gm-stat-icon">{icon}</div>
       <div>
         <div className="gm-stat-value" style={{ color }}>{value}</div>
@@ -239,6 +239,53 @@ function GMCreateTaskModal({ rooms, departments, managers, onClose, onCreated, g
   );
 }
 
+/* ── Detail Modal ────────────────────────────────────────── */
+function DetailModal({ title, tasks, onClose }) {
+  useEffect(() => {
+    const handleEsc = (e) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', handleEsc);
+    return () => window.removeEventListener('keydown', handleEsc);
+  }, [onClose]);
+
+  return (
+    <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
+      <div className="modal" style={{ maxWidth: '600px', width: '95%' }}>
+        <div className="modal-header">
+          <span className="modal-title">{title}</span>
+          <button className="close-btn" onClick={onClose}><X size={18} /></button>
+        </div>
+        <div className="modal-body" style={{ maxHeight: '70vh', overflowY: 'auto', padding: '16px' }}>
+          {tasks.length === 0 ? (
+            <p className="td-muted">No items found.</p>
+          ) : (
+            <div className="gm-list">
+              {tasks.map(t => (
+                <div key={t.id} className="gm-list-item">
+                  <div className="gm-item-header">
+                    <strong>Room {t.rooms?.room_number}</strong>
+                    <div style={{ display: 'flex', gap: 4 }}>
+                      <LevelBadge level={t.current_level} />
+                      <StatusBadge status={t.status} />
+                    </div>
+                  </div>
+                  <div className="gm-item-body">
+                    {t.departments?.name} — {t.task_type}
+                    {t.assigned_staff?.name && <span className="td-muted"> (Assigned to {t.assigned_staff.name})</span>}
+                  </div>
+                  <div className="gm-item-footer">
+                    {isDelayed(t) && <span className="sla-delayed">⚠ Delayed {delayMins(t)}m</span>}
+                    <span className="td-muted">{elapsed(t.created_at)}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ── GM Dashboard ────────────────────────────────────────── */
 export default function GmDashboard() {
   const router = useRouter();
@@ -251,6 +298,7 @@ export default function GmDashboard() {
   const [error, setError]             = useState('');
   const [lastRefresh, setLastRefresh] = useState(null);
   const [showCreate, setShowCreate]   = useState(false);
+  const [detailView, setDetailView]   = useState(null); // { title: string, tasks: array }
   const showToast = useToast();
 
   // Auth guard
@@ -330,6 +378,20 @@ export default function GmDashboard() {
   const delayed    = pending.filter(isDelayed);
   const complaints = pending.filter(t => t.type === 'complaint');
   const escalated  = pending.filter(t => t.escalation_level >= 1);
+  const completedInTime = tasks.filter(t => t.status === 'completed' && !isDelayed(t));
+  
+  // Calculate Guest Service Score
+  const staffScores = allStaff.map(staff => {
+    const staffTasks = tasks.filter(t => t.assigned_staff?.id === staff.id);
+    const inTime = staffTasks.filter(t => t.status === 'completed' && !isDelayed(t)).length;
+    const isLate = staffTasks.filter(t => t.status === 'completed' && isDelayed(t)).length;
+    const escs = staffTasks.filter(t => t.escalation_level >= 1).length;
+    const failed = staffTasks.filter(t => t.status === 'failed' || t.status === 'cancelled').length;
+    
+    // Scoring logic
+    const score = (inTime * 10) + (isLate * 5) - (escs * 10) - (failed * 5);
+    return { ...staff, score, inTime, isLate, escs };
+  }).sort((a, b) => b.score - a.score);
 
   // Count tasks by current_level
   const atManager    = pending.filter(t => t.current_level === 'manager').length;
@@ -411,11 +473,11 @@ export default function GmDashboard() {
         <main className="page-body">
           {/* ── Summary Stats ───────────────────────────── */}
           <div className="gm-stats-grid">
-          <StatCard label="Today"      value={todayTasks.length} color="#1d4ed8" icon={<ClipboardList size={22} />} />
-          <StatCard label="Pending"    value={pending.length}    color="#b45309" icon={<Clock size={22} />} />
-          <StatCard label="Delayed"    value={delayed.length}    color="#c2410c" icon={<AlertTriangle size={22} />} />
-          <StatCard label="Complaints" value={complaints.length} color="#b91c1c" icon={<Flame size={22} />} />
-          <StatCard label="Escalated"  value={escalated.length}  color="#c2410c" icon={<AlertTriangle size={22} />} />
+          <StatCard label="Total Requests"  value={todayTasks.length} color="#1d4ed8" icon={<ClipboardList size={22} />} onClick={() => setDetailView({ title: 'Total Requests (Today)', tasks: todayTasks })} />
+          <StatCard label="Completed in Time" value={completedInTime.length} color="#10B981" icon={<CheckCircle2 size={22} />} onClick={() => setDetailView({ title: 'Completed in Time', tasks: completedInTime })} />
+          <StatCard label="Total Delays"    value={delayed.length}    color="#c2410c" icon={<AlertTriangle size={22} />} onClick={() => setDetailView({ title: 'Delayed Tasks', tasks: delayed })} />
+          <StatCard label="Complaints" value={complaints.length} color="#b91c1c" icon={<Flame size={22} />} onClick={() => setDetailView({ title: 'Complaints', tasks: complaints })} />
+          <StatCard label="Escalated"  value={escalated.length}  color="#c2410c" icon={<AlertTriangle size={22} />} onClick={() => setDetailView({ title: 'Escalated Tasks', tasks: escalated })} />
         </div>
 
         {/* ── Chain Level Overview ─────────────────────── */}
@@ -525,7 +587,7 @@ export default function GmDashboard() {
                   {deptStats.map(d => {
                     const pctDone = d.total === 0 ? 0 : Math.round((d.completed / d.total) * 100);
                     return (
-                      <div key={d.id} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                      <div key={d.id} style={{ display: 'flex', flexDirection: 'column', gap: 6, cursor: 'pointer' }} onClick={() => setDetailView({ title: `Logs: ${d.name}`, tasks: tasks.filter(t => t.departments?.id === d.id && isToday(t.created_at)) })}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem' }}>
                           <span style={{ fontWeight: 600 }}>{d.name}</span>
                           <span className="td-muted">{d.completed}/{d.total} Done {d.delayed > 0 && <span style={{ color: '#dc2626', fontWeight: 700, marginLeft: 6 }}>{d.delayed} Delayed</span>}</span>
@@ -536,6 +598,32 @@ export default function GmDashboard() {
                       </div>
                     );
                   })}
+                </div>
+              )}
+            </div>
+
+            {/* Guest Service Score */}
+            <div className="gm-section" style={{ marginTop: '20px' }}>
+              <div className="gm-section-title">
+                <Star size={15} color="#F59E0B" /> Guest Service Score (GSS)
+              </div>
+              {staffScores.length === 0 ? (
+                <p className="td-muted" style={{ padding: '12px 16px' }}>No staff scores.</p>
+              ) : (
+                <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {staffScores.slice(0, 10).map(staff => (
+                    <div key={staff.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        <span style={{ fontWeight: 500 }}>{staff.name}</span>
+                        <span className="td-muted" style={{ fontSize: '0.75rem' }}>
+                          ✅ {staff.inTime} | ⚠ {staff.isLate} | 🔴 {staff.escs}
+                        </span>
+                      </div>
+                      <div style={{ fontWeight: 700, color: staff.score >= 0 ? '#10B981' : '#EF4444' }}>
+                        {staff.score > 0 ? `+${staff.score}` : staff.score} pts
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
@@ -580,6 +668,14 @@ export default function GmDashboard() {
           gmUser={user}
           onClose={() => setShowCreate(false)}
           onCreated={handleCreated}
+        />
+      )}
+
+      {detailView && (
+        <DetailModal
+          title={detailView.title}
+          tasks={detailView.tasks}
+          onClose={() => setDetailView(null)}
         />
       )}
       </div>

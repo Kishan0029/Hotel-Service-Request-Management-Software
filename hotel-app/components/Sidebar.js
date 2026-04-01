@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   LayoutDashboard, Users, Building2, DoorOpen,
-  Hotel, MessageSquare, Shield, ClipboardList, Menu, X, LogOut
+  Hotel, MessageSquare, Shield, ClipboardList, Menu, X, LogOut, Calendar
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
@@ -12,7 +12,10 @@ const ALL_NAV = {
   gm: [
     {
       section: 'Overview',
-      links: [{ href: '/gm', label: 'GM Dashboard', icon: LayoutDashboard }],
+      links: [
+        { href: '/gm', label: 'GM Dashboard', icon: LayoutDashboard },
+        { href: '/gm/history', label: 'History', icon: Calendar },
+      ],
     },
     {
       section: 'Admin',
