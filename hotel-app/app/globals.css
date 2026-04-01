@@ -115,11 +115,10 @@ input, select, textarea { font-family: inherit; font-size: 0.875rem; }
 }
 
 .sidebar-brand-name {
-  font-family: 'Outfit', sans-serif;
-  font-size: 1.1rem; font-weight: 800;
-  color: #0F172A;
-  letter-spacing: -0.03em; line-height: 1.1;
-  text-transform: uppercase;
+  font-family: 'Inter', sans-serif;
+  font-size: 1rem; font-weight: 600;
+  color: #111827;
+  letter-spacing: -0.02em; line-height: 1.2;
 }
 .sidebar-brand-sub {
   font-size: 0.68rem;
@@ -876,10 +875,9 @@ tbody tr.row-complaint { border-left: 3px solid #EF4444; }
 
 .login-brand-v7 { text-align: center; margin-bottom: 36px; }
 .login-title-v7 {
-  font-family: 'Outfit', sans-serif;
-  font-size: 2.4rem; font-weight: 800; color: #111827;
-  letter-spacing: -0.04em; margin-bottom: 6px; line-height: 1.1;
-  text-transform: uppercase;
+  font-family: 'Inter', sans-serif;
+  font-size: 2.1rem; font-weight: 600; color: #111827;
+  letter-spacing: -0.03em; margin-bottom: 4px; line-height: 1.15;
 }
 .login-subtitle-v7 {
   font-size: 0.78rem; color: #6B7280;
