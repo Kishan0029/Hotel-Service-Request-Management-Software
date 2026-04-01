@@ -700,7 +700,7 @@ export default function ManagerDashboard() {
   if (!user || loading) {
     return (
       <div className="login-shell">
-        <div className="login-loading"><div className="spinner" /><span>Loading Manager Dashboard…</span></div>
+        <div className="login-loading"><div className="spinner" /><span>Loading Dashboard…</span></div>
       </div>
     );
   }
