@@ -59,7 +59,7 @@ export default function LoginPage() {
         <div className="login-brand-v7">
 
           <h1 className="login-title-v7">Regenta Resort</h1>
-          <p className="login-subtitle-v7">Hotel Management — Staff Portal</p>
+          <p className="login-subtitle-v7">Hotel Management System</p>
         </div>
 
         {/* Form */}
@@ -128,11 +128,7 @@ export default function LoginPage() {
           </button>
         </form>
 
-        {process.env.NODE_ENV !== 'production' && (
-          <p className="login-hint-v7">
-            Default password: <code>password123</code>
-          </p>
-        )}
+
       </div>
     </div>
   );
