@@ -842,9 +842,9 @@ tbody tr.row-complaint { border-left: 3px solid #EF4444; }
 /* ============================================================
    LOGIN PAGE — Modern SaaS Glass
    ============================================================ */
-.login-shell-v7 {
+ .login-shell-v7 {
   min-height: 100vh;
-  background: url('https://images.pexels.com/photos/7942132/pexels-photo-7942132.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=1080&w=1920') center/cover no-repeat;
+  background: url('/images/regenta.jpg') center/cover no-repeat;
   display: flex; align-items: center; justify-content: center; padding: 20px;
   position: relative;
 }
