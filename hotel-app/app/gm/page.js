@@ -480,49 +480,49 @@ export default function GmDashboard() {
           {/* ── Summary Stats ───────────────────────────── */}
         <div className="gm-stats-grid">
           <StatCard
-            label="Total Requests"
-            value={todayTasks.length}
-            colorClass="gm-stat-card-total"
-            icon={<ClipboardList size={20} />}
-            context={todayTasks.length === 0 ? 'No requests today' : `${todayTasks.length} task${todayTasks.length !== 1 ? 's' : ''} logged today`}
-            contextClass="gm-stat-context-muted"
-            onClick={() => setDetailView({ title: 'Total Requests (Today)', tasks: todayTasks })}
-          />
-          <StatCard
-            label="Completed in Time"
-            value={completedInTime.length}
-            colorClass="gm-stat-card-good"
-            icon={<CheckCircle2 size={20} />}
-            context={completedInTime.length > 0 ? `${completedInTime.length} resolved on time ✓` : 'None completed yet'}
-            contextClass={completedInTime.length > 0 ? 'gm-stat-context-ok' : 'gm-stat-context-muted'}
-            onClick={() => setDetailView({ title: 'Completed in Time', tasks: completedInTime })}
-          />
-          <StatCard
-            label="Delays"
-            value={delayed.length}
-            colorClass={delayed.length > 0 ? 'gm-stat-card-delay' : 'gm-stat-card-good'}
-            icon={<AlertTriangle size={20} />}
-            context={delayed.length === 0 ? 'All tasks on schedule ✓' : `⚠️ ${delayed.length} task${delayed.length !== 1 ? 's' : ''} past SLA`}
-            contextClass={delayed.length === 0 ? 'gm-stat-context-ok' : 'gm-stat-context-warn'}
-            onClick={() => setDetailView({ title: 'Delayed Tasks', tasks: delayed })}
-          />
-          <StatCard
             label="Complaints"
             value={complaints.length}
-            colorClass={complaints.length > 0 ? 'gm-stat-card-danger' : 'gm-stat-card-good'}
+            colorClass={complaints.length > 0 ? 'gm-stat-card-danger' : 'gm-stat-card-total'}
             icon={<Flame size={20} />}
-            context={complaints.length === 0 ? 'No active complaints' : `🔴 Requires immediate attention`}
-            contextClass={complaints.length === 0 ? 'gm-stat-context-ok' : 'gm-stat-context-danger'}
+            context={complaints.length === 0 ? 'No active complaints' : `🔴 Requires attention`}
+            contextClass={complaints.length === 0 ? 'gm-stat-context-muted' : 'gm-stat-context-danger'}
             onClick={() => setDetailView({ title: 'Complaints', tasks: complaints })}
           />
           <StatCard
             label="Escalated"
             value={escalated.length}
-            colorClass={escalated.length > 0 ? 'gm-stat-card-danger' : 'gm-stat-card-good'}
+            colorClass={escalated.length > 0 ? 'gm-stat-card-danger' : 'gm-stat-card-total'}
             icon={<AlertTriangle size={20} />}
             context={escalated.length === 0 ? 'No escalations' : `Escalated — action needed`}
-            contextClass={escalated.length === 0 ? 'gm-stat-context-ok' : 'gm-stat-context-danger'}
+            contextClass={escalated.length === 0 ? 'gm-stat-context-muted' : 'gm-stat-context-danger'}
             onClick={() => setDetailView({ title: 'Escalated Tasks', tasks: escalated })}
+          />
+          <StatCard
+            label="Delays"
+            value={delayed.length}
+            colorClass={delayed.length > 0 ? 'gm-stat-card-delay' : 'gm-stat-card-total'}
+            icon={<AlertTriangle size={20} />}
+            context={delayed.length === 0 ? 'All on schedule ✓' : `⚠️ ${delayed.length} past SLA`}
+            contextClass={delayed.length === 0 ? 'gm-stat-context-muted' : 'gm-stat-context-warn'}
+            onClick={() => setDetailView({ title: 'Delayed Tasks', tasks: delayed })}
+          />
+          <StatCard
+            label="Total Requests"
+            value={todayTasks.length}
+            colorClass="gm-stat-card-total"
+            icon={<ClipboardList size={20} />}
+            context={`${todayTasks.length} total today`}
+            contextClass="gm-stat-context-muted"
+            onClick={() => setDetailView({ title: 'Total Requests (Today)', tasks: todayTasks })}
+          />
+          <StatCard
+            label="Completed"
+            value={completedInTime.length}
+            colorClass="gm-stat-card-total"
+            icon={<CheckCircle2 size={20} />}
+            context={`${completedInTime.length} resolved on time`}
+            contextClass="gm-stat-context-muted"
+            onClick={() => setDetailView({ title: 'Completed in Time', tasks: completedInTime })}
           />
         </div>
 
