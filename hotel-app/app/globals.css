@@ -879,8 +879,8 @@ tbody tr.row-complaint { border-left: 3px solid #EF4444; }
   height: auto;
   object-fit: contain;
   margin-bottom: 2px;
-  /* Visual alignment tweak: the image has asymmetrical whitespace */
-  transform: translateX(-2px);
+  /* Visual alignment tweak: shifting right per user request */
+  transform: translateX(8px);
 }
 
 .login-title-v7 {
