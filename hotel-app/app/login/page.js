@@ -4,18 +4,18 @@ import { useRouter } from 'next/navigation';
 import { Mail, Lock, ArrowRight, Eye, EyeOff } from 'lucide-react';
 
 function getRoleRoute(role) {
-  if (role === 'gm')       return '/gm';
-  if (role === 'manager')  return '/manager';
-  if (role === 'staff')    return '/staff';
+  if (role === 'gm') return '/gm';
+  if (role === 'manager') return '/manager';
+  if (role === 'staff') return '/staff';
   return '/'; // reception, supervisor
 }
 
 export default function LoginPage() {
   const router = useRouter();
-  const [form, setForm]           = useState({ email: '', password: '' });
+  const [form, setForm] = useState({ email: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading]     = useState(false);
-  const [error, setError]         = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     try {
@@ -24,7 +24,7 @@ export default function LoginPage() {
         const parsed = JSON.parse(u);
         router.replace(getRoleRoute(parsed.role));
       }
-    } catch {}
+    } catch { }
   }, [router]);
 
   const handleLogin = async (e) => {
@@ -57,9 +57,9 @@ export default function LoginPage() {
       <div className="login-glass-card" data-testid="login-card">
         {/* Brand */}
         <div className="login-brand-v7">
-          <img 
-            src="/images/regenta_logo.png" 
-            alt="Regenta Resort Logo" 
+          <img
+            src="/images/regenta_logo.png"
+            alt="Regenta Resort Logo"
             className="login-logo-v7"
           />
           <p className="login-subtitle-v7">Hotel Management System</p>
@@ -138,10 +138,10 @@ export default function LoginPage() {
           <p style={{ margin: 0, fontSize: '0.8rem', color: '#8892b0', fontWeight: 500 }}>
             Engineered by Nextverse
           </p>
-          <img 
-            src="/images/nextverse-logo.png" 
-            alt="Nextverse Logo" 
-            style={{ width: '110px', filter: 'brightness(0) opacity(0.5)', objectFit: 'contain' }} 
+          <img
+            src="/images/nextverse-logo.png"
+            alt="Nextverse Logo"
+            style={{ width: '110px', filter: 'brightness(0) opacity(0.5)', objectFit: 'contain' }}
           />
           <a href="https://gonextverse.in" target="_blank" rel="noopener noreferrer" style={{ fontSize: '0.75rem', color: '#8892b0', textDecoration: 'none', fontWeight: 500 }}>
             gonextverse.in
