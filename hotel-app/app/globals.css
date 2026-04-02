@@ -3630,50 +3630,72 @@ tbody tr.row-complaint {
   }
 
   .page-header {
-    height: auto;
-    padding: 14px 16px;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 10px;
-    position: relative;
-    z-index: 50;
+    height: auto !important;
+    padding: 12px 16px !important;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 12px !important;
+    background: var(--surface) !important;
+    border-bottom: 1px solid var(--border) !important;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 1000 !important;
+  }
+
+  .header-brand {
+    flex: 1 !important;
+    min-width: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+  }
+
+  .header-brand > div {
+    min-width: 0 !important;
+  }
+
+  .header-title {
+    font-size: 0.9rem !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
   }
 
   .mobile-sidebar-toggle.mobile-only {
     display: flex !important;
-    position: absolute !important;
-    top: 28px !important;
-    right: 15px !important;
-    transform: translateY(-50%);
-    z-index: 100 !important;
-    width: 40px !important;
-    height: 40px !important;
-    border-radius: 8px !important;
-    background: transparent !important;
-    color: var(--text-primary) !important;
+    position: relative !important;
+    top: auto !important;
+    right: auto !important;
+    transform: none !important;
+    z-index: 10 !important;
+    width: 38px !important;
+    height: 38px !important;
+    flex-shrink: 0 !important;
+    order: 10 !important; /* Always last */
+    background: var(--bg-hover) !important;
     border: 1px solid var(--border) !important;
     box-shadow: none !important;
+    margin-left: 8px !important;
   }
 
-  .mobile-sidebar-toggle.mobile-only:hover {
-    background: var(--bg-hover) !important;
+  /* Role bar / Secondary header sync */
+  .role-bar {
+    padding: 6px 16px !important;
+    background: var(--bg) !important;
+    font-size: 0.7rem !important;
+    border-bottom: 1px solid var(--border) !important;
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    position: relative !important;
+    z-index: 999 !important;
   }
 
   .header-actions {
-    width: 100%;
-    display: flex;
-    gap: 7px;
-  }
-
-  .header-actions .btn {
-    flex: 1;
-    justify-content: center;
-  }
-
-  .role-bar {
-    padding: 8px 12px;
-    justify-content: space-between;
-    gap: 6px;
+    display: none !important;
   }
 
   .page-body {
@@ -3682,45 +3704,36 @@ tbody tr.row-complaint {
 
   .stats-row {
     grid-template-columns: repeat(2, 1fr);
-    gap: 9px;
+    gap: 8px;
   }
 
   .stat-card {
-    padding: 12px 14px;
+    padding: 10px 12px;
   }
 
   .stat-value {
-    font-size: 1.5rem;
-  }
-
-  .reassign-select {
-    margin-bottom: 8px;
-  }
-
-  .activity-toggle {
-    padding: 10px 0;
-    font-size: 0.82rem;
-    margin-top: 8px;
-    display: flex;
-    justify-content: center;
-    width: 100%;
-    border-radius: var(--radius-sm);
-    background: rgba(0, 0, 0, 0.02);
+    font-size: 1.3rem;
   }
 
   .btn {
-    height: 42px;
-    font-size: 0.875rem;
-  }
-
-  .btn-sm {
-    height: 36px;
-    font-size: 0.8rem;
+    height: 40px;
+    font-size: 0.82rem;
   }
 
   .mod-cta-banner {
     flex-direction: column;
     align-items: stretch;
+  }
+}
+
+/* ── Staff Specific Refinements ── */
+/* ── Staff Specific Refinements ── */
+  .staff-header {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 10px 16px !important;
   }
 }
 
