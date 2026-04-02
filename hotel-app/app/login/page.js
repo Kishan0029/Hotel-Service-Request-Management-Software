@@ -60,7 +60,7 @@ export default function LoginPage() {
           <img 
             src="/images/regenta_logo.png" 
             alt="Regenta Resort Logo" 
-            style={{ width: '120px', height: 'auto', marginBottom: '10px' }}
+            className="login-logo-v7"
           />
           <h1 className="login-title-v7">Regenta Resort</h1>
           <p className="login-subtitle-v7">Hotel Management System</p>
