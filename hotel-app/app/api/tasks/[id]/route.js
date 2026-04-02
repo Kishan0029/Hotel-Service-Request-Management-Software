@@ -180,9 +180,8 @@ export async function PATCH(request, { params }) {
     updates.unassigned    = false;
 
     // When assigning to staff: sync legacy assigned_staff_id (needed for SMS reply)
-    if (targetStaff.role === 'staff') {
-      updates.assigned_staff_id = targetStaff.id;
-    }
+    // If assigning to manager/supervisor: clear it
+    updates.assigned_staff_id = (targetStaff.role === 'staff') ? targetStaff.id : null;
 
     // Apply update
     await supabase.from('tasks').update(updates).eq('id', id);
