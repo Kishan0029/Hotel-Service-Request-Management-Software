@@ -550,6 +550,9 @@ export default function DashboardPage() {
       if (parsed.role === 'manager') { router.replace('/manager'); return; }
       if (parsed.role === 'staff')   { router.replace('/staff');   return; }
       setCurrentUser(parsed);
+      
+      // Initialize PWA Push Notifications
+      import('@/lib/push').then(m => m.setupPushNotifications(parsed.id)).catch(console.error);
     } catch { router.replace('/login'); }
     setAuthReady(true);
   }, [router]);
