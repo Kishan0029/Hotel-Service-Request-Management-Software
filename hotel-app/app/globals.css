@@ -140,9 +140,10 @@ textarea {
 .sidebar-brand-icon {
   width: 36px;
   height: 36px;
-  background: #EFF6FF;
-  border: 1px solid #BFDBFE;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
   border-radius: 8px;
+  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;

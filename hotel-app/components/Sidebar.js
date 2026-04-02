@@ -112,7 +112,11 @@ export default function Sidebar() {
         {/* Brand */}
         <div className="sidebar-brand">
           <div className="sidebar-brand-icon">
-            <span style={{ fontFamily: 'Plus Jakarta Sans, sans-serif', fontWeight: 800, fontSize: '1rem', color: 'var(--primary)', letterSpacing: '-0.02em' }}>R</span>
+            <img 
+              src="/images/og-image.png" 
+              alt="Regenta Logo" 
+              style={{ width: '100%', height: '100%', objectFit: 'contain' }} 
+            />
           </div>
           <div className="sidebar-brand-name">Regenta Resort</div>
           <div className="sidebar-brand-sub">Hotel Management</div>
