@@ -16,11 +16,11 @@ const EVENT_NAMES = {
   completed:    'completed',
 };
 
-// Role → which role they can assign to (one level down the chain)
-const ASSIGN_TO_ROLE = {
-  gm:         'manager',
-  manager:    'supervisor',
-  supervisor: 'staff',
+// Role → which roles they can assign to (V10: expanded for flexibility)
+const ASSIGN_TO_ROLES = {
+  gm:         ['manager', 'supervisor', 'staff'],
+  manager:    ['supervisor', 'staff'],
+  supervisor: ['staff'],
 };
 
 const TASK_SELECT = `
@@ -122,8 +122,8 @@ export async function PATCH(request, { params }) {
 
   // ── V4: Chain-aware assignment (GM→Manager, Manager→Supervisor, Supervisor→Staff) ──
   if (assign_to !== undefined && assigner_role) {
-    const targetRole = ASSIGN_TO_ROLE[assigner_role];
-    if (!targetRole) {
+    const allowedRoles = ASSIGN_TO_ROLES[assigner_role];
+    if (!allowedRoles) {
       return Response.json({ error: `Role '${assigner_role}' cannot assign tasks` }, { status: 403 });
     }
 
@@ -149,10 +149,10 @@ export async function PATCH(request, { params }) {
       return Response.json({ error: 'Task is already assigned to this person' }, { status: 400 });
     }
 
-    // Enforce role gate: target must be exactly one level down
-    if (targetStaff.role !== targetRole) {
+    // Enforce role gate: target must be within allowed sub-roles
+    if (!allowedRoles.includes(targetStaff.role)) {
       return Response.json(
-        { error: `${assigner_role} can only assign to ${targetRole}, not ${targetStaff.role}` },
+        { error: `${assigner_role} can only assign to [${allowedRoles.join(', ')}], not ${targetStaff.role}` },
         { status: 403 }
       );
     }
