@@ -3642,16 +3642,21 @@ tbody tr.row-complaint {
   .mobile-sidebar-toggle.mobile-only {
     display: flex !important;
     position: absolute !important;
-    top: 28px !important; /* Center-ish in the header height */
+    top: 28px !important;
     right: 15px !important;
     transform: translateY(-50%);
     z-index: 100 !important;
     width: 40px !important;
     height: 40px !important;
     border-radius: 8px !important;
-    background: var(--surface) !important;
+    background: transparent !important;
     color: var(--text-primary) !important;
     border: 1px solid var(--border) !important;
+    box-shadow: none !important;
+  }
+
+  .mobile-sidebar-toggle.mobile-only:hover {
+    background: var(--bg-hover) !important;
   }
 
   .header-actions {
