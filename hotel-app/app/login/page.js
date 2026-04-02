@@ -57,6 +57,11 @@ export default function LoginPage() {
       <div className="login-glass-card" data-testid="login-card">
         {/* Brand */}
         <div className="login-brand-v7">
+          <img 
+            src="/images/regenta_logo.png" 
+            alt="Regenta Resort Logo" 
+            style={{ width: '120px', height: 'auto', marginBottom: '10px' }}
+          />
           <h1 className="login-title-v7">Regenta Resort</h1>
           <p className="login-subtitle-v7">Hotel Management System</p>
           <div className="login-trust-badge">
