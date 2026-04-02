@@ -3611,17 +3611,6 @@ tbody tr.row-complaint {
     display: block !important;
   }
 
-  .mobile-sidebar-toggle.mobile-only {
-    display: flex !important;
-    position: fixed !important;
-    top: 10px !important;
-    right: 10px !important;
-    z-index: 100000 !important;
-    background: var(--primary) !important;
-    border: 2px solid rgba(255,255,255,0.2) !important;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.3) !important;
-  }
-
   .sidebar {
     display: flex !important;
     transform: translateX(-100%);
@@ -3646,6 +3635,23 @@ tbody tr.row-complaint {
     flex-direction: column;
     align-items: stretch;
     gap: 10px;
+    position: relative;
+    z-index: 50;
+  }
+
+  .mobile-sidebar-toggle.mobile-only {
+    display: flex !important;
+    position: absolute !important;
+    top: 28px !important; /* Center-ish in the header height */
+    right: 15px !important;
+    transform: translateY(-50%);
+    z-index: 100 !important;
+    width: 40px !important;
+    height: 40px !important;
+    border-radius: 8px !important;
+    background: var(--surface) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--border) !important;
   }
 
   .header-actions {
