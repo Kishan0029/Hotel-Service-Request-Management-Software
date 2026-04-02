@@ -2,8 +2,8 @@ import './globals.css';
 import { ToastProvider } from '@/components/Toast';
 
 export const metadata = {
-  title: 'Hotel Service Manager',
-  description: 'Internal hotel service request management dashboard',
+  title: 'Regenta Resort | Hotel Management System',
+  description: 'Advanced Guest Service Management and Internal Task Tracking System for Regenta Resort.',
 };
 
 export default function RootLayout({ children }) {
