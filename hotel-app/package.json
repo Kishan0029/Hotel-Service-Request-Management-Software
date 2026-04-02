@@ -13,8 +13,11 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.99.2",
+    "firebase": "^12.11.0",
+    "firebase-admin": "^13.7.0",
     "lucide-react": "^0.577.0",
     "next": "14.2.35",
+    "next-pwa": "^5.6.0",
     "react": "^18",
     "react-dom": "^18",
     "twilio": "^5.13.0"

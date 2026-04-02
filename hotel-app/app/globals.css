@@ -3614,16 +3614,19 @@ tbody tr.row-complaint {
   .mobile-sidebar-toggle.mobile-only {
     display: flex !important;
     position: fixed !important;
-    top: 15px !important;
-    right: 15px !important;
-    z-index: 9999 !important;
+    top: 10px !important;
+    right: 10px !important;
+    z-index: 100000 !important;
+    background: var(--primary) !important;
+    border: 2px solid rgba(255,255,255,0.2) !important;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3) !important;
   }
 
   .sidebar {
     display: flex !important;
     transform: translateX(-100%);
     transition: transform var(--transition);
-    z-index: 10000;
+    z-index: 100001 !important;
     width: var(--sidebar-width);
     overflow-y: auto;
   }

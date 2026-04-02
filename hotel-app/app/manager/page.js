@@ -119,19 +119,39 @@ function ModModeModal({ onClose, onCreated, user, rooms, departments, locations 
 
       // Upload before photo if provided
       if (file) {
+        if (file.size > 4.5 * 1024 * 1024) {
+          throw new Error('Image is too large (limit 4.5MB). Please compress the photo or take a lower resolution one.');
+        }
+
         const fd = new FormData();
         fd.append('file', file);
         fd.append('photo_type', 'before');
         fd.append('by', user?.name ?? 'Manager');
-        const photoRes = await fetch(`/api/tasks/${taskData.id}/photo`, { method: 'POST', body: fd });
-        const photoData = await photoRes.json();
-        if (!photoRes.ok) {
-           throw new Error(photoData.error || 'Task created, but failed to upload photo.');
-        }
-        if (photoRes.ok && photoData.task) {
-          onCreated(photoData.task);
-          onClose();
-          return;
+        let photoData;
+        try {
+          const photoRes = await fetch(`/api/tasks/${taskData.id}/photo`, { method: 'POST', body: fd });
+          const contentType = photoRes.headers.get('content-type');
+          
+          if (contentType && contentType.includes('application/json')) {
+            photoData = await photoRes.json();
+          } else {
+            const text = await photoRes.text();
+            console.error('[PHOTO_NON_JSON_ERR]', text);
+            if (photoRes.status === 413) throw new Error('Image too large (Provider Limit). Please use a smaller file or compress it.');
+            throw new Error('Server returned an invalid response. Task created, but photo may be missing.');
+          }
+
+          if (!photoRes.ok) {
+             throw new Error(photoData?.error || 'Request failed. Possible file size limit reached.');
+          }
+          if (photoRes.ok && photoData?.task) {
+            onCreated(photoData.task);
+            onClose();
+            return;
+          }
+        } catch (e) {
+          console.error('[PHOTO_UPLOAD_ERR]', e);
+          throw new Error(e.message || 'Network error or image too large.');
         }
       }
 
