@@ -3568,20 +3568,30 @@ tbody tr.row-complaint {
 
 .mobile-sidebar-toggle {
   position: fixed;
-  bottom: 20px;
-  right: 20px;
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
+  top: 15px;
+  right: 15px;
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
   background: var(--primary);
   color: #fff;
   border: none;
-  box-shadow: var(--shadow-lg);
-  z-index: 80;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+  z-index: 1000;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.mobile-sidebar-toggle:hover {
+  background: var(--primary-hover);
+  transform: translateY(-1px);
+}
+
+.mobile-sidebar-toggle:active {
+  transform: scale(0.94);
 }
 
 .desktop-only {
@@ -3724,25 +3734,10 @@ tbody tr.row-complaint {
   }
 
   .mobile-sidebar-toggle {
-    position: fixed;
-    top: 14px;
-    right: 16px;
-    width: 44px;
-    height: 44px;
-    border-radius: 8px;
-    background: var(--primary);
-    color: #fff;
-    border: none;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-    align-items: center;
-    justify-content: center;
-    z-index: 200;
-    z-index: 95;
-    cursor: pointer;
-  }
-
-  .mobile-sidebar-toggle:active {
-    transform: scale(0.92);
+    display: flex !important;
+    top: 12px;
+    right: 12px;
+    z-index: 2000;
   }
 
   .sticky-stats-bar {
