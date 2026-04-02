@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
-  LayoutDashboard, Users, Building2, DoorOpen,
+  LayoutDashboard, Users, Building2, DoorOpen, MapPin,
   MessageSquare, Shield, ClipboardList, Menu, X, LogOut, Calendar
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -23,6 +23,7 @@ const ALL_NAV = {
         { href: '/admin/staff',       label: 'Staff',       icon: Users      },
         { href: '/admin/departments', label: 'Departments', icon: Building2  },
         { href: '/admin/rooms',       label: 'Rooms',       icon: DoorOpen   },
+        { href: '/admin/locations',   label: 'Locations',   icon: MapPin     },
         { href: '/admin/sms-logs',    label: 'SMS Logs',    icon: MessageSquare },
       ],
     },
