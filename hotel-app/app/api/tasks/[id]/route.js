@@ -176,11 +176,11 @@ export async function PATCH(request, { params }) {
     // Build update
     updates.assigned_to   = targetStaff.id;
     updates.assigned_role = targetStaff.role;
-    updates.current_level = targetRole;
+    updates.current_level = targetStaff.role; // V10: update to actual role assigned
     updates.unassigned    = false;
 
     // When assigning to staff: sync legacy assigned_staff_id (needed for SMS reply)
-    if (targetRole === 'staff') {
+    if (targetStaff.role === 'staff') {
       updates.assigned_staff_id = targetStaff.id;
     }
 
@@ -193,14 +193,14 @@ export async function PATCH(request, { params }) {
       by:    byName,
       from:  prevName,
       to:    targetStaff.name,
-      level: targetRole,
+      level: targetStaff.role,
     });
 
     // Re-fetch updated task
     const { data: refreshed } = await supabase.from('tasks').select(TASK_SELECT).eq('id', id).single();
 
     // Send SMS only when task reaches staff level
-    if (targetRole === 'staff' && current.status !== 'completed') {
+    if (targetStaff.role === 'staff' && current.status !== 'completed') {
       const { data: taskForSms } = await supabase
         .from('tasks')
         .select('id, task_code, task_type, notes, created_at, rooms(room_number)')
