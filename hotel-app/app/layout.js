@@ -2,10 +2,10 @@ import './globals.css';
 import { ToastProvider } from '@/components/Toast';
 
 export const metadata = {
-  title: 'Regenta Resort | by Nextverse',
+  title: 'Regenta Resort | Hotel Management System',
   description: 'Developed by Nextverse — Advanced Guest Service Management and Internal Task Tracking System for Regenta Resort.',
   openGraph: {
-    title: 'Regenta Resort | by Nextverse',
+    title: 'Regenta Resort | Hotel Management System',
     description: 'Developed by Nextverse — Advanced Guest Service Management and Internal Task Tracking System for Regenta Resort.',
     images: [
       {
@@ -21,7 +21,7 @@ export const metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Regenta Resort | by Nextverse',
+    title: 'Regenta Resort | Hotel Management System',
     description: 'Developed by Nextverse — Advanced Hotel Management System provided for Regenta Resort.',
     images: ['/images/og-image.png'],
   },
