@@ -460,7 +460,7 @@ export default function GmDashboard() {
         <div className="role-bar">
           <span style={{ fontWeight: 600 }}>{user.name}</span>
           <div className="role-spacer" />
-          <button className="btn btn-ghost btn-sm" onClick={logout}>
+          <button className="btn btn-ghost btn-sm desktop-only" onClick={logout}>
             <LogOut size={13} /> Logout
           </button>
         </div>

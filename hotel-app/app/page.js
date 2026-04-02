@@ -774,7 +774,7 @@ export default function DashboardPage() {
           <span style={{ fontWeight: 600 }}>{currentUser?.name}</span>
           {currentUser?.department_id && <span className="td-muted td-dept-label">{departments.find(d => d.id === currentUser.department_id)?.name}</span>}
           <div className="role-spacer"></div>
-          <button className="btn btn-ghost btn-sm" onClick={logout}>
+          <button className="logout-btn desktop-only" onClick={logout}>
             <LogOut size={13} /> Logout
           </button>
         </div>

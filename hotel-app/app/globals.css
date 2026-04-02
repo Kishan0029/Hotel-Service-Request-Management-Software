@@ -3665,33 +3665,35 @@ tbody tr.row-complaint {
 
   .mobile-sidebar-toggle.mobile-only {
     display: flex !important;
-    position: relative !important;
-    top: auto !important;
-    right: auto !important;
-    transform: none !important;
-    z-index: 10 !important;
-    width: 38px !important;
-    height: 38px !important;
-    flex-shrink: 0 !important;
-    order: 10 !important; /* Always last */
-    background: var(--bg-hover) !important;
+    position: fixed !important;
+    top: 7px !important;
+    right: 7px !important;
+    z-index: 100000 !important;
+    width: 44px !important;
+    height: 44px !important;
+    background: var(--surface) !important;
     border: 1px solid var(--border) !important;
-    box-shadow: none !important;
-    margin-left: 8px !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
+    border-radius: 10px !important;
+    justify-content: center !important;
+    align-items: center !important;
   }
 
-  /* Role bar / Secondary header sync */
-  .role-bar {
-    padding: 6px 16px !important;
-    background: var(--bg) !important;
-    font-size: 0.7rem !important;
-    border-bottom: 1px solid var(--border) !important;
+  /* Reset header row for cleaner mobile stack */
+  .page-header {
+    height: auto !important;
+    padding: 14px 16px !important;
     display: flex !important;
-    flex-direction: row !important;
-    justify-content: space-between !important;
-    align-items: center !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    justify-content: flex-start !important;
+    gap: 8px !important;
     position: relative !important;
-    z-index: 999 !important;
+    z-index: 50 !important;
+  }
+
+  .header-brand {
+    padding-right: 50px !important; /* Always avoid toggle */
   }
 
   .header-actions {
