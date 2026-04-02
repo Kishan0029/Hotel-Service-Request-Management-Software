@@ -3,12 +3,13 @@ importScripts('https://www.gstatic.com/firebasejs/9.6.10/firebase-messaging-comp
 
 // REPLACE with actual Firebase Config found in your project settings
 firebase.initializeApp({
-  apiKey: "PLACEHOLDER",
-  authDomain: "PLACEHOLDER",
-  projectId: "PLACEHOLDER",
-  storageBucket: "PLACEHOLDER",
-  messagingSenderId: "PLACEHOLDER",
-  appId: "PLACEHOLDER"
+  apiKey: "AIzaSyCddoppBj0VC5m6erF1tDFmRI6lVvjKLqI",
+  authDomain: "regenta-management-system.firebaseapp.com",
+  projectId: "regenta-management-system",
+  storageBucket: "regenta-management-system.firebasestorage.app",
+  messagingSenderId: "1092716796377",
+  appId: "1:1092716796377:web:e52f4dedf9c253d7e3a1c8",
+  measurementId: "G-E36KDVFLST"
 });
 
 const messaging = firebase.messaging();

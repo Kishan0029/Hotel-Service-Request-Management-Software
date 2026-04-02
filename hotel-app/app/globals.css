@@ -3374,16 +3374,16 @@ tbody tr.row-complaint {
   align-items: center;
   justify-content: center;
   position: fixed;
-  bottom: 20px;
-  right: 20px;
-  z-index: 150;
+  top: 14px;
+  right: 16px;
+  z-index: 200;
   background: var(--primary);
   color: #fff;
   border: none;
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
-  box-shadow: 0 4px 14px rgba(15, 118, 110, 0.35);
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-sm);
+  box-shadow: 0 4px 12px rgba(15, 118, 110, 0.25);
   cursor: pointer;
   transition: all var(--transition);
 }
@@ -3725,17 +3725,18 @@ tbody tr.row-complaint {
 
   .mobile-sidebar-toggle {
     position: fixed;
-    bottom: 20px;
-    right: 20px;
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
+    top: 14px;
+    right: 16px;
+    width: 44px;
+    height: 44px;
+    border-radius: 8px;
     background: var(--primary);
     color: #fff;
     border: none;
-    box-shadow: 0 4px 14px rgba(15, 118, 110, 0.4);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
     align-items: center;
     justify-content: center;
+    z-index: 200;
     z-index: 95;
     cursor: pointer;
   }
