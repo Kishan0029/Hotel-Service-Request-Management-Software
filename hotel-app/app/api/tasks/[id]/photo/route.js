@@ -37,91 +37,97 @@ const TASK_SELECT = `
 export async function POST(request, { params }) {
   const { id } = params;
 
-  // No API key check here - client-side uploads are handled directly
-  // but we do validate the task exists
-  const formData = await request.formData().catch(() => null);
-  if (!formData) {
-    return Response.json({ error: 'Invalid form data' }, { status: 400 });
-  }
-
-  const file      = formData.get('file');
-  const photoType = formData.get('photo_type'); // 'before' or 'after'
-  const byName    = formData.get('by') || 'Staff';
-
-  if (!file || !photoType) {
-    return Response.json({ error: 'file and photo_type are required' }, { status: 400 });
-  }
-  if (!['before', 'after'].includes(photoType)) {
-    return Response.json({ error: 'photo_type must be before or after' }, { status: 400 });
-  }
-
-  // Fetch current task
-  const { data: current } = await supabase
-    .from('tasks')
-    .select('id, task_code, status, activity_log, department_id, assigned_to')
-    .eq('id', id)
-    .single();
-
-  if (!current) {
-    return Response.json({ error: 'Task not found' }, { status: 404 });
-  }
-
-  // Upload to Supabase Storage
-  const ext      = file.name.split('.').pop() || 'jpg';
-  const fileName = `${id}/${photoType}_${Date.now()}.${ext}`;
-  const bytes    = await file.arrayBuffer();
-  const buffer   = Buffer.from(bytes);
-
-  const { error: uploadError } = await supabase.storage
-    .from('task-photos')
-    .upload(fileName, buffer, { contentType: file.type, upsert: true });
-
-  if (uploadError) {
-    return Response.json({ error: `Upload failed: ${uploadError.message}` }, { status: 500 });
-  }
-
-  const { data: urlData } = supabase.storage
-    .from('task-photos')
-    .getPublicUrl(fileName);
-
-  const publicUrl = urlData.publicUrl;
-
-  // Build task update
-  const updateData = {};
-  if (photoType === 'before') {
-    updateData.before_photo_url = publicUrl;
-  } else {
-    updateData.after_photo_url  = publicUrl;
-    updateData.status           = 'completed';
-    updateData.completed_at     = new Date().toISOString();
-    updateData.completed_after_escalation = (current.escalation_level > 0);
-  }
-
-  // Append activity log
-  let log = [];
   try {
-    if (typeof current.activity_log === 'string') {
-      log = JSON.parse(current.activity_log) || [];
-    } else if (Array.isArray(current.activity_log)) {
-      log = current.activity_log;
+    const formData = await request.formData().catch(() => null);
+    if (!formData) {
+      return Response.json({ error: 'Invalid form data. Image might be too large (>4.5MB).' }, { status: 400 });
     }
-  } catch (e) {}
-  
-  const eventName = photoType === 'before' ? 'before_photo_uploaded' : 'completed_with_photo';
-  const updatedLog = [...log, { event: eventName, by: byName, time: new Date().toISOString() }];
-  
-  updateData.activity_log = JSON.stringify(updatedLog);
 
-  // Single atomic update
-  const { error: updateError } = await supabase.from('tasks').update(updateData).eq('id', id);
-  if (updateError) {
-    return Response.json({ error: `Database update failed: ${updateError.message}` }, { status: 500 });
-  }
+    const file      = formData.get('file');
+    const photoType = formData.get('photo_type'); // 'before' or 'after'
+    const byName    = formData.get('by') || 'Staff';
 
-  // Re-fetch full task
-  const { data: task, error: fetchErr } = await supabase.from('tasks').select(TASK_SELECT).eq('id', id).single();
-  if (fetchErr) {
-     return Response.json({ error: fetchErr.message }, { status: 500 });
+    if (!file || !photoType) {
+      return Response.json({ error: 'file and photo_type are required' }, { status: 400 });
+    }
+    if (!['before', 'after'].includes(photoType)) {
+      return Response.json({ error: 'photo_type must be before or after' }, { status: 400 });
+    }
+
+    // Fetch current task (Fix: added escalation_level)
+    const { data: current, error: currentErr } = await supabase
+      .from('tasks')
+      .select('id, task_code, status, activity_log, department_id, assigned_to, escalation_level')
+      .eq('id', id)
+      .single();
+
+    if (currentErr || !current) {
+      return Response.json({ error: 'Task not found' }, { status: 404 });
+    }
+
+    // Upload to Supabase Storage
+    const ext      = file.name?.split('.').pop() || 'jpg';
+    const fileName = `${id}/${photoType}_${Date.now()}.${ext}`;
+    const bytes    = await file.arrayBuffer();
+    const buffer   = Buffer.from(bytes);
+
+    const { error: uploadError } = await supabase.storage
+      .from('task-photos')
+      .upload(fileName, buffer, { contentType: file.type, upsert: true });
+
+    if (uploadError) {
+      return Response.json({ error: `Upload failed: ${uploadError.message}` }, { status: 500 });
+    }
+
+    // Fix: Ensure safe access to public URL
+    const { data: urlData } = supabase.storage
+      .from('task-photos')
+      .getPublicUrl(fileName);
+
+    const publicUrl = urlData?.publicUrl;
+    if (!publicUrl) throw new Error('Failed to generate public URL');
+
+    // Build task update
+    const updateData = {};
+    if (photoType === 'before') {
+      updateData.before_photo_url = publicUrl;
+    } else {
+      updateData.after_photo_url  = publicUrl;
+      updateData.status           = 'completed';
+      updateData.completed_at     = new Date().toISOString();
+      updateData.completed_after_escalation = (current.escalation_level > 0);
+    }
+
+    // Append activity log
+    let log = [];
+    try {
+      if (typeof current.activity_log === 'string') {
+        log = JSON.parse(current.activity_log) || [];
+      } else if (Array.isArray(current.activity_log)) {
+        log = current.activity_log;
+      }
+    } catch (e) {}
+    
+    const eventName = photoType === 'before' ? 'before_photo_uploaded' : 'completed_with_photo';
+    const updatedLog = [...log, { event: eventName, by: byName, time: new Date().toISOString() }];
+    
+    updateData.activity_log = JSON.stringify(updatedLog);
+
+    // Single atomic update
+    const { error: updateError } = await supabase.from('tasks').update(updateData).eq('id', id);
+    if (updateError) {
+      return Response.json({ error: `Database update failed: ${updateError.message}` }, { status: 500 });
+    }
+
+    // Re-fetch full task
+    const { data: task, error: fetchErr } = await supabase.from('tasks').select(TASK_SELECT).eq('id', id).single();
+    if (fetchErr) {
+       return Response.json({ error: fetchErr.message }, { status: 500 });
+    }
+    return Response.json({ url: publicUrl, task });
+
+  } catch (err) {
+    console.error('[PHOTO_API_CRASH]', err);
+    return Response.json({ error: `Server error: ${err.message}` }, { status: 500 });
   }
-  return Response.json({ url: publicUrl, task });
 }
