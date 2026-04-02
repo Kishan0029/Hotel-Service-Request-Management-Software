@@ -3778,6 +3778,9 @@ tbody tr.row-complaint {
   .login-glass-card {
     padding: 28px 20px;
   }
+  .login-logo-v7 {
+    transform: translateX(0);
+  }
 
   .field-row {
     grid-template-columns: 1fr;
