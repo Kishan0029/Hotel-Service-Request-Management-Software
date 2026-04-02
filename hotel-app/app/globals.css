@@ -2334,7 +2334,91 @@ tbody tr.row-complaint {
 }
 
 /* ============================================================
-   GM DASHBOARD — Premium KPI System
+   GM DASHBOARD — Decision & Urgency System
+   ============================================================ */
+
+.gm-alert-banner {
+  background: #FFF5F5;
+  border: 1px solid #FECACA;
+  border-left: 5px solid #DC2626;
+  padding: 16px 20px;
+  border-radius: var(--radius);
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.gm-alert-icon {
+  color: #DC2626;
+  flex-shrink: 0;
+}
+
+.gm-alert-content {
+  flex: 1;
+}
+
+.gm-alert-title {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #991B1B;
+}
+
+.gm-alert-sub {
+  font-size: 0.8rem;
+  color: #7F1D1D;
+  margin-top: 2px;
+}
+
+.gm-stat-card-critical-hero {
+  background: #FEF2F2 !important;
+  border: 1.5px solid #FECACA !important;
+  border-left: 5px solid #DC2626 !important;
+  grid-column: span 2;
+}
+
+@media (max-width: 1024px) {
+  .gm-stat-card-critical-hero {
+    grid-column: span 1;
+  }
+}
+
+.gm-stat-card-critical-hero .gm-stat-value {
+  font-size: 3rem;
+  color: #DC2626;
+}
+
+.gm-item-critical-hero {
+  border-left: 5px solid #DC2626 !important;
+  background: #FEF2F2 !important;
+  box-shadow: inset 0 0 0 1px #FECACA;
+  position: relative;
+}
+
+.gm-item-critical-hero::after {
+  content: 'TOP PRIORITY';
+  position: absolute;
+  top: 10px;
+  right: 20px;
+  background: #DC2626;
+  color: #fff;
+  font-size: 0.6rem;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.05em;
+}
+
+.gm-urgency-hint {
+  margin-top: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #991B1B;
+}
+
+/* ============================================================
+   GM DASHBOARD — KPI System Base
    ============================================================ */
 .gm-stat-card {
   background: var(--surface);

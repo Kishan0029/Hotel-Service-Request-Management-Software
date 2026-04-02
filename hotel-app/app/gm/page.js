@@ -431,6 +431,9 @@ export default function GmDashboard() {
   recentActivity.sort((a, b) => new Date(b.time) - new Date(a.time));
   const recentSlice = recentActivity.slice(0, 20);
 
+  const delayedByHighestBreach = [...delayed].sort((a, b) => delayMins(b) - delayMins(a));
+  const impactedDepts = [...new Set(delayed.map(t => t.departments?.name).filter(Boolean))];
+
   const ActivityIconCmp = ({ event }) => {
     const s = 14;
     switch (event) {
@@ -477,14 +480,44 @@ export default function GmDashboard() {
         </header>
 
         <main className="page-body">
+          {/* ── Executive Urgency Alert Section ────────────────── */}
+          {(delayed.length > 0 || complaints.length > 0) && (
+            <div className="gm-alert-banner">
+              <div className="gm-alert-icon">
+                <AlertTriangle size={20} />
+              </div>
+              <div className="gm-alert-content">
+                <div className="gm-alert-title">
+                  {delayed.length} SLA breach{delayed.length !== 1 ? 'es' : ''} detected
+                  {complaints.length > 0 && ` & ${complaints.length} active guest complaint${complaints.length !== 1 ? 's' : ''}`}
+                </div>
+                <div className="gm-alert-sub">
+                  Critical Impact: <strong>{impactedDepts.join(', ') || 'N/A'}</strong> departments are over-capacity. Immediate allocation recommended.
+                </div>
+              </div>
+              <button className="btn btn-primary btn-sm" onClick={() => setDetailView({ title: 'Critical Delays', tasks: delayedByHighestBreach })}>
+                Action Now
+              </button>
+            </div>
+          )}
+
           {/* ── Summary Stats ───────────────────────────── */}
         <div className="gm-stats-grid">
+          <StatCard
+            label="Critical Delays"
+            value={delayed.length}
+            colorClass={delayed.length > 0 ? 'gm-stat-card-critical-hero' : 'gm-stat-card-total'}
+            icon={<AlertTriangle size={24} />}
+            context={delayed.length === 0 ? 'All on schedule' : `Highest Breach: ${delayMins(delayedByHighestBreach[0])}m`}
+            contextClass={delayed.length === 0 ? 'gm-stat-context-muted' : 'gm-stat-context-danger'}
+            onClick={() => setDetailView({ title: 'Delayed Tasks', tasks: delayedByHighestBreach })}
+          />
           <StatCard
             label="Complaints"
             value={complaints.length}
             colorClass={complaints.length > 0 ? 'gm-stat-card-danger' : 'gm-stat-card-total'}
             icon={<Flame size={20} />}
-            context={complaints.length === 0 ? 'No active complaints' : `🔴 Requires attention`}
+            context={complaints.length === 0 ? 'No complaints' : `🔴 Requires attention`}
             contextClass={complaints.length === 0 ? 'gm-stat-context-muted' : 'gm-stat-context-danger'}
             onClick={() => setDetailView({ title: 'Complaints', tasks: complaints })}
           />
@@ -493,34 +526,16 @@ export default function GmDashboard() {
             value={escalated.length}
             colorClass={escalated.length > 0 ? 'gm-stat-card-danger' : 'gm-stat-card-total'}
             icon={<AlertTriangle size={20} />}
-            context={escalated.length === 0 ? 'No escalations' : `Escalated — action needed`}
+            context={escalated.length === 0 ? 'No escalations' : `Review immediately`}
             contextClass={escalated.length === 0 ? 'gm-stat-context-muted' : 'gm-stat-context-danger'}
             onClick={() => setDetailView({ title: 'Escalated Tasks', tasks: escalated })}
           />
           <StatCard
-            label="Delays"
-            value={delayed.length}
-            colorClass={delayed.length > 0 ? 'gm-stat-card-delay' : 'gm-stat-card-total'}
-            icon={<AlertTriangle size={20} />}
-            context={delayed.length === 0 ? 'All on schedule ✓' : `⚠️ ${delayed.length} past SLA`}
-            contextClass={delayed.length === 0 ? 'gm-stat-context-muted' : 'gm-stat-context-warn'}
-            onClick={() => setDetailView({ title: 'Delayed Tasks', tasks: delayed })}
-          />
-          <StatCard
-            label="Total Requests"
-            value={todayTasks.length}
-            colorClass="gm-stat-card-total"
-            icon={<ClipboardList size={20} />}
-            context={`${todayTasks.length} total today`}
-            contextClass="gm-stat-context-muted"
-            onClick={() => setDetailView({ title: 'Total Requests (Today)', tasks: todayTasks })}
-          />
-          <StatCard
-            label="Completed"
+            label="Resolved"
             value={completedInTime.length}
             colorClass="gm-stat-card-total"
             icon={<CheckCircle2 size={20} />}
-            context={`${completedInTime.length} resolved on time`}
+            context={`${completedInTime.length} today`}
             contextClass="gm-stat-context-muted"
             onClick={() => setDetailView({ title: 'Completed in Time', tasks: completedInTime })}
           />
@@ -601,20 +616,20 @@ export default function GmDashboard() {
                     <div className="gm-empty-sub">No SLA breaches detected</div>
                   </div>
                 ) : (
-                  delayed.sort((a, b) => delayMins(b) - delayMins(a)).map(t => (
-                    <div key={t.id} className={`gm-list-item ${t.escalation_level >= 2 ? 'gm-item-critical' : t.escalation_level === 1 ? 'gm-item-escalated' : 'gm-item-delayed'}`}>
+                  delayedByHighestBreach.map((t, idx) => (
+                    <div key={t.id} className={`gm-list-item ${idx === 0 ? 'gm-item-critical-hero' : t.escalation_level >= 2 ? 'gm-item-critical' : t.escalation_level === 1 ? 'gm-item-escalated' : 'gm-item-delayed'}`}>
                       <div className="gm-item-header">
                         <strong>Room {t.rooms?.room_number}</strong>
                         <span className="sla-delayed">+{delayMins(t)}m over SLA</span>
                       </div>
                       <div className="gm-item-body">
                         {t.departments?.name} — {t.task_type}
+                        {idx === 0 && <div className="gm-urgency-hint">→ Extreme delay: {t.departments?.name} attention required now</div>}
                       </div>
                       <div className="gm-item-footer">
                         <LevelBadge level={t.current_level} />
                         <StatusBadge status={t.status} />
                         {t.assigned_staff?.name && <span className="td-muted">→ {t.assigned_staff.name}</span>}
-                        {t.escalation_level >= 1 && <span className="badge badge-escalated">Escalated</span>}
                       </div>
                     </div>
                   ))
@@ -669,13 +684,7 @@ export default function GmDashboard() {
                 <Star size={14} color="#D97706" /> Guest Service Score
                 <span className="gm-section-count">{staffScores.filter(s => s.inTime + s.isLate + s.escs > 0).length} staff</span>
               </div>
-              {staffScores.filter(s => s.inTime + s.isLate + s.escs > 0).length === 0 ? (
-                <div className="gm-empty-state">
-                  <div className="gm-empty-icon"><Star size={36} /></div>
-                  <div className="gm-empty-title">No scores yet</div>
-                  <div className="gm-empty-sub">Scores populate as tasks are completed</div>
-                </div>
-              ) : (
+              {staffScores.filter(s => s.inTime + s.isLate + s.escs > 0).length > 0 && (
                 <div className="gm-leaderboard">
                   {staffScores.filter(s => s.inTime + s.isLate + s.escs > 0).slice(0, 10).map((staff, idx) => (
                     <div key={staff.id} className={`gm-leaderboard-row ${idx === 0 ? 'top-performer' : ''}`}>
@@ -702,17 +711,11 @@ export default function GmDashboard() {
             </div>
 
             {/* Recent Activity — Timeline */}
-            <div className="gm-section">
-              <div className="gm-section-title">
-                <Activity size={14} /> Live Activity Feed
-              </div>
-              {recentSlice.length === 0 ? (
-                <div className="gm-empty-state">
-                  <div className="gm-empty-icon"><Activity size={36} /></div>
-                  <div className="gm-empty-title">No recent activity</div>
-                  <div className="gm-empty-sub">Events will appear here as tasks are actioned</div>
+            {recentSlice.length > 0 && (
+              <div className="gm-section">
+                <div className="gm-section-title">
+                  <Activity size={14} /> Live Activity Feed
                 </div>
-              ) : (
                 <div className="gm-activity-feed">
                   {recentSlice.map((entry, i) => (
                     <div key={i} className="gm-activity-item">
@@ -735,8 +738,8 @@ export default function GmDashboard() {
                     </div>
                   ))}
                 </div>
-              )}
-            </div>
+              </div>
+            )}
 
           </div>
         </div>
