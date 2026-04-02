@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabaseClient';
 import { sendSMS } from '@/lib/sms';
+import { notifyStaffWithFallback } from '@/lib/push_server';
 
 const L1_MINUTES = parseInt(process.env.ESCALATION_L1_MINUTES ?? '10', 10);
 const L2_MINUTES = parseInt(process.env.ESCALATION_L2_MINUTES ?? '15', 10);
@@ -153,15 +154,9 @@ async function escalateTask(task, elapsedMinutes, newLevel) {
   const updated_log = [...log, { event: 'escalated', by: 'System', level: newLevel, to: target.name, time: new Date().toISOString() }];
   await supabase.from('tasks').update({ activity_log: JSON.stringify(updated_log) }).eq('id', task_id);
 
-  const result = await sendSMS(target.phone_number, {
-    task_id, task_code,
-    staff_name:          target.name,
-    assigned_staff_name: task.staff?.name ?? task.assigned_staff?.name,
-    room,
-    task_type: task.task_type,
-    notes:     task.notes,
-    time:      `${Math.round(elapsedMinutes)} mins`,
-  });
+  // V9: Try Push first, fallback to SMS in 30s if not acked
+  await notifyStaffWithFallback(target.phone_number, target.id, task, 'escalated');
+  const result = { success: true }; // Fallback handles the rest
 
   await logEscalation({
     task_id, task_code,

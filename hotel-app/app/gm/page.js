@@ -316,6 +316,9 @@ export default function GmDashboard() {
       const parsed = JSON.parse(u);
       if (parsed.role !== 'gm') { router.replace('/'); return; }
       setUser(parsed);
+      
+      // Initialize PWA Push Notifications
+      import('@/lib/push').then(m => m.setupPushNotifications(parsed.id)).catch(console.error);
     } catch { router.replace('/login'); }
   }, [router]);
 

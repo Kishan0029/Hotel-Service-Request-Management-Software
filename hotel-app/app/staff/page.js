@@ -298,6 +298,9 @@ export default function StaffDashboard() {
       const parsed = JSON.parse(u);
       if (parsed.role !== 'staff') { router.replace('/login'); return; }
       setUser(parsed);
+      
+      // Initialize PWA Push Notifications
+      import('@/lib/push').then(m => m.setupPushNotifications(parsed.id)).catch(console.error);
     } catch { router.replace('/login'); }
   }, [router]);
 

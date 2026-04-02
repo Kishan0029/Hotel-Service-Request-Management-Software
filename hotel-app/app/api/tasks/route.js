@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabaseClient';
 import { sendSMS } from '@/lib/sms';
+import { notifyStaffWithFallback } from '@/lib/push_server';
 
 export const dynamic = 'force-dynamic';
 
@@ -288,21 +289,13 @@ export async function POST(request) {
   // ── Send SMS only if task reached staff level ─────────────────────────────
   let sms_status = 'no_staff';
   
-  // 1. Send to Staff
   if (sendSmsNow && data.assigned_staff?.phone_number && data.assigned_staff.phone_number !== 'N/A') {
     const time = new Date(data.created_at).toLocaleTimeString('en-IN', {
       hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'Asia/Kolkata',
     });
-    const smsResult = await sendSMS(data.assigned_staff.phone_number, {
-      task_id:    data.id,
-      task_code:  data.task_code,
-      staff_name: data.assigned_staff.name,
-      room:       data.rooms?.room_number ?? '?',
-      task_type:  data.task_type,
-      notes:      data.notes,
-      time,
-    });
-    sms_status = smsResult.success ? 'sent' : 'failed';
+    // V9: Try Push first, fallback to SMS in 30s if not acked
+    await notifyStaffWithFallback(data.assigned_staff.phone_number, data.assigned_staff.id, data, 'assigned');
+    sms_status = 'push_sent_pending_fallback'; 
   } else if (sendSmsNow) {
     await supabase.from('sms_logs').insert({
       task_id: data.id, task_code: data.task_code,

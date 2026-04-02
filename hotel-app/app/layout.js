@@ -25,6 +25,13 @@ export const metadata = {
     description: 'Developed by Nextverse — Advanced Hotel Management System provided for Regenta Resort.',
     images: ['/images/og-image.png'],
   },
+  manifest: '/manifest.json',
+  themeColor: '#ffffff',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'Regenta Resort',
+  },
 };
 
 export default function RootLayout({ children }) {
