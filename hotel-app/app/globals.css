@@ -1652,8 +1652,8 @@ tbody tr.row-complaint {
   height: auto;
   object-fit: contain;
   margin-bottom: 2px;
-  /* Visual alignment tweak: shifting 2px left per user request */
-  transform: translateX(-4px);
+  /* Visual alignment tweak: shifting 2px right per user request */
+  transform: translateX(-2px);
 }
 
 .login-title-v7 {
