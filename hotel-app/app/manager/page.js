@@ -119,10 +119,6 @@ function ModModeModal({ onClose, onCreated, user, rooms, departments, locations 
 
       // Upload before photo if provided
       if (file) {
-        if (file.size > 4.5 * 1024 * 1024) {
-          throw new Error('Image is too large (limit 4.5MB). Please compress the photo or take a lower resolution one.');
-        }
-
         const fd = new FormData();
         fd.append('file', file);
         fd.append('photo_type', 'before');
