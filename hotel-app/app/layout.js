@@ -26,12 +26,15 @@ export const metadata = {
     images: ['/images/og-image.png'],
   },
   manifest: '/manifest.json',
-  themeColor: '#ffffff',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
     title: 'Regenta Resort',
   },
+};
+
+export const viewport = {
+  themeColor: '#1A3A5C',
 };
 
 export default function RootLayout({ children }) {

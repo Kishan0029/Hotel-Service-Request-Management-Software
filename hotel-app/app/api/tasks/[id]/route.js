@@ -211,15 +211,17 @@ export async function PATCH(request, { params }) {
         const time = new Date(taskForSms.created_at).toLocaleTimeString('en-IN', {
           hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'Asia/Kolkata',
         });
-        await sendSMS(targetStaff.phone_number, {
-          task_id:    taskForSms.id,
-          task_code:  taskForSms.task_code,
-          staff_name: targetStaff.name,
-          room:       taskForSms.rooms?.room_number ?? '?',
-          task_type:  taskForSms.task_type,
-          notes:      taskForSms.notes,
-          time,
-        }).catch(err => console.error('[Assign SMS]', err.message));
+        try {
+          await sendSMS(targetStaff.phone_number, {
+            task_id:    taskForSms.id,
+            task_code:  taskForSms.task_code,
+            staff_name: targetStaff.name,
+            room:       taskForSms.rooms?.room_number ?? '?',
+            task_type:  taskForSms.task_type,
+            notes:      taskForSms.notes,
+            time,
+          });
+        } catch (err) { console.error('[Assign SMS]', err.message); }
       }
 
       // Also ALWAYS send to supervisor
@@ -237,16 +239,18 @@ export async function PATCH(request, { params }) {
           .single();
 
         if (sup && sup.phone_number && sup.phone_number !== 'N/A') {
-          await sendSMS(sup.phone_number, {
-            task_id:    taskForSms.id,
-            task_code:  taskForSms.task_code,
-            staff_name: sup.name,
-            room:       taskForSms.rooms?.room_number ?? '?',
-            task_type:  taskForSms.task_type,
-            notes:      taskForSms.notes,
-            time,
-            assigned_staff_name: targetStaff.name,
-          }).catch(err => console.error('[Assign SMS Sup]', err.message));
+          try {
+            await sendSMS(sup.phone_number, {
+              task_id:    taskForSms.id,
+              task_code:  taskForSms.task_code,
+              staff_name: sup.name,
+              room:       taskForSms.rooms?.room_number ?? '?',
+              task_type:  taskForSms.task_type,
+              notes:      taskForSms.notes,
+              time,
+              assigned_staff_name: targetStaff.name,
+            });
+          } catch (err) { console.error('[Assign SMS Sup]', err.message); }
         }
       }
     }
@@ -312,15 +316,17 @@ export async function PATCH(request, { params }) {
         const time = new Date(taskForSms.created_at).toLocaleTimeString('en-IN', {
           hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'Asia/Kolkata',
         });
-        await sendSMS(staffRow.phone_number, {
-          task_id:    taskForSms.id,
-          task_code:  taskForSms.task_code,
-          staff_name: staffRow.name,
-          room:       taskForSms.rooms?.room_number ?? '?',
-          task_type:  taskForSms.task_type,
-          notes:      taskForSms.notes,
-          time,
-        }).catch(err => console.error('[Reassign SMS]', err.message));
+        try {
+          await sendSMS(staffRow.phone_number, {
+            task_id:    taskForSms.id,
+            task_code:  taskForSms.task_code,
+            staff_name: staffRow.name,
+            room:       taskForSms.rooms?.room_number ?? '?',
+            task_type:  taskForSms.task_type,
+            notes:      taskForSms.notes,
+            time,
+          });
+        } catch (err) { console.error('[Reassign SMS]', err.message); }
       }
 
       // Also ALWAYS send to supervisor
@@ -338,16 +344,18 @@ export async function PATCH(request, { params }) {
           .single();
 
         if (sup && sup.phone_number && sup.phone_number !== 'N/A') {
-          await sendSMS(sup.phone_number, {
-            task_id:    taskForSms.id,
-            task_code:  taskForSms.task_code,
-            staff_name: sup.name,
-            room:       taskForSms.rooms?.room_number ?? '?',
-            task_type:  taskForSms.task_type,
-            notes:      taskForSms.notes,
-            time,
-            assigned_staff_name: staffRow.name,
-          }).catch(err => console.error('[Legacy Reassign SMS Sup]', err.message));
+          try {
+            await sendSMS(sup.phone_number, {
+              task_id:    taskForSms.id,
+              task_code:  taskForSms.task_code,
+              staff_name: sup.name,
+              room:       taskForSms.rooms?.room_number ?? '?',
+              task_type:  taskForSms.task_type,
+              notes:      taskForSms.notes,
+              time,
+              assigned_staff_name: staffRow.name,
+            });
+          } catch (err) { console.error('[Legacy Reassign SMS Sup]', err.message); }
         }
       }
     }

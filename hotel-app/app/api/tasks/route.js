@@ -286,55 +286,69 @@ export async function POST(request) {
   if (fetchErr || !data)
     return Response.json({ error: fetchErr?.message ?? 'Task not found after insert' }, { status: 500 });
 
-  // ── Send SMS only if task reached staff level ─────────────────────────────
+  // ── Notify assigned staff/supervisor via SMS (always) + FCM push (bonus) ───
+  // FIX: Use `assignedTo` directly instead of relying on the potentially-null
+  // `data.assigned_staff` join alias, which is null for supervisor assignments
+  // because assigned_staff_id is only set when a staff-level person is assigned.
   let sms_status = 'no_staff';
-  
-  if (sendSmsNow && data.assigned_staff?.phone_number && data.assigned_staff.phone_number !== 'N/A') {
-    const time = new Date(data.created_at).toLocaleTimeString('en-IN', {
-      hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'Asia/Kolkata',
-    });
-    // V9: Try Push first, fallback to SMS in 30s if not acked
-    await notifyStaffWithFallback(data.assigned_staff.phone_number, data.assigned_staff.id, data, 'assigned');
-    sms_status = 'push_sent_pending_fallback'; 
-  } else if (sendSmsNow) {
-    await supabase.from('sms_logs').insert({
-      task_id: data.id, task_code: data.task_code,
-      event_type: 'error', status: 'skipped',
-      message: `Staff notification skipped: No valid phone number for ${data.assigned_staff?.name || 'Unassigned'}`
-    });
-  }
 
-  // 2. Also ALWAYS send to supervisor if it reached staff level
-  if (sendSmsNow) {
-    const time = new Date(data.created_at).toLocaleTimeString('en-IN', {
-      hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'Asia/Kolkata',
-    });
-    const { data: sup } = await supabase
+  if (sendSmsNow && assignedTo) {
+    // Directly fetch the assigned person's details to avoid join alias bugs
+    const { data: assignedPerson } = await supabase
       .from('staff')
-      .select('name, phone_number')
-      .eq('department_id', department_id)
-      .eq('role', 'supervisor')
-      .eq('is_active', true)
-      .limit(1)
+      .select('id, name, phone_number')
+      .eq('id', assignedTo)
       .single();
 
-    if (sup && sup.phone_number && sup.phone_number !== 'N/A') {
-      await sendSMS(sup.phone_number, {
-        task_id:    data.id,
-        task_code:  data.task_code,
-        staff_name: sup.name,
-        room:       data.rooms?.room_number ?? '?',
-        task_type:  data.task_type,
-        notes:      data.notes,
-        time,
-        assigned_staff_name: data.assigned_staff?.name ?? 'Assigned Staff',
-      }).catch(err => console.error('[POST SMS Sup]', err.message));
+    if (assignedPerson && assignedPerson.phone_number && assignedPerson.phone_number !== 'N/A') {
+      // notifyStaffWithFallback now sends SMS synchronously first, then push as a bonus
+      await notifyStaffWithFallback(assignedPerson.phone_number, assignedPerson.id, data, 'assigned');
+      sms_status = 'sms_sent';
     } else {
       await supabase.from('sms_logs').insert({
         task_id: data.id, task_code: data.task_code,
         event_type: 'error', status: 'skipped',
-        message: `Supervisor notification skipped: No active supervisor with a valid phone number for department ${department_id}`
+        message: `Staff notification skipped: No valid phone number for ${assignedPerson?.name || `staffId=${assignedTo}`}`
       });
+    }
+
+    // 2. Always notify supervisor when a task is assigned to staff level
+    //    (if the assigned person IS the supervisor, skip to avoid duplicate)
+    if (assignedRole === 'staff') {
+      const time = new Date(data.created_at).toLocaleTimeString('en-IN', {
+        hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'Asia/Kolkata',
+      });
+      const { data: sup } = await supabase
+        .from('staff')
+        .select('name, phone_number')
+        .eq('department_id', department_id)
+        .eq('role', 'supervisor')
+        .eq('is_active', true)
+        .limit(1)
+        .single();
+
+      if (sup && sup.phone_number && sup.phone_number !== 'N/A') {
+        try {
+          await sendSMS(sup.phone_number, {
+            task_id:             data.id,
+            task_code:           data.task_code,
+            staff_name:          sup.name,
+            room:                data.rooms?.room_number ?? '?',
+            task_type:           data.task_type,
+            notes:               data.notes,
+            time,
+            assigned_staff_name: data.assigned_staff?.name ?? 'Assigned Staff',
+          });
+        } catch (err) {
+          console.error('[POST SMS Sup]', err.message);
+        }
+      } else {
+        await supabase.from('sms_logs').insert({
+          task_id: data.id, task_code: data.task_code,
+          event_type: 'error', status: 'skipped',
+          message: `Supervisor notification skipped: No active supervisor with a valid phone number for department ${department_id}`
+        });
+      }
     }
   }
 

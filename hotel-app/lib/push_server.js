@@ -24,108 +24,128 @@ if (!admin.apps.length) {
   }
 }
 
-const messaging = admin.messaging();
+let messaging;
+try {
+  messaging = admin.messaging();
+} catch (e) {
+  console.error('[FCM] Could not get messaging instance:', e.message);
+}
 
 /**
- * PRODUCTION NOTIFICATION ENGINE
- * Logic:
- * 1. Anti-Spam check (last_seen < 2 mins ago)
- * 2. Send Push via FCM Multicast (to all staff devices)
- * 3. 30s Fail-Safe: Check for Acknowledge on Task
- * 4. Fallback: Send SMS via existing Twilio/MSG91 logic
+ * PRODUCTION NOTIFICATION ENGINE — SERVERLESS-SAFE
+ *
+ * Strategy (in order of priority):
+ * 1. Send SMS immediately and synchronously — this is always the reliable path.
+ * 2. After SMS is confirmed sent (or failed), attempt FCM push as a bonus.
+ *    Push is fire-and-forget; its success or failure does NOT affect SMS delivery.
+ *
+ * WHY: setTimeout-based fallbacks are NOT safe in serverless environments (Vercel,
+ * Lambda, etc.) because the process is killed as soon as the HTTP response is sent.
+ * The 30-second timer callback is scheduled but immediately destroyed.
+ *
+ * The old "push first, SMS fallback" pattern resulted in intermittent delivery:
+ * - SMS was only sent when Firebase threw an exception (unreliable)
+ * - Anti-spam logic could block push AND suppress SMS, leaving staff unnotified
  */
 export async function notifyStaffWithFallback(toPhone, staffId, task, eventType) {
   const staffName = task.staff?.name || task.assigned_staff?.name || 'Staff';
   const roomNum   = task.rooms?.room_number || '?';
+  const time      = new Date().toLocaleTimeString('en-IN', {
+    hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'Asia/Kolkata',
+  });
 
-  try {
-    // ── 1. ANTI-SPAM LOGIC ──────────────────────────────────
-    // Don't send push if user was active in the app within last 2 minutes
-    const { data: staff } = await supabase
-      .from('staff')
-      .select('last_seen')
-      .eq('id', staffId)
-      .single();
-    
-    const now = Date.now();
-    const lastSeen = staff?.last_seen ? new Date(staff.last_seen).getTime() : 0;
-    const isUserActive = (now - lastSeen) < 120000; // 2 minutes
-
-    if (!isUserActive) {
-      // ── 2. FCM PUSH LOGIC ─────────────────────────────────
-      const { data: devices } = await supabase
-        .from('staff_devices')
-        .select('fcm_token')
-        .eq('staff_id', staffId);
-
-      if (devices && devices.length > 0) {
-        const tokens = devices.map(d => d.fcm_token);
-        const payload = {
-          notification: {
-            title: eventType === 'escalated' ? '🔴 Priority Alert' : '🔔 New Task Assigned',
-            body: `Room ${roomNum}: ${task.task_type}`,
-          },
-          data: {
-            taskId: String(task.id),
-            taskCode: task.task_code,
-            type: eventType
-          },
-          tokens
-        };
-
-        const response = await messaging.sendEachForMulticast(payload);
-        console.log(`[Push Server] Sent to ${response.successCount} devices for staff ${staffId}`);
-        
-        // Clean up stale tokens
-        if (response.failureCount > 0) {
-          response.responses.forEach(async (resp, idx) => {
-            if (!resp.success && (resp.error.code === 'messaging/registration-token-not-registered' || resp.error.code === 'messaging/invalid-registration-token')) {
-              await supabase.from('staff_devices').delete().eq('fcm_token', tokens[idx]);
-            }
-          });
-        }
-      }
+  // ── STEP 1: Send SMS synchronously (always, guaranteed delivery) ────────────
+  // This is the primary and most reliable notification path.
+  let smsResult = { success: false, error: 'not_attempted' };
+  if (toPhone && toPhone !== 'N/A') {
+    try {
+      smsResult = await sendSMS(toPhone, {
+        task_id:    task.id,
+        task_code:  task.task_code,
+        staff_name: staffName,
+        room:       roomNum,
+        task_type:  task.task_type,
+        notes:      task.notes,
+        time,
+      });
+    } catch (smsErr) {
+      console.error('[Notify] SMS send threw an exception:', smsErr.message);
+      smsResult = { success: false, error: smsErr.message };
     }
-
-    // ── 3. FAIL-SAFE FALLBACK (30s Delay) ────────────────────
-    // If no acknowledgement in 30 seconds, send SMS.
-    // In serverless environments (Vercel), we recommend using a 
-    // separate worker or cron, but for this implementation we simulate
-    // with a deferred check if your environment supports prolonged processes.
-    setTimeout(async () => {
-      try {
-        const { data: currentTask } = await supabase
-          .from('tasks')
-          .select('status, acknowledged_at')
-          .eq('id', task.id)
-          .single();
-        
-        // Final sanity check before firing SMS
-        const isCompleted = currentTask?.status === 'completed';
-        const isAcked     = currentTask?.status !== 'pending' || !!currentTask?.acknowledged_at;
-        
-        if (!isAcked && !isCompleted) {
-          console.warn(`[Fail-Safe] Task ${task.task_code} NOT ACKNOWLEDGED after 30s. Triggering SMS Fallback.`);
-          await sendSMS(toPhone, {
-            ...task,
-            staff_name: staffName,
-            room: roomNum,
-            time: new Date().toLocaleTimeString(),
-          });
-        }
-      } catch (e) {
-        console.error('[Fail-Safe] Error in timeout check:', e.message);
-      }
-    }, 30000);
-
-  } catch (err) {
-    console.error('[Push Admin] Critical Failure:', err.message);
-    // On Push failure, fire SMS immediately to ensure guest service isn't delayed
-    await sendSMS(toPhone, {
-       ...task,
-       staff_name: staffName,
-       room: roomNum,
-       time: new Date().toLocaleTimeString(),
-    });
+  } else {
+    console.warn(`[Notify] No valid phone number for staff ${staffId} (task ${task.task_code}). SMS skipped.`);
+    // Log the skip to sms_logs for observability
+    try {
+      await supabase.from('sms_logs').insert({
+        task_id:    task.id,
+        task_code:  task.task_code,
+        event_type: 'error',
+        status:     'skipped',
+        message:    `SMS skipped: no valid phone number for staffId=${staffId}`,
+      });
+    } catch (_) {}
   }
+
+  // ── STEP 2: Attempt FCM Push as a bonus (fire-and-forget) ──────────────────
+  // This does NOT block the caller. Push failure is logged but does not re-trigger SMS.
+  // Staff has already been notified via SMS in Step 1.
+  if (messaging && staffId) {
+    // Non-blocking: use .then/.catch to avoid blocking the calling API route
+    (async () => {
+      try {
+        const { data: devices } = await supabase
+          .from('staff_devices')
+          .select('fcm_token')
+          .eq('staff_id', staffId);
+
+        if (devices && devices.length > 0) {
+          const tokens = devices.map(d => d.fcm_token).filter(Boolean);
+          if (tokens.length === 0) return;
+
+          const payload = {
+            notification: {
+              title: eventType === 'escalated' ? '🔴 Priority Alert' : '🔔 New Task Assigned',
+              body:  `Room ${roomNum}: ${task.task_type}`,
+            },
+            data: {
+              taskId:   String(task.id),
+              taskCode: task.task_code,
+              type:     eventType,
+            },
+            tokens,
+          };
+
+          const response = await messaging.sendEachForMulticast(payload);
+          console.log(`[Push] Sent to ${response.successCount}/${tokens.length} devices for staff ${staffId} (task ${task.task_code})`);
+
+          // Clean up stale/invalid tokens
+          if (response.failureCount > 0) {
+            const staleTokens = [];
+            response.responses.forEach((resp, idx) => {
+              if (
+                !resp.success &&
+                (resp.error?.code === 'messaging/registration-token-not-registered' ||
+                  resp.error?.code === 'messaging/invalid-registration-token')
+              ) {
+                staleTokens.push(tokens[idx]);
+              }
+            });
+            if (staleTokens.length > 0) {
+              await supabase
+                .from('staff_devices')
+                .delete()
+                .in('fcm_token', staleTokens);
+              console.log(`[Push] Cleaned up ${staleTokens.length} stale FCM token(s)`);
+            }
+          }
+        }
+      } catch (pushErr) {
+        // Push failure is expected in many environments (no tokens, expired keys, etc.)
+        // This is logged for observability but does NOT affect SMS delivery.
+        console.warn(`[Push] FCM push failed for staff ${staffId} (task ${task.task_code}): ${pushErr.message}`);
+      }
+    })();
+  }
+
+  return smsResult;
 }
