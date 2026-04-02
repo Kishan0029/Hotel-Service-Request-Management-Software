@@ -619,7 +619,10 @@ export default function GmDashboard() {
                   delayedByHighestBreach.map((t, idx) => (
                     <div key={t.id} className={`gm-list-item ${idx === 0 ? 'gm-item-critical-hero' : t.escalation_level >= 2 ? 'gm-item-critical' : t.escalation_level === 1 ? 'gm-item-escalated' : 'gm-item-delayed'}`}>
                       <div className="gm-item-header">
-                        <strong>Room {t.rooms?.room_number}</strong>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                          <strong>Room {t.rooms?.room_number}</strong>
+                          {idx === 0 && <span className="gm-top-priority-badge">TOP PRIORITY</span>}
+                        </div>
                         <span className="sla-delayed">+{delayMins(t)}m over SLA</span>
                       </div>
                       <div className="gm-item-body">
