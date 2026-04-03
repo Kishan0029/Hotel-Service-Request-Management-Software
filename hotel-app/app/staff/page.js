@@ -359,12 +359,6 @@ export default function StaffDashboard() {
     setTasks(prev => prev.map(t => t.id === updatedTask.id ? updatedTask : t));
   };
 
-  const logout = () => { 
-    if (window.confirm('Are you sure you want to log out?')) {
-      localStorage.removeItem('currentUser'); router.push('/login'); 
-    }
-  };
-
   if (!user || loading) {
     return (
       <div className="login-shell">
@@ -404,9 +398,6 @@ export default function StaffDashboard() {
           <div className="header-actions">
             <button className="btn btn-ghost btn-sm" onClick={() => loadTasks()} data-testid="staff-refresh-btn" aria-label="Refresh tasks">
               <RefreshCw size={14} />
-            </button>
-            <button className="btn btn-ghost btn-sm desktop-only" onClick={logout}>
-              <LogOut size={13} /> Logout
             </button>
           </div>
         </header>

@@ -708,7 +708,7 @@ export default function DashboardPage() {
     if (task.sms_status) setSmsStatus(prev => ({ ...prev, [task.id]: task.sms_status }));
   };
 
-  const logout = () => { localStorage.removeItem('currentUser'); router.push('/login'); };
+
 
   /* ── Derived data (V4) ───────────────────────────────────── */
   // Supervisors in current user's dept (for manager to assign)
@@ -774,9 +774,6 @@ export default function DashboardPage() {
           <span style={{ fontWeight: 600 }}>{currentUser?.name}</span>
           {currentUser?.department_id && <span className="td-muted td-dept-label">{departments.find(d => d.id === currentUser.department_id)?.name}</span>}
           <div className="role-spacer"></div>
-          <button className="logout-btn desktop-only" onClick={logout}>
-            <LogOut size={13} /> Logout
-          </button>
         </div>
 
         <header className="page-header">

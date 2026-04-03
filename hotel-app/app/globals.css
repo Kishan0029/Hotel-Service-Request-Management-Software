@@ -3676,10 +3676,11 @@ tbody tr.row-complaint {
     background: var(--border) !important;
   }
 
-  /* Page header: fixed height, right-padding reserves space for the toggle */
+  /* Page header: min-height ensures toggle matches perfectly when single-line, but allows multiline title wrapping */
   .page-header {
-    height: 58px !important;
-    padding: 0 66px 0 16px !important; /* right: 58px toggle + 8px gap */
+    height: auto !important;
+    min-height: 58px !important;
+    padding: 10px 66px 10px 16px !important; /* right: 58px toggle + 8px gap */
     display: flex !important;
     flex-direction: row !important;
     align-items: center !important;

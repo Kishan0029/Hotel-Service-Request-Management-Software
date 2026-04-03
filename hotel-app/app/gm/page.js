@@ -360,13 +360,6 @@ export default function GmDashboard() {
     return () => clearInterval(id);
   }, [user, loadData]);
 
-  const logout = () => {
-    if (window.confirm('Are you sure you want to log out?')) {
-      localStorage.removeItem('currentUser');
-      router.push('/login');
-    }
-  };
-
   const handleCreated = (task) => {
     setTasks(prev => [task, ...prev]);
   };
@@ -460,9 +453,6 @@ export default function GmDashboard() {
         <div className="role-bar">
           <span style={{ fontWeight: 600 }}>{user.name}</span>
           <div className="role-spacer" />
-          <button className="btn btn-ghost btn-sm desktop-only" onClick={logout}>
-            <LogOut size={13} /> Logout
-          </button>
         </div>
 
         <header className="page-header">
