@@ -301,9 +301,11 @@ export async function POST(request) {
       .single();
 
     if (assignedPerson && assignedPerson.phone_number && assignedPerson.phone_number !== 'N/A') {
-      // notifyStaffWithFallback now sends SMS synchronously first, then push as a bonus
-      await notifyStaffWithFallback(assignedPerson.phone_number, assignedPerson.id, data, 'assigned');
-      sms_status = 'sms_sent';
+      // notifyStaffWithFallback now sends SMS synchronously first, then push as a bonus.
+      // FIX 4: Use the actual result — sms_status was always 'sms_sent' even on Twilio failure.
+      const notifyResult = await notifyStaffWithFallback(assignedPerson.phone_number, assignedPerson.id, data, 'assigned');
+      sms_status = notifyResult?.success ? 'sms_sent' : 'sms_failed';
+      console.log(`[POST /tasks] SMS dispatch result for task ${data.task_code}: ${sms_status}`);
     } else {
       await supabase.from('sms_logs').insert({
         task_id: data.id, task_code: data.task_code,

@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabaseClient';
 import { sendSMS } from '@/lib/sms';
+import twilio from 'twilio';
 
 /**
  * POST /api/sms-reply
@@ -85,15 +86,21 @@ export async function POST(request) {
         note: 'Could not parse command or task ID from message',
       });
 
-      // Send error SMS back to the sender explaining valid commands (Fix 4)
+      // FIX 2: Send a raw Twilio message for error replies — NOT via sendSMS.
+      // sendSMS builds the full HOTEL TASK ALERT template body, which renders garbled
+      // messages like "OK undefined — Acknowledge" when task_code is not available.
       if (senderPhone) {
         try {
-          // sendSMS expects (phone, { task_id, task_code, ..., notes })
-          await sendSMS(senderPhone, { 
-            staff_name: 'Staff', 
-            task_type: 'Invalid Command', 
-            notes: 'Use OK T123, START T123, or DONE T123' 
+          const twilioClient = twilio(
+            process.env.TWILIO_ACCOUNT_SID,
+            process.env.TWILIO_AUTH_TOKEN
+          );
+          await twilioClient.messages.create({
+            body: 'HOTEL SYSTEM: Invalid reply format.\n\nValid commands:\nOK T123 — Acknowledge\nSTART T123 — Begin Work\nDONE T123 — Mark Complete\n\n(Replace 123 with your task number)',
+            from: process.env.TWILIO_PHONE_NUMBER,
+            to:   senderPhone,
           });
+          console.log(`[SMS Webhook] Sent invalid-command help SMS to ${senderPhone}`);
         } catch (smsErr) {
           console.error('[SMS Webhook] Failed to send error SMS back to sender:', smsErr.message);
         }
@@ -113,9 +120,11 @@ export async function POST(request) {
     const task_code = `T${taskId}`;
 
     // ── Look up the task ──────────────────────────────────────
+    // FIX 6 (minor): escalation_level added — was missing, causing completed_after_escalation
+    // to always write false (undefined > 0 === false) for SMS-completed tasks.
     const { data: task, error: fetchError } = await supabase
       .from('tasks')
-      .select('id, task_code, status, current_level, assigned_staff:staff!assigned_to(phone_number)')
+      .select('id, task_code, status, current_level, escalation_level, assigned_staff:staff!assigned_to(phone_number)')
       .eq('id', taskId)
       .single();
 

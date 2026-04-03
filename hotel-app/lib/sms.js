@@ -174,10 +174,31 @@ const client = twilio(
 
 export async function sendSMS(to, taskDetails) {
   const { task_id, task_code, staff_name, room, task_type, time, assigned_staff_name, supervisor_name, notes } = taskDetails;
-  let targetPhone = to;
+
+  // ── FIX 1: Phone validation guard — must run BEFORE any string operations ──
+  // Prevents TypeError crash if `to` is null/undefined/non-string (e.g. DB returns null).
+  // Without this guard, .length and .startsWith() below throw before the try/catch,
+  // silently bypassing all SMS logging.
+  if (!to || typeof to !== 'string' || to.trim() === '' || to === 'N/A') {
+    const errMsg = `[SMS] sendSMS called with invalid phone: "${to}" (task: ${task_code ?? 'unknown'})`;
+    console.error(errMsg);
+    await logSMS({
+      task_id:    task_id    ?? null,
+      task_code:  task_code  ?? null,
+      event_type: 'error',
+      status:     'failed',
+      phone:      String(to ?? ''),
+      message:    errMsg,
+    });
+    return { success: false, error: errMsg };
+  }
+
+  let targetPhone = to.trim();
   // Basic E.164 formatting fallback for India
-  if (targetPhone.length === 10 && !targetPhone.startsWith('+')) targetPhone = `+91${targetPhone}`;
-  else if (!targetPhone.startsWith('+')) targetPhone = `+${targetPhone}`;
+  const digits = targetPhone.replace(/\D/g, '');
+  if (digits.length === 10) targetPhone = `+91${digits}`;
+  else if (digits.length === 12 && digits.startsWith('91')) targetPhone = `+${digits}`;
+  else if (!targetPhone.startsWith('+')) targetPhone = `+${digits}`;
 
   let alertDetails = `Attn: ${staff_name}\nRoom: ${room}\nTask: ${task_type}`;
   if (notes) alertDetails += `\nRequirement: ${notes}`;

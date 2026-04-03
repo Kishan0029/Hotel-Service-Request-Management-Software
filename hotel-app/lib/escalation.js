@@ -129,9 +129,52 @@ async function escalateTask(task, elapsedMinutes, newLevel) {
     return { task_id, task_code, level: newLevel, escalated_to: 'gm' };
   }
 
+  // FIX 3: Invalid phone must NOT kill escalation silently.
+  // Instead, fall through to the next level in the chain (supervisor → manager → GM).
   if (!isValidPhone(target.phone_number)) {
-    console.warn(`[Escalation] ${targetRole} ${target.name} has invalid phone (task ${task_code})`);
-    return null;
+    console.warn(`[Escalation] ${targetRole} ${target.name} has invalid phone "${target.phone_number}" (task ${task_code}) — attempting next fallback`);
+    await supabase.from('sms_logs').insert({
+      task_id, task_code,
+      event_type: 'escalation_fallback', status: 'warning',
+      message: `invalid_phone_${targetRole}_trying_next`,
+      raw_payload: { phone: target.phone_number, name: target.name, targetRole },
+    }).catch(() => {});
+
+    // Try the next level if we haven't reached manager yet
+    if (targetRole === 'supervisor') {
+      const managerTarget = await findStaff(department_id, 'manager');
+      if (managerTarget && isValidPhone(managerTarget.phone_number)) {
+        target     = managerTarget;
+        targetRole = 'manager';
+        console.log(`[Escalation] Fell back to manager ${managerTarget.name} (task ${task_code}) due to invalid supervisor phone`);
+      } else {
+        // Supervisor invalid, manager not found or also invalid → GM log
+        console.warn(`[Escalation] Manager also unavailable. Escalating task ${task_code} to GM via activity log`);
+        const { data: gmUpd, error: gmErr } = await supabase
+          .from('tasks')
+          .update({ escalation_level: newLevel, escalated_at: new Date().toISOString() })
+          .eq('id', task_id)
+          .eq('escalation_level', newLevel - 1)
+          .select('id');
+        if (gmErr || !gmUpd || gmUpd.length === 0) return null;
+        const { data: tgm } = await supabase.from('tasks').select('activity_log').eq('id', task_id).single();
+        const glog = Array.isArray(tgm?.activity_log) ? tgm.activity_log : [];
+        const glog_updated = [...glog, { event: 'escalated', by: 'System', level: newLevel, to: 'General Manager (phone fallback)', time: new Date().toISOString() }];
+        await supabase.from('tasks').update({ activity_log: JSON.stringify(glog_updated) }).eq('id', task_id);
+        await supabase.from('sms_logs').insert({
+          task_id, task_code,
+          event_type: 'escalation', status: 'sent',
+          message: 'gm_fallback_invalid_phone_chain',
+          raw_payload: { department_id, escalated_to: 'gm', elapsed_minutes: Math.round(elapsedMinutes) },
+        }).catch(() => {});
+        console.log(`[Escalation] L${newLevel} — task ${task_code} escalated to GM (phone fallback chain exhausted)`);
+        return { task_id, task_code, level: newLevel, escalated_to: 'General Manager (phone fallback)' };
+      }
+    } else {
+      // Manager-level invalid phone → GM is UI-only, nothing more to send
+      console.warn(`[Escalation] Manager phone invalid for task ${task_code} — no further SMS escalation possible`);
+      return null;
+    }
   }
 
   // Atomically update escalation level

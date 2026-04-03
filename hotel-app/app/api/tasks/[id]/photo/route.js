@@ -124,6 +124,51 @@ export async function POST(request, { params }) {
     if (fetchErr) {
        return Response.json({ error: fetchErr.message }, { status: 500 });
     }
+
+    // FIX 5: Notify supervisor when a MOD task is completed via after-photo.
+    // Previously sendSMS was imported but never called here — supervisor had no visibility
+    // of photo-completed tasks via SMS, only via UI.
+    if (photoType === 'after' && task) {
+      try {
+        const { data: sup } = await supabase
+          .from('staff')
+          .select('name, phone_number')
+          .eq('department_id', current.department_id)
+          .eq('role', 'supervisor')
+          .eq('is_active', true)
+          .limit(1)
+          .single();
+
+        if (sup && sup.phone_number && sup.phone_number !== 'N/A') {
+          const completedTime = new Date().toLocaleTimeString('en-IN', {
+            hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'Asia/Kolkata',
+          });
+          await sendSMS(sup.phone_number, {
+            task_id:    current.id,
+            task_code:  current.task_code,
+            staff_name: sup.name,
+            room:       task.rooms?.room_number ?? '?',
+            task_type:  task.task_type ?? 'Task',
+            notes:      'Completed via photo upload',
+            time:       completedTime,
+          });
+          console.log(`[Photo Complete] Supervisor SMS sent to ${sup.phone_number} for task ${current.task_code}`);
+        } else {
+          console.warn(`[Photo Complete] No active supervisor with valid phone for dept ${current.department_id} (task ${current.task_code})`);
+          await supabase.from('sms_logs').insert({
+            task_id:    current.id,
+            task_code:  current.task_code,
+            event_type: 'error',
+            status:     'skipped',
+            message:    `Supervisor photo-completion SMS skipped: no valid supervisor phone for dept ${current.department_id}`,
+          }).catch(() => {});
+        }
+      } catch (supSmsErr) {
+        // Never let supervisor notification failure break the photo upload response
+        console.error('[Photo Complete] Supervisor SMS failed:', supSmsErr.message);
+      }
+    }
+
     return Response.json({ url: publicUrl, task });
 
   } catch (err) {
