@@ -149,7 +149,7 @@ export default function Sidebar() {
           </div>
         ))}
         {/* Logout at bottom */}
-        <div style={{ marginTop: 'auto', padding: '16px 20px 60px', borderTop: '1px solid var(--sidebar-border)' }}>
+        <div style={{ marginTop: 'auto', padding: '16px 20px 8px', borderTop: '1px solid var(--sidebar-border)' }}>
           <button 
             className="sidebar-link" 
             onClick={logout}

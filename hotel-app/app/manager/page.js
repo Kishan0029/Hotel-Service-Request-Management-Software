@@ -710,6 +710,12 @@ export default function ManagerDashboard() {
     finally { setActionLoading(prev => ({ ...prev, [taskId]: null })); }
   };
 
+  const logout = () => { 
+    if (window.confirm('Are you sure you want to log out?')) {
+      localStorage.removeItem('currentUser'); router.push('/login'); 
+    }
+  };
+
   if (!user || loading) {
     return (
       <div className="login-shell">
@@ -770,6 +776,9 @@ export default function ManagerDashboard() {
             </button>
             <button className="btn btn-ghost btn-sm" onClick={() => loadData()} aria-label="Refresh">
               <RefreshCw size={14} />
+            </button>
+            <button className="btn btn-ghost btn-sm desktop-only" onClick={logout}>
+              <LogOut size={13} /> Logout
             </button>
           </div>
         </header>

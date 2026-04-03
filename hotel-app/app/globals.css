@@ -3566,37 +3566,32 @@ tbody tr.row-complaint {
   display: none;
 }
 
-/* ──────────────────────────────────────────
-   MOBILE SIDEBAR TOGGLE — base styles
-   Visually controlled entirely inside @media (max-width: 768px).
-   This base rule sets display:none so it never shows on desktop.
-────────────────────────────────────────── */
 .mobile-sidebar-toggle {
-  display: none; /* hidden on desktop — overridden to flex inside media query */
   position: fixed;
-  top: 0;
-  right: 0;
-  width: 58px;
-  height: 58px;
-  border-radius: 0;
-  background: var(--surface);
-  color: var(--primary);
+  top: 15px;
+  right: 15px;
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  background: var(--primary);
+  color: #fff;
   border: none;
-  border-left: 1px solid var(--border);
-  box-shadow: none;
-  z-index: 100001;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+  z-index: 1000;
+  display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: background 0.15s ease;
+  transition: all 0.2s ease;
 }
 
 .mobile-sidebar-toggle:hover {
-  background: var(--bg);
+  background: var(--primary-hover);
+  transform: translateY(-1px);
 }
 
 .mobile-sidebar-toggle:active {
-  transform: scale(0.93);
+  transform: scale(0.94);
 }
 
 .desktop-only {
@@ -3634,6 +3629,32 @@ tbody tr.row-complaint {
     margin-left: 0 !important;
   }
 
+  .page-header {
+    height: auto !important;
+    padding: 12px 16px !important;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 12px !important;
+    background: var(--surface) !important;
+    border-bottom: 1px solid var(--border) !important;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 1000 !important;
+  }
+
+  .header-brand {
+    flex: 1 !important;
+    min-width: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+  }
+
+  .header-brand > div {
+    min-width: 0 !important;
+  }
 
   .header-title {
     font-size: 0.9rem !important;
@@ -3642,76 +3663,41 @@ tbody tr.row-complaint {
     text-overflow: ellipsis !important;
   }
 
-  /* ── Sidebar toggle — EMBEDDED in header right edge ──
-   * position: fixed + top:0 + right:0 + height matching the header
-   * = visually indistinguishable from an inline header button.
-   * No border-radius, no shadow, surface background, left divider.
-   */
   .mobile-sidebar-toggle.mobile-only {
     display: flex !important;
     position: fixed !important;
-    top: 0 !important;
-    right: 0 !important;
-    left: auto !important;
-    width: 58px !important;
-    height: 58px !important;           /* matches .page-header height below */
+    top: 7px !important;
+    right: 7px !important;
+    z-index: 100000 !important;
+    width: 44px !important;
+    height: 44px !important;
     background: var(--surface) !important;
-    color: var(--primary) !important;
-    border: none !important;
-    border-left: 1px solid var(--border) !important;
-    border-radius: 0 !important;
-    box-shadow: none !important;
-    z-index: 100001 !important;        /* above sticky header (z-index:1000) */
+    border: 1px solid var(--border) !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
+    border-radius: 10px !important;
     justify-content: center !important;
     align-items: center !important;
-    cursor: pointer !important;
-    transition: background 0.15s ease !important;
   }
 
-  .mobile-sidebar-toggle.mobile-only:hover {
-    background: var(--bg) !important;
-  }
-
-  .mobile-sidebar-toggle.mobile-only:active {
-    background: var(--border) !important;
-  }
-
-  /* Page header: min-height ensures toggle matches perfectly when single-line, but allows multiline title wrapping */
+  /* Reset header row for cleaner mobile stack */
   .page-header {
     height: auto !important;
-    min-height: 58px !important;
-    padding: 10px 66px 10px 16px !important; /* right: 58px toggle + 8px gap */
+    padding: 14px 16px !important;
     display: flex !important;
-    flex-direction: row !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-    gap: 10px !important;
-    background: var(--surface) !important;
-    border-bottom: 1px solid var(--border) !important;
-    position: sticky !important;
-    top: 0 !important;
-    z-index: 1000 !important;
-  }
-
-  /* Header brand: shrinkable, naturally left-aligned */
-  .header-brand {
-    flex: 1 !important;
-    min-width: 0 !important;
-    display: flex !important;
-    align-items: center !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    justify-content: flex-start !important;
     gap: 8px !important;
-    padding-right: 0 !important;
+    position: relative !important;
+    z-index: 50 !important;
   }
 
-  .header-brand > div {
-    min-width: 0 !important;
+  .header-brand {
+    padding-right: 50px !important; /* Always avoid toggle */
   }
 
-  /* Header action buttons (e.g. "Add Staff", refresh icons) — visible, flex-shrink:0 */
   .header-actions {
-    display: flex !important;
-    flex-shrink: 0 !important;
-    gap: 6px !important;
+    display: none !important;
   }
 
   .page-body {
@@ -3742,9 +3728,8 @@ tbody tr.row-complaint {
   }
 }
 
-
-/* ── Staff Specific Refinements (mobile) ── */
-@media (max-width: 768px) {
+/* ── Staff Specific Refinements ── */
+/* ── Staff Specific Refinements ── */
   .staff-header {
     display: flex !important;
     flex-direction: row !important;
