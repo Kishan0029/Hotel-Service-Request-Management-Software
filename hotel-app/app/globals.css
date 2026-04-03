@@ -3567,32 +3567,32 @@ tbody tr.row-complaint {
 }
 
 /* ──────────────────────────────────────────
-   MOBILE SIDEBAR TOGGLE — base (non-mobile)
-   Hidden by default via .mobile-only rule
+   MOBILE SIDEBAR TOGGLE — base styles
+   Visually controlled entirely inside @media (max-width: 768px).
+   This base rule sets display:none so it never shows on desktop.
 ────────────────────────────────────────── */
 .mobile-sidebar-toggle {
+  display: none; /* hidden on desktop — overridden to flex inside media query */
   position: fixed;
-  top: 12px;
-  left: 12px;
-  width: 44px;
-  height: 44px;
-  border-radius: 10px;
-  background: var(--primary);
-  color: #fff;
+  top: 0;
+  right: 0;
+  width: 58px;
+  height: 58px;
+  border-radius: 0;
+  background: var(--surface);
+  color: var(--primary);
   border: none;
-  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
-  z-index: 1000;
-  display: flex;
+  border-left: 1px solid var(--border);
+  box-shadow: none;
+  z-index: 100001;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: background 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+  transition: background 0.15s ease;
 }
 
 .mobile-sidebar-toggle:hover {
-  background: var(--primary-hover);
-  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.45);
-  transform: translateY(-1px);
+  background: var(--bg);
 }
 
 .mobile-sidebar-toggle:active {
@@ -3634,32 +3634,6 @@ tbody tr.row-complaint {
     margin-left: 0 !important;
   }
 
-  .page-header {
-    height: auto !important;
-    padding: 12px 16px !important;
-    display: flex !important;
-    flex-direction: row !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-    gap: 12px !important;
-    background: var(--surface) !important;
-    border-bottom: 1px solid var(--border) !important;
-    position: sticky !important;
-    top: 0 !important;
-    z-index: 1000 !important;
-  }
-
-  .header-brand {
-    flex: 1 !important;
-    min-width: 0 !important;
-    display: flex !important;
-    align-items: center !important;
-    gap: 8px !important;
-  }
-
-  .header-brand > div {
-    min-width: 0 !important;
-  }
 
   .header-title {
     font-size: 0.9rem !important;
@@ -3668,29 +3642,44 @@ tbody tr.row-complaint {
     text-overflow: ellipsis !important;
   }
 
-  /* ── Mobile sidebar toggle: LEFT side, primary color ── */
+  /* ── Sidebar toggle — EMBEDDED in header right edge ──
+   * position: fixed + top:0 + right:0 + height matching the header
+   * = visually indistinguishable from an inline header button.
+   * No border-radius, no shadow, surface background, left divider.
+   */
   .mobile-sidebar-toggle.mobile-only {
     display: flex !important;
     position: fixed !important;
-    top: 10px !important;
-    left: 12px !important;          /* LEFT — away from header action buttons on the right */
-    right: auto !important;
-    z-index: 100000 !important;
-    width: 44px !important;
-    height: 44px !important;
-    background: var(--primary) !important;
-    color: #fff !important;
+    top: 0 !important;
+    right: 0 !important;
+    left: auto !important;
+    width: 58px !important;
+    height: 58px !important;           /* matches .page-header height below */
+    background: var(--surface) !important;
+    color: var(--primary) !important;
     border: none !important;
-    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3) !important;
-    border-radius: 10px !important;
+    border-left: 1px solid var(--border) !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    z-index: 100001 !important;        /* above sticky header (z-index:1000) */
     justify-content: center !important;
     align-items: center !important;
+    cursor: pointer !important;
+    transition: background 0.15s ease !important;
   }
 
-  /* Page header: one clean rule — row layout, left padding clears the toggle */
+  .mobile-sidebar-toggle.mobile-only:hover {
+    background: var(--bg) !important;
+  }
+
+  .mobile-sidebar-toggle.mobile-only:active {
+    background: var(--border) !important;
+  }
+
+  /* Page header: fixed height, right-padding reserves space for the toggle */
   .page-header {
-    height: auto !important;
-    padding: 10px 16px 10px 66px !important; /* 66px left = toggle(44px) + gap(12px) + buffer(10px) */
+    height: 58px !important;
+    padding: 0 66px 0 16px !important; /* right: 58px toggle + 8px gap */
     display: flex !important;
     flex-direction: row !important;
     align-items: center !important;
@@ -3700,27 +3689,28 @@ tbody tr.row-complaint {
     border-bottom: 1px solid var(--border) !important;
     position: sticky !important;
     top: 0 !important;
-    z-index: 1000 !important;       /* below toggle (100000) but above page body */
+    z-index: 1000 !important;
   }
 
-  /* Header brand: allow it to shrink; no extra right padding needed now toggle is on LEFT */
+  /* Header brand: shrinkable, naturally left-aligned */
   .header-brand {
     flex: 1 !important;
     min-width: 0 !important;
     display: flex !important;
     align-items: center !important;
     gap: 8px !important;
-    padding-right: 0 !important;    /* reset — toggle is no longer on the right */
+    padding-right: 0 !important;
   }
 
   .header-brand > div {
     min-width: 0 !important;
   }
 
-  /* Header action buttons stay visible on right (e.g. "Add Staff") */
+  /* Header action buttons (e.g. "Add Staff", refresh icons) — visible, flex-shrink:0 */
   .header-actions {
     display: flex !important;
     flex-shrink: 0 !important;
+    gap: 6px !important;
   }
 
   .page-body {
