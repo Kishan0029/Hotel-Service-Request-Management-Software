@@ -3673,15 +3673,15 @@ tbody tr.row-complaint {
   .mobile-sidebar-toggle.mobile-only {
     display: flex !important;
     position: fixed !important;
-    top: 7px !important;
-    right: 7px !important;
+    top: 16px !important;
+    right: 16px !important;
     z-index: 100000 !important;
-    width: 44px !important;
-    height: 44px !important;
-    background: var(--surface) !important;
-    border: 1px solid var(--border) !important;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
-    border-radius: 10px !important;
+    width: 32px !important;
+    height: 32px !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    color: var(--text-primary) !important;
     justify-content: center !important;
     align-items: center !important;
   }
