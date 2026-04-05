@@ -69,8 +69,11 @@
 }
 
 html {
-  font-size: 14px;
+  font-size: 16px;
   -webkit-text-size-adjust: 100%;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 body {
@@ -80,6 +83,9 @@ body {
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 h1,
@@ -314,7 +320,8 @@ textarea {
 }
 
 .page-body {
-  padding: 28px 28px;
+  padding: 16px;
+  padding-bottom: 32px; /* Safe mobile padding bottom */
   flex: 1;
 }
 
@@ -3737,7 +3744,6 @@ tbody tr.row-complaint {
     justify-content: space-between !important;
     padding: 10px 16px !important;
   }
-}
 
 @media (min-width: 769px) {
   .sticky-stats-bar {
