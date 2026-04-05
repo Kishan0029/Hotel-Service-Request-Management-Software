@@ -155,8 +155,8 @@ export default function Sidebar() {
             </nav>
           </div>
         ))}
-        {/* Logout at bottom */}
-        <div style={{ marginTop: 'auto', padding: '16px 20px 8px', borderTop: '1px solid var(--sidebar-border)' }}>
+        {/* Logout right under options */}
+        <div style={{ padding: '4px 8px', marginTop: '4px' }}>
           <button 
             className="sidebar-link" 
             onClick={logout}
@@ -165,9 +165,11 @@ export default function Sidebar() {
             <LogOut size={16} />
             <span>Logout</span>
           </button>
-          <div style={{ padding: '10px 10px 6px', fontSize: '0.62rem', color: 'var(--text-muted)', letterSpacing: '0.02em' }}>
-            Developed by Nextverse
-          </div>
+        </div>
+
+        {/* Footer at bottom */}
+        <div style={{ marginTop: 'auto', padding: '16px 20px 8px', fontSize: '0.62rem', color: 'var(--text-muted)', letterSpacing: '0.02em', textAlign: 'center' }}>
+          Developed by Nextverse
         </div>
       </aside>
 
