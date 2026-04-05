@@ -547,40 +547,44 @@ function ManagerTaskCard({ task, currentUser, onAction, onAssign, actionLoading,
         </div>
       )}
 
-      {/* Assign dropdown — supervisors + staff */}
-      {task.status !== 'completed' && canAssign && hasAssignees && (
-        <select
-          className="reassign-select"
-          value=""
-          onChange={handleAssignSelect}
-          disabled={busy}
-          data-testid={`manager-assign-${task.id}`}
-        >
-          <option value="">→ {currentUser?.role === 'manager' ? 'Reassign to…' : 'Assign to…'}</option>
-          {supervisors.filter(s => String(s.id) !== String(task.assigned_to)).length > 0 && (
-            <optgroup label="Supervisors">
-              {supervisors
-                .filter(s => String(s.id) !== String(task.assigned_to))
-                .map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-            </optgroup>
-          )}
-          {deptStaff.filter(s => String(s.id) !== String(task.assigned_to)).length > 0 && (
-            <optgroup label="Staff">
-              {deptStaff
-                .filter(s => String(s.id) !== String(task.assigned_to))
-                .map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-            </optgroup>
-          )}
-        </select>
-      )}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginTop: '10px' }}>
+        {/* Assign dropdown — supervisors + staff */}
+        {task.status !== 'completed' && canAssign && hasAssignees && (
+          <select
+            className="reassign-select"
+            value=""
+            onChange={handleAssignSelect}
+            disabled={busy}
+            data-testid={`manager-assign-${task.id}`}
+            style={{ marginTop: 0 }}
+          >
+            <option value="">→ {currentUser?.role === 'manager' ? 'Reassign to…' : 'Assign to…'}</option>
+            {supervisors.filter(s => String(s.id) !== String(task.assigned_to)).length > 0 && (
+              <optgroup label="Supervisors">
+                {supervisors
+                  .filter(s => String(s.id) !== String(task.assigned_to))
+                  .map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+              </optgroup>
+            )}
+            {deptStaff.filter(s => String(s.id) !== String(task.assigned_to)).length > 0 && (
+              <optgroup label="Staff">
+                {deptStaff
+                  .filter(s => String(s.id) !== String(task.assigned_to))
+                  .map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+              </optgroup>
+            )}
+          </select>
+        )}
 
-      <button
-        className="activity-toggle"
-        onClick={() => setExpandedId(expanded ? null : task.id)}
-        data-testid={`manager-expand-${task.id}`}
-      >
-        <History size={11} /> {expanded ? 'Hide' : 'History'} {expanded ? <ChevronUp size={11}/> : <ChevronDown size={11}/>}
-      </button>
+        <button
+          className="activity-toggle"
+          onClick={() => setExpandedId(expanded ? null : task.id)}
+          data-testid={`manager-expand-${task.id}`}
+          style={{ marginTop: 0 }}
+        >
+          <History size={13} /> {expanded ? 'Hide History' : 'History'} {expanded ? <ChevronUp size={12}/> : <ChevronDown size={12}/>}
+        </button>
+      </div>
 
       {expanded && Array.isArray(task.activity_log) && task.activity_log.length > 0 && (
         <div className="activity-log">
