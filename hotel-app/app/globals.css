@@ -3672,7 +3672,7 @@ tbody tr.row-complaint {
 
   .mobile-sidebar-toggle.mobile-only {
     display: flex !important;
-    position: fixed !important;
+    position: absolute !important;
     top: 16px !important;
     right: 16px !important;
     z-index: 100000 !important;
