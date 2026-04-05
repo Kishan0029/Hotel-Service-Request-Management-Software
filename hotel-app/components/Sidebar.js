@@ -98,6 +98,13 @@ export default function Sidebar() {
     setMobileOpen(false);
   }, [pathname]);
 
+  // Global trigger for mobile sidebar
+  useEffect(() => {
+    const handleOpen = () => setMobileOpen(true);
+    window.addEventListener('openSidebar', handleOpen);
+    return () => window.removeEventListener('openSidebar', handleOpen);
+  }, []);
+
   const navItems = (role && ALL_NAV[role]) || ALL_NAV.reception;
 
   return (
@@ -167,13 +174,6 @@ export default function Sidebar() {
       {/* Mobile Backdrop overlay */}
       {mobileOpen && (
         <div className="mobile-overlay mobile-only" onClick={() => setMobileOpen(false)} />
-      )}
-
-      {/* Floating Action Button (Mobile Only) */}
-      {!mobileOpen && (
-        <button className="mobile-sidebar-toggle mobile-only" onClick={() => setMobileOpen(true)}>
-          <Menu size={24} />
-        </button>
       )}
     </>
   );

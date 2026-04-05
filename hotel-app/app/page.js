@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import {
   Plus, CheckCircle2, Clock, ClipboardList, AlertTriangle,
   X, MessageSquare, Users, Zap, PlayCircle, UserCheck,
-  ChevronDown, ChevronUp, LogOut, History, Search, ArrowRight,
+  ChevronDown, ChevronUp, LogOut, History, Search, ArrowRight, Menu,
 } from 'lucide-react';
 import Sidebar from '@/components/Sidebar';
 
@@ -776,6 +776,9 @@ export default function DashboardPage() {
           <div className="role-spacer"></div>
           <button className="logout-btn desktop-only" onClick={logout}>
             <LogOut size={13} /> Logout
+          </button>
+          <button className="mobile-only btn-icon" onClick={() => window.dispatchEvent(new Event('openSidebar'))} style={{ padding: '0 4px', background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+            <Menu size={22} style={{ color: 'var(--text-primary)' }} />
           </button>
         </div>
 

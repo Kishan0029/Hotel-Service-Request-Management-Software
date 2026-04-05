@@ -5,7 +5,7 @@ import {
   LogOut, Plus, X, RefreshCw, Shield, MapPin, Camera,
   ClipboardList, Clock, AlertTriangle, CheckCircle2, ArrowRight,
   Upload, Flame, Activity, ChevronDown, ChevronUp, History, Zap,
-  UserCheck, PlayCircle, Search, Filter
+  UserCheck, PlayCircle, Search, Filter, Menu
 } from 'lucide-react';
 import Sidebar from '@/components/Sidebar';
 import { useToast } from '@/components/Toast';
@@ -762,6 +762,9 @@ export default function ManagerDashboard() {
               <span className="td-muted ml-1">· {user.department_name}</span>
             </div>
           </div>
+          <button className="mobile-only btn-icon" onClick={() => window.dispatchEvent(new Event('openSidebar'))} style={{ marginLeft: 'auto', padding: '0 4px', background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+            <Menu size={22} style={{ color: 'var(--text-primary)' }} />
+          </button>
           <div className="header-actions">
             <button
               className="btn btn-primary btn-sm"

@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import {
   AlertTriangle, CheckCircle2, Clock, ClipboardList,
   Flame, BarChart2, Activity, LogOut, RefreshCw, Plus, X, ArrowRight,
-  ClipboardCheck, Wrench, ShieldAlert, ArrowRightCircle, Star
+  ClipboardCheck, Wrench, ShieldAlert, ArrowRightCircle, Star, Menu
 } from 'lucide-react';
 import Sidebar from '@/components/Sidebar';
 import { useToast } from '@/components/Toast';
@@ -462,6 +462,9 @@ export default function GmDashboard() {
           <div className="role-spacer" />
           <button className="btn btn-ghost btn-sm desktop-only" onClick={logout}>
             <LogOut size={13} /> Logout
+          </button>
+          <button className="mobile-only btn-icon" onClick={() => window.dispatchEvent(new Event('openSidebar'))} style={{ padding: '0 4px', background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
+            <Menu size={22} style={{ color: 'var(--text-primary)' }} />
           </button>
         </div>
 
