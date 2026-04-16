@@ -296,6 +296,15 @@ textarea {
   box-shadow: 0 1px 0 var(--border);
 }
 
+/*
+  IMPORTANT: .desktop-only sets display:block !important globally.
+  For <header class="page-header desktop-only"> we must restore flex
+  so the header's space-between layout works on desktop.
+*/
+.page-header.desktop-only {
+  display: flex !important;
+}
+
 .page-header-title {
   font-family: 'Plus Jakarta Sans', sans-serif;
   font-size: 1.1rem;
@@ -3590,23 +3599,24 @@ tbody tr.row-complaint {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 34px;
-  height: 34px;
+  width: 36px;
+  height: 36px;
+  padding: 6px;
   background: transparent;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  color: var(--text-primary);
+  border: none;            /* ghost tap target — no border box */
+  border-radius: 6px;
+  color: #374151;          /* neutral dark grey */
   cursor: pointer;
   flex-shrink: 0;
-  transition: background var(--transition), border-color var(--transition);
+  transition: background 0.15s ease;
 }
 
 .mobile-header-menu:hover {
-  background: var(--bg);
-  border-color: #CBD5E1;
+  background: #F3F4F6;     /* subtle grey on hover */
 }
 
 .mobile-header-menu:active {
+  background: #E5E7EB;
   transform: scale(0.94);
 }
 
@@ -3636,6 +3646,25 @@ tbody tr.row-complaint {
 @media (max-width: 768px) {
   .mobile-header {
     display: flex !important;
+  }
+}
+
+/* Mobile-only CTA action strip (e.g. Create Task button) */
+.mobile-cta-bar {
+  display: none;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.mobile-cta-bar .btn {
+  width: 100%;
+  justify-content: center;
+}
+
+@media (max-width: 768px) {
+  .mobile-cta-bar {
+    display: block;
   }
 }
 

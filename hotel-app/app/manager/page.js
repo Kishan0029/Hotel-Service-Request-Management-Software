@@ -758,6 +758,13 @@ export default function ManagerDashboard() {
         {/* Mobile Header */}
         <MobileHeader title="Manager Dashboard" subtitle={`${user.name} · ${user.department_name}`} />
 
+        {/* Mobile Create Task CTA (hidden on desktop) */}
+        <div className="mobile-cta-bar">
+          <button className="btn btn-primary" onClick={() => setShowCreate(true)} data-testid="manager-create-btn-mobile">
+            <Plus size={14} /> Create Task
+          </button>
+        </div>
+
         {/* Desktop Page Header */}
         <header className="page-header desktop-only" data-testid="manager-header">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', width: '100%' }}>
@@ -775,7 +782,7 @@ export default function ManagerDashboard() {
               onClick={() => setShowCreate(true)}
               data-testid="manager-create-btn"
             >
-              <Plus size={14} /> New Request
+              <Plus size={14} /> Create Task
             </button>
             <button
               className="btn btn-mod-cta btn-sm"

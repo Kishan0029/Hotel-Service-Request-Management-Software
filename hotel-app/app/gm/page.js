@@ -461,6 +461,13 @@ export default function GmDashboard() {
         {/* Mobile Header */}
         <MobileHeader title="GM Dashboard" subtitle={user.name} />
 
+        {/* Mobile Create Task CTA (hidden on desktop) */}
+        <div className="mobile-cta-bar">
+          <button className="btn btn-primary" onClick={() => setShowCreate(true)}>
+            <Plus size={14} /> Create Task
+          </button>
+        </div>
+
         {/* Desktop Page Header */}
         <header className="page-header desktop-only">
           <div>
@@ -477,7 +484,7 @@ export default function GmDashboard() {
               <LogOut size={13} /> Logout
             </button>
             <button className="btn btn-primary btn-sm" onClick={() => setShowCreate(true)}>
-              <Plus size={14} /> New Task
+              <Plus size={14} /> Create Task
             </button>
           </div>
         </header>

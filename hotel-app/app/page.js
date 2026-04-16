@@ -758,6 +758,15 @@ export default function DashboardPage() {
           subtitle={currentUser?.name}
         />
 
+        {/* ── Mobile Create Task CTA (hidden on desktop) ─── */}
+        {currentUser?.role !== 'staff' && (
+          <div className="mobile-cta-bar">
+            <button className="btn btn-primary" onClick={() => setShowCreate(true)}>
+              <Plus size={15} /> Create Task
+            </button>
+          </div>
+        )}
+
         {/* ── Flash Alerts ─────────────────────────────── */}
         {flashAlerts.length > 0 && (
           <div className="flash-alerts">
@@ -788,7 +797,7 @@ export default function DashboardPage() {
             </button>
             <button className="btn btn-ghost" onClick={() => setShowTestSms(true)}><MessageSquare size={15} /> Test SMS</button>
             {currentUser?.role !== 'staff' && (
-              <button className="btn btn-primary" onClick={() => setShowCreate(true)}><Plus size={15} /> New Request</button>
+              <button className="btn btn-primary" onClick={() => setShowCreate(true)}><Plus size={15} /> Create Task</button>
             )}
           </div>
         </header>
