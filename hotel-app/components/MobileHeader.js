@@ -6,8 +6,8 @@ import { Menu } from 'lucide-react';
  * Provides consistent hamburger + title across all pages.
  *
  * Layout:
- *   [ Title         ]          [   ]
- *   [ Subtitle      ]          [ ☰ ]
+ *   [ Page Title ──────────────── ☰ ]   ← top row
+ *   [ Subtitle (user / role)          ]   ← second row (if provided)
  *
  * Props:
  *   title    {string} — page title
@@ -22,17 +22,20 @@ export default function MobileHeader({ title, subtitle }) {
 
   return (
     <div className="mobile-header mobile-only">
-      <div className="mobile-header-info">
+      {/* Top row: title LEFT — hamburger RIGHT */}
+      <div className="mobile-header-top">
         <div className="mobile-header-title">{title}</div>
-        {subtitle && <div className="mobile-header-sub">{subtitle}</div>}
+        <button
+          className="mobile-header-menu"
+          onClick={openSidebar}
+          aria-label="Open navigation menu"
+        >
+          <Menu size={22} />
+        </button>
       </div>
-      <button
-        className="mobile-header-menu"
-        onClick={openSidebar}
-        aria-label="Open navigation menu"
-      >
-        <Menu size={22} />
-      </button>
+
+      {/* Second row: subtitle below (only if provided) */}
+      {subtitle && <div className="mobile-header-sub">{subtitle}</div>}
     </div>
   );
 }
