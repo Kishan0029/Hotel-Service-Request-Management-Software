@@ -6,6 +6,7 @@ import {
   UserCheck, PlayCircle, RefreshCw, ClipboardList, Bell, Hotel, ChevronRight, Image as ImageIcon
 } from 'lucide-react';
 import Sidebar from '@/components/Sidebar';
+import MobileHeader from '@/components/MobileHeader';
 import { useToast } from '@/components/Toast';
 
 /* ── helpers ──────────────────────────────────────────────── */
@@ -394,7 +395,10 @@ export default function StaffDashboard() {
           </div>
         )}
 
-        <header className="page-header" data-testid="staff-header">
+        {/* Mobile Header */}
+        <MobileHeader title="My Tasks" subtitle={user.name} />
+
+        <header className="page-header desktop-only" data-testid="staff-header">
           <div>
             <div className="page-header-title">My Tasks</div>
             <div className="page-header-sub">
@@ -405,7 +409,7 @@ export default function StaffDashboard() {
             <button className="btn btn-ghost btn-sm" onClick={() => loadTasks()} data-testid="staff-refresh-btn" aria-label="Refresh tasks">
               <RefreshCw size={14} />
             </button>
-            <button className="btn btn-ghost btn-sm desktop-only" onClick={logout}>
+            <button className="btn btn-ghost btn-sm" onClick={logout}>
               <LogOut size={13} /> Logout
             </button>
           </div>

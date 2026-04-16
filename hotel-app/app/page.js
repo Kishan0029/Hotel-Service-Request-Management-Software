@@ -7,6 +7,7 @@ import {
   ChevronDown, ChevronUp, LogOut, History, Search, ArrowRight, Menu,
 } from 'lucide-react';
 import Sidebar from '@/components/Sidebar';
+import MobileHeader from '@/components/MobileHeader';
 
 /* ════════════════════════════════════════════════════════════
    HELPERS
@@ -751,6 +752,12 @@ export default function DashboardPage() {
       <Sidebar />
       <div className="main-content">
 
+        {/* ── Mobile Header (all roles) ─────────────── */}
+        <MobileHeader
+          title={currentUser?.role === 'reception' ? 'Reception Dashboard' : 'Operational Dashboard'}
+          subtitle={currentUser?.name}
+        />
+
         {/* ── Flash Alerts ─────────────────────────────── */}
         {flashAlerts.length > 0 && (
           <div className="flash-alerts">
@@ -769,25 +776,16 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* ── Role / User Header Bar ───────────────────── */}
-        <div className="role-bar">
-          <span style={{ fontWeight: 600 }}>{currentUser?.name}</span>
-          {currentUser?.department_id && <span className="td-muted td-dept-label">{departments.find(d => d.id === currentUser.department_id)?.name}</span>}
-          <div className="role-spacer"></div>
-          <button className="logout-btn desktop-only" onClick={logout}>
-            <LogOut size={13} /> Logout
-          </button>
-          <button className="mobile-only btn-icon" onClick={() => window.dispatchEvent(new Event('openSidebar'))} style={{ padding: '0 4px', background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
-            <Menu size={22} style={{ color: 'var(--text-primary)' }} />
-          </button>
-        </div>
-
-        <header className="page-header">
+        {/* ── Desktop Page Header ───────────────────── */}
+        <header className="page-header desktop-only">
           <div>
             <div className="page-header-title">{currentUser?.role === 'reception' ? 'Reception Dashboard' : 'Operational Dashboard'}</div>
-            <div className="page-header-sub">Guest Service Requests</div>
+            <div className="page-header-sub">{currentUser?.name}{currentUser?.department_id && ` · ${departments.find(d => d.id === currentUser.department_id)?.name ?? ''}`}</div>
           </div>
           <div className="header-actions">
+            <button className="logout-btn btn btn-ghost btn-sm" onClick={logout}>
+              <LogOut size={13} /> Logout
+            </button>
             <button className="btn btn-ghost" onClick={() => setShowTestSms(true)}><MessageSquare size={15} /> Test SMS</button>
             {currentUser?.role !== 'staff' && (
               <button className="btn btn-primary" onClick={() => setShowCreate(true)}><Plus size={15} /> New Request</button>

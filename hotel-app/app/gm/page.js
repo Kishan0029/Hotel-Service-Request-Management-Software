@@ -7,6 +7,7 @@ import {
   ClipboardCheck, Wrench, ShieldAlert, ArrowRightCircle, Star, Menu
 } from 'lucide-react';
 import Sidebar from '@/components/Sidebar';
+import MobileHeader from '@/components/MobileHeader';
 import { useToast } from '@/components/Toast';
 
 /* ── Helpers ─────────────────────────────────────────────── */
@@ -456,19 +457,12 @@ export default function GmDashboard() {
       <Sidebar />
       <div className="main-content">
         {error && <div className="error-banner" style={{ margin: 20 }}>{error}</div>}
-        {/* Role bar */}
-        <div className="role-bar">
-          <span style={{ fontWeight: 600 }}>{user.name}</span>
-          <div className="role-spacer" />
-          <button className="btn btn-ghost btn-sm desktop-only" onClick={logout}>
-            <LogOut size={13} /> Logout
-          </button>
-          <button className="mobile-only btn-icon" onClick={() => window.dispatchEvent(new Event('openSidebar'))} style={{ padding: '0 4px', background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
-            <Menu size={22} style={{ color: 'var(--text-primary)' }} />
-          </button>
-        </div>
 
-        <header className="page-header">
+        {/* Mobile Header */}
+        <MobileHeader title="GM Dashboard" subtitle={user.name} />
+
+        {/* Desktop Page Header */}
+        <header className="page-header desktop-only">
           <div>
             <div className="page-header-title">Executive Dashboard</div>
             <div className="page-header-sub">Property-wide oversight</div>
@@ -479,6 +473,9 @@ export default function GmDashboard() {
                 Updated {elapsed(lastRefresh)}
               </span>
             )}
+            <button className="btn btn-ghost btn-sm" onClick={logout}>
+              <LogOut size={13} /> Logout
+            </button>
             <button className="btn btn-primary btn-sm" onClick={() => setShowCreate(true)}>
               <Plus size={14} /> New Task
             </button>

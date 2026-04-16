@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react';
 import Sidebar from '@/components/Sidebar';
+import MobileHeader from '@/components/MobileHeader';
 import { Plus, Pencil, Trash2, X, Building2 } from 'lucide-react';
 
 function DeptModal({ dept, allStaff, onClose, onSaved }) {
@@ -135,7 +136,10 @@ export default function DepartmentsPage() {
     <div className="app-shell">
       <Sidebar />
       <div className="main-content">
-        <header className="page-header">
+        {/* Mobile Header */}
+        <MobileHeader title="Departments" subtitle="Service departments" />
+
+        <header className="page-header desktop-only">
           <div>
             <div className="page-header-title">Department Management</div>
             <div className="page-header-sub">Service departments & default staff assignments</div>

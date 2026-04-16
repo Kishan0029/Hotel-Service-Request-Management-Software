@@ -3562,6 +3562,80 @@ tbody tr.row-complaint {
 }
 
 /* ============================================================
+   MOBILE HEADER COMPONENT
+   ============================================================ */
+
+/* MobileHeader: compact sticky bar shown only on mobile */
+.mobile-header {
+  display: none; /* shown via .mobile-only media query override */
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  min-height: 48px;
+  box-shadow: 0 1px 0 var(--border);
+}
+
+.mobile-header-menu {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background var(--transition), border-color var(--transition);
+}
+
+.mobile-header-menu:hover {
+  background: var(--bg);
+  border-color: #CBD5E1;
+}
+
+.mobile-header-menu:active {
+  transform: scale(0.94);
+}
+
+.mobile-header-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.mobile-header-title {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mobile-header-sub {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  margin-top: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 768px) {
+  .mobile-header {
+    display: flex !important;
+  }
+}
+
+/* ============================================================
    RESPONSIVE
    ============================================================ */
 .mobile-overlay {
@@ -3636,71 +3710,25 @@ tbody tr.row-complaint {
     margin-left: 0 !important;
   }
 
+  /* Desktop page-header hidden on mobile — MobileHeader takes over */
+  .page-header.desktop-only {
+    display: none !important;
+  }
+
+  /* Keep page-header visible if not explicitly desktop-only */
   .page-header {
     height: auto !important;
-    padding: 12px 16px !important;
+    padding: 10px 16px !important;
     display: flex !important;
     flex-direction: row !important;
     align-items: center !important;
     justify-content: space-between !important;
-    gap: 12px !important;
+    gap: 8px !important;
     background: var(--surface) !important;
     border-bottom: 1px solid var(--border) !important;
     position: sticky !important;
     top: 0 !important;
     z-index: 1000 !important;
-  }
-
-  .header-brand {
-    flex: 1 !important;
-    min-width: 0 !important;
-    display: flex !important;
-    align-items: center !important;
-    gap: 8px !important;
-  }
-
-  .header-brand > div {
-    min-width: 0 !important;
-  }
-
-  .header-title {
-    font-size: 0.9rem !important;
-    white-space: nowrap !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-  }
-
-  .mobile-sidebar-toggle.mobile-only {
-    display: flex !important;
-    position: absolute !important;
-    top: 16px !important;
-    right: 16px !important;
-    z-index: 100000 !important;
-    width: 32px !important;
-    height: 32px !important;
-    background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-    color: var(--text-primary) !important;
-    justify-content: center !important;
-    align-items: center !important;
-  }
-
-  /* Reset header row for cleaner mobile stack */
-  .page-header {
-    height: auto !important;
-    padding: 14px 16px !important;
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: stretch !important;
-    justify-content: flex-start !important;
-    gap: 8px !important;
-    position: relative !important;
-    z-index: 50 !important;
-  }
-
-  .header-brand {
-    padding-right: 50px !important; /* Always avoid toggle */
   }
 
   .header-actions {

@@ -3,6 +3,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Calendar, Search, ArrowLeft } from 'lucide-react';
 import Sidebar from '@/components/Sidebar';
+import MobileHeader from '@/components/MobileHeader';
 import { useToast } from '@/components/Toast';
 
 function elapsed(iso) {
@@ -89,7 +90,10 @@ export default function HistoryPage() {
     <div className="app-shell">
       <Sidebar />
       <div className="main-content">
-        <header className="page-header">
+        {/* Mobile Header */}
+        <MobileHeader title="History" subtitle={user.name} />
+
+        <header className="page-header desktop-only">
           <div>
             <div className="page-header-title">History</div>
             <div className="page-header-sub">View past logs and requests by date</div>

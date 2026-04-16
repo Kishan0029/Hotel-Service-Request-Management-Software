@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react';
 import Sidebar from '@/components/Sidebar';
+import MobileHeader from '@/components/MobileHeader';
 import { Plus, Pencil, X, Users } from 'lucide-react';
 
 const ROLES = ['staff', 'supervisor', 'manager'];
@@ -171,7 +172,10 @@ export default function StaffPage() {
     <div className="app-shell">
       <Sidebar />
       <div className="main-content">
-        <header className="page-header">
+        {/* Mobile Header */}
+        <MobileHeader title="Staff" subtitle="Hotel employees" />
+
+        <header className="page-header desktop-only">
           <div>
             <div className="page-header-title">Staff Management</div>
             <div className="page-header-sub">Hotel employees and assignments</div>

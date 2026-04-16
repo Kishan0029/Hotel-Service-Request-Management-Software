@@ -8,6 +8,7 @@ import {
   UserCheck, PlayCircle, Search, Filter, Menu
 } from 'lucide-react';
 import Sidebar from '@/components/Sidebar';
+import MobileHeader from '@/components/MobileHeader';
 import { useToast } from '@/components/Toast';
 
 /* ── helpers ──────────────────────────────────────────────── */
@@ -754,17 +755,20 @@ export default function ManagerDashboard() {
           </div>
         )}
 
-        <header className="page-header" data-testid="manager-header">
-          <div>
-            <div className="page-header-title">Operations Dashboard</div>
-            <div className="page-header-sub">
-              {user.name} 
-              <span className="td-muted ml-1">· {user.department_name}</span>
+        {/* Mobile Header */}
+        <MobileHeader title="Manager Dashboard" subtitle={`${user.name} · ${user.department_name}`} />
+
+        {/* Desktop Page Header */}
+        <header className="page-header desktop-only" data-testid="manager-header">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', width: '100%' }}>
+            <div>
+              <div className="page-header-title">Operations Dashboard</div>
+              <div className="page-header-sub">
+                {user.name}
+                <span className="td-muted ml-1">· {user.department_name}</span>
+              </div>
             </div>
           </div>
-          <button className="mobile-only btn-icon" onClick={() => window.dispatchEvent(new Event('openSidebar'))} style={{ marginLeft: 'auto', padding: '0 4px', background: 'transparent', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center' }}>
-            <Menu size={22} style={{ color: 'var(--text-primary)' }} />
-          </button>
           <div className="header-actions">
             <button
               className="btn btn-primary btn-sm"
@@ -784,7 +788,7 @@ export default function ManagerDashboard() {
             <button className="btn btn-ghost btn-sm" onClick={() => loadData()} aria-label="Refresh">
               <RefreshCw size={14} />
             </button>
-            <button className="btn btn-ghost btn-sm desktop-only" onClick={logout}>
+            <button className="btn btn-ghost btn-sm" onClick={logout}>
               <LogOut size={13} /> Logout
             </button>
           </div>

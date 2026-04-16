@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react';
 import Sidebar from '@/components/Sidebar';
+import MobileHeader from '@/components/MobileHeader';
 import { MessageSquare, RefreshCw, CheckCircle2, AlertTriangle, ArrowDownCircle } from 'lucide-react';
 
 function elapsed(createdAt) {
@@ -66,7 +67,10 @@ export default function SmsLogsPage() {
     <div className="app-shell">
       <Sidebar />
       <div className="main-content">
-        <header className="page-header">
+        {/* Mobile Header */}
+        <MobileHeader title="SMS Logs" subtitle="Audit trail" />
+
+        <header className="page-header desktop-only">
           <div>
             <div className="page-header-title">SMS Logs</div>
             <div className="page-header-sub">Audit trail for all SMS events</div>

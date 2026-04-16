@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react';
 import Sidebar from '@/components/Sidebar';
+import MobileHeader from '@/components/MobileHeader';
 import { Plus, Pencil, Trash2, X, DoorOpen } from 'lucide-react';
 
 function RoomModal({ room, onClose, onSaved }) {
@@ -134,7 +135,10 @@ export default function RoomsPage() {
     <div className="app-shell">
       <Sidebar />
       <div className="main-content">
-        <header className="page-header">
+        {/* Mobile Header */}
+        <MobileHeader title="Rooms" subtitle="Hotel rooms" />
+
+        <header className="page-header desktop-only">
           <div>
             <div className="page-header-title">Room Management</div>
             <div className="page-header-sub">Hotel rooms available for service requests</div>

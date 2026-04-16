@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react';
 import Sidebar from '@/components/Sidebar';
+import MobileHeader from '@/components/MobileHeader';
 import { Plus, Pencil, Trash2, X, MapPin } from 'lucide-react';
 
 function LocationModal({ location, onClose, onSaved }) {
@@ -142,7 +143,10 @@ export default function LocationsAdminPage() {
     <div className="app-shell">
       <Sidebar />
       <div className="main-content">
-        <header className="page-header">
+        {/* Mobile Header */}
+        <MobileHeader title="Locations" subtitle="Hotel areas & rooms" />
+
+        <header className="page-header desktop-only">
           <div>
             <div className="page-header-title">Location Management</div>
             <div className="page-header-sub">Manage Rooms and General Hotel Areas for MOD Dispatch</div>
