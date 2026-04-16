@@ -3565,27 +3565,33 @@ tbody tr.row-complaint {
    MOBILE HEADER COMPONENT
    ============================================================ */
 
-/* MobileHeader: compact sticky bar shown only on mobile */
+/* Outer wrapper: column so top-row and subtitle stack vertically */
 .mobile-header {
   display: none; /* shown via .mobile-only media query override */
-  align-items: center;
-  gap: 10px;
+  flex-direction: column;
   padding: 10px 12px;
   background: var(--surface);
   border-bottom: 1px solid var(--border);
   position: sticky;
   top: 0;
   z-index: 1000;
-  min-height: 48px;
   box-shadow: 0 1px 0 var(--border);
+}
+
+/* Top row: title (left) + hamburger button (right) */
+.mobile-header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
 }
 
 .mobile-header-menu {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 34px;
+  height: 34px;
   background: transparent;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
@@ -3604,11 +3610,6 @@ tbody tr.row-complaint {
   transform: scale(0.94);
 }
 
-.mobile-header-info {
-  flex: 1;
-  min-width: 0;
-}
-
 .mobile-header-title {
   font-family: 'Plus Jakarta Sans', sans-serif;
   font-size: 0.95rem;
@@ -3618,12 +3619,15 @@ tbody tr.row-complaint {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  flex: 1;
+  min-width: 0;
 }
 
+/* Second row: subtitle below the top row */
 .mobile-header-sub {
   font-size: 0.7rem;
   color: var(--text-secondary);
-  margin-top: 1px;
+  margin-top: 2px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
