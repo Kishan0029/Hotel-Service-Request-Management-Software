@@ -9,15 +9,20 @@
  *   [ Subtitle (user / role)        ]   ← second row (if provided)
  *
  * Props:
- *   title    {string} — page title
- *   subtitle {string} — optional subtitle / user name
+ *   title    {string}  — page title
+ *   subtitle {string}  — optional subtitle / user name
+ *   hidden   {boolean} — when true, renders nothing (e.g. while a modal is open)
  */
-export default function MobileHeader({ title, subtitle }) {
+export default function MobileHeader({ title, subtitle, hidden = false }) {
   const openSidebar = () => {
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new Event('openSidebar'));
     }
   };
+
+  // Hide completely when a modal is open so the sticky bar doesn't
+  // float above the modal overlay on mobile.
+  if (hidden) return null;
 
   return (
     <div className="mobile-header mobile-only">

@@ -756,10 +756,11 @@ export default function DashboardPage() {
         <MobileHeader
           title={currentUser?.role === 'reception' ? 'Reception Dashboard' : 'Operational Dashboard'}
           subtitle={currentUser?.name}
+          hidden={showCreate}
         />
 
-        {/* ── Mobile Create Task CTA (hidden on desktop) ─── */}
-        {currentUser?.role !== 'staff' && (
+        {/* ── Mobile Create Task CTA (hidden on desktop or when modal open) ── */}
+        {currentUser?.role !== 'staff' && !showCreate && (
           <div className="mobile-cta-bar">
             <button className="btn btn-primary" onClick={() => setShowCreate(true)}>
               <Plus size={15} /> Create Task
