@@ -3565,10 +3565,12 @@ tbody tr.row-complaint {
    MOBILE HEADER COMPONENT
    ============================================================ */
 
-/* Outer wrapper: column so top-row and subtitle stack vertically */
+/* Outer wrapper: row container vertically centered */
 .mobile-header {
   display: none; /* shown via .mobile-only media query override */
-  flex-direction: column;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
   padding: 10px 12px;
   background: var(--surface);
   border-bottom: 1px solid var(--border);
@@ -3578,12 +3580,13 @@ tbody tr.row-complaint {
   box-shadow: 0 1px 0 var(--border);
 }
 
-/* Top row: title (left) + hamburger button (right) */
-.mobile-header-top {
+/* Info container: stacks title and subtitle and pushes menu to the right */
+.mobile-header-info {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  margin-right: 12px;
 }
 
 .mobile-header-menu {
