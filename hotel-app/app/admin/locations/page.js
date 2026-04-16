@@ -144,7 +144,7 @@ export default function LocationsAdminPage() {
       <Sidebar />
       <div className="main-content">
         {/* Mobile Header */}
-        <MobileHeader title="Locations" subtitle="Hotel areas & rooms" />
+        <MobileHeader title="Locations" subtitle="Hotel areas &amp; rooms" hidden={modal !== null} />
 
         <header className="page-header desktop-only">
           <div>

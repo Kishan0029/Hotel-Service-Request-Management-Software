@@ -137,7 +137,7 @@ export default function DepartmentsPage() {
       <Sidebar />
       <div className="main-content">
         {/* Mobile Header */}
-        <MobileHeader title="Departments" subtitle="Service departments" />
+        <MobileHeader title="Departments" subtitle="Service departments" hidden={modal !== null} />
 
         <header className="page-header desktop-only">
           <div>

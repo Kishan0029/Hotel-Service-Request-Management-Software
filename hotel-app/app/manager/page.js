@@ -756,10 +756,10 @@ export default function ManagerDashboard() {
         )}
 
         {/* Mobile Header */}
-        <MobileHeader title="Manager Dashboard" subtitle={`${user.name} · ${user.department_name}`} hidden={showCreate} />
+        <MobileHeader title="Manager Dashboard" subtitle={`${user.name} · ${user.department_name}`} hidden={showCreate || showMod} />
 
         {/* Mobile Create Task CTA (hidden on desktop or when modal open) */}
-        {!showCreate && (
+        {!showCreate && !showMod && (
           <div className="mobile-cta-bar">
             <button className="btn btn-primary" onClick={() => setShowCreate(true)} data-testid="manager-create-btn-mobile">
               <Plus size={14} /> Create Task

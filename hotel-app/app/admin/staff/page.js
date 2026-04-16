@@ -173,7 +173,7 @@ export default function StaffPage() {
       <Sidebar />
       <div className="main-content">
         {/* Mobile Header */}
-        <MobileHeader title="Staff" subtitle="Hotel employees" />
+        <MobileHeader title="Staff" subtitle="Hotel employees" hidden={modal !== null} />
 
         <header className="page-header desktop-only">
           <div>

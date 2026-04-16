@@ -396,7 +396,7 @@ export default function StaffDashboard() {
         )}
 
         {/* Mobile Header */}
-        <MobileHeader title="My Tasks" subtitle={user.name} />
+        <MobileHeader title="My Tasks" subtitle={user.name} hidden={showSheet} />
 
         <header className="page-header desktop-only" data-testid="staff-header">
           <div>

@@ -136,7 +136,7 @@ export default function RoomsPage() {
       <Sidebar />
       <div className="main-content">
         {/* Mobile Header */}
-        <MobileHeader title="Rooms" subtitle="Hotel rooms" />
+        <MobileHeader title="Rooms" subtitle="Hotel rooms" hidden={modal !== null} />
 
         <header className="page-header desktop-only">
           <div>

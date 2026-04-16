@@ -689,28 +689,6 @@ export default function DashboardPage() {
           'x-api-key': process.env.NEXT_PUBLIC_API_KEY
         },
         body: JSON.stringify({
-          assign_to:     targetStaffId,
-          assigner_role: assignerRole,
-          by:            currentUser?.name ?? 'Unknown',
-        }),
-      });
-      const updated = await res.json();
-      if (!res.ok) throw new Error(updated.error);
-      setTasks(prev => prev.map(t => t.id === taskId ? updated : t));
-    } catch (err) {
-      alert('Error: ' + err.message);
-    } finally {
-      setActionLoading(prev => ({ ...prev, [taskId]: null }));
-    }
-  };
-
-  const handleCreated = (task) => {
-    setTasks(prev => { const e = prev.some(t => t.id === task.id); return e ? prev.map(t => t.id === task.id ? task : t) : [task, ...prev]; });
-    if (task.sms_status) setSmsStatus(prev => ({ ...prev, [task.id]: task.sms_status }));
-  };
-
-  const logout = () => { localStorage.removeItem('currentUser'); router.push('/login'); };
-
   /* ── Derived data (V4) ───────────────────────────────────── */
   // Supervisors in current user's dept (for manager to assign)
   const supervisorsInMyDept = allStaff.filter(s =>
@@ -756,11 +734,11 @@ export default function DashboardPage() {
         <MobileHeader
           title={currentUser?.role === 'reception' ? 'Reception Dashboard' : 'Operational Dashboard'}
           subtitle={currentUser?.name}
-          hidden={showCreate}
+          hidden={showCreate || showTestSms}
         />
 
         {/* ── Mobile Create Task CTA (hidden on desktop or when modal open) ── */}
-        {currentUser?.role !== 'staff' && !showCreate && (
+        {currentUser?.role !== 'staff' && !showCreate && !showTestSms && (
           <div className="mobile-cta-bar">
             <button className="btn btn-primary" onClick={() => setShowCreate(true)}>
               <Plus size={15} /> Create Task
