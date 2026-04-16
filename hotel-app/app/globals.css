@@ -3602,6 +3602,7 @@ tbody tr.row-complaint {
   width: 36px;
   height: 36px;
   padding: 6px;
+  margin-top: 1px;         /* visually nudge down for equal optical padding */
   background: transparent;
   border: none;            /* ghost tap target — no border box */
   border-radius: 6px;
